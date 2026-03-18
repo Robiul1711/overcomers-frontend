@@ -1,11 +1,19 @@
+import CommonBanner from '@/components/common/CommonBanner'
+import JoinOurMailingList from '@/components/common/JoinOurMailingList'
+import EventsList from '@/components/EventComponents/EventsList'
 import React from 'react'
 
 const Events = () => {
   return (
-    <div className="pt-32 px-6 md:px-12 max-w-[1440px] mx-auto min-h-screen">
-      <h1 className="text-4xl font-bold text-Third mb-6">Events</h1>
-      <p className="text-gray-600">Events page content goes here...</p>
-    </div>
+ <div>
+  <CommonBanner
+    link="Events"
+    title="Community Events"
+    subtitle="Stay connected with workshops, family events, and professional development opportunities hosted by Overcomers ABA Services."
+  />
+  <EventsList />
+  <JoinOurMailingList/>
+ </div>
   )
 }
 

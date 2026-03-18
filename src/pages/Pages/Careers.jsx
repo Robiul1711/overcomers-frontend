@@ -1,10 +1,20 @@
+import CommonBanner from '@/components/common/CommonBanner'
+import JoinOurMailingList from '@/components/common/JoinOurMailingList'
+import OpenPositions from '@/components/CareerComponents/OpenPositions'
+import ApplicationForm from '@/components/CareerComponents/ApplicationForm'
 import React from 'react'
 
 const Careers = () => {
   return (
-    <div className="pt-32 px-6 md:px-12 max-w-[1440px] mx-auto min-h-screen">
-      <h1 className="text-4xl font-bold text-Third mb-6">Careers</h1>
-      <p className="text-gray-600">Careers page content goes here...</p>
+    <div>
+      <CommonBanner
+        link="Careers"
+        title="Join Our Growing Team"
+        subtitle="Looking for a rewarding career where you can make a meaningful difference? Overcomers ABA is hiring passionate professionals."
+      />
+      <OpenPositions />
+      <ApplicationForm />
+      <JoinOurMailingList/>
     </div>
   )
 }

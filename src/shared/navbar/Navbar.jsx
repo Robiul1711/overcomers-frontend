@@ -32,11 +32,11 @@ const Navbar = () => {
 
   return (
     <nav 
-      className={`fixed top-0 left-0 w-full z-50 px-6 md:px-12 transition-all duration-300 ${
+      className={`fixed top-0 left-0 w-full z-50  transition-all duration-300 ${
         isScrolled ? "bg-white shadow-[0_4px_20px_rgba(0,0,0,0.06)] py-2" : "bg-transparent py-4"
       }`}
     >
-      <div className="max-w-[1440px] mx-auto flex items-center justify-between">
+      <div className="section-padding-x flex items-center justify-between">
         <Link to="/">
           <img 
             src={ImageProvider.Logo} 

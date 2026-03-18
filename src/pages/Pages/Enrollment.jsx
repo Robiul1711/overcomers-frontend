@@ -1,10 +1,20 @@
+import CommonBanner from '@/components/common/CommonBanner'
+import JoinOurMailingList from '@/components/common/JoinOurMailingList'
+import EnrollmentInfo from '@/components/EnrollmentComponents/EnrollmentInfo'
+import EnrollmentForm from '@/components/EnrollmentComponents/EnrollmentForm'
 import React from 'react'
 
 const Enrollment = () => {
   return (
-    <div className="pt-32 px-6 md:px-12 max-w-[1440px] mx-auto min-h-screen">
-      <h1 className="text-4xl font-bold text-Third mb-6">Enrollment</h1>
-      <p className="text-gray-600">Enrollment page content goes here...</p>
+    <div >
+      <CommonBanner 
+        link="Enrollment"
+        title="Start the Enrollment Process"
+        subtitle="Complete the form below to begin services. Once submitted, your form will be forwarded securely to our administrative team."
+      />
+      <EnrollmentInfo />
+      <EnrollmentForm />
+      <JoinOurMailingList/>
     </div>
   )
 }

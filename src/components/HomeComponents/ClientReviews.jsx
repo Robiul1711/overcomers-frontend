@@ -2,6 +2,7 @@ import React, { useRef, useState } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Autoplay } from 'swiper/modules';
 import { ChevronLeft, ChevronRight, Star, ArrowUpRight } from 'lucide-react';
+import { motion } from 'motion/react';
 
 // Import Swiper styles
 import 'swiper/css';
@@ -40,11 +41,17 @@ const ClientReviews = () => {
   const swiperRef = useRef(null);
 
   return (
-    <div className="w-full bg-[#FFFBF3] section-padding-x section-padding-y flex flex-col items-center">
+    <div className="w-full bg-[#FFFBF3] section-padding-x section-padding-y flex flex-col items-center overflow-hidden">
       <div className="flex flex-col items-center">
         
         {/* Header */}
-        <div className="flex flex-col items-center text-center mb-16">
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.3 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          className="flex flex-col items-center text-center mb-16"
+        >
           <h3 className="text-Third font-bold text-[15px] tracking-[2px] uppercase mb-3 relative inline-block">
             Client Reviews
             <span className="absolute -bottom-1.5 left-0 w-full h-[2px] bg-Primary rounded-full"></span>
@@ -52,10 +59,16 @@ const ClientReviews = () => {
           <h2 className="text-[32px] md:text-[42px] font-bold text-Secondary mt-2">
             What Our Clients Say
           </h2>
-        </div>
+        </motion.div>
 
         {/* Carousel Container */}
-        <div className="relative w-full max-w-[900px] flex items-center justify-center mb-16 px-12 sm:px-20">
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true, amount: 0.3 }}
+          transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
+          className="relative w-full max-w-[900px] flex items-center justify-center mb-16 px-12 sm:px-20"
+        >
           
           {/* Custom Prev Button */}
           <button 
@@ -140,12 +153,18 @@ const ClientReviews = () => {
             <ChevronRight size={24} strokeWidth={2.5} />
           </button>
           
-        </div>
+        </motion.div>
 
         {/* Bottom CTA */}
-        <button className="bg-Primary hover:bg-Primary/90 text-Third font-bold text-[15px] px-8 py-3.5 rounded-[12px] flex items-center justify-center gap-2 transition-colors shadow-sm">
+        <motion.button 
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+          className="bg-Primary hover:bg-Primary/90 text-Third font-bold text-[15px] px-8 py-3.5 rounded-[12px] flex items-center justify-center gap-2 transition-colors shadow-sm"
+        >
           Enroll A Child <ArrowUpRight size={18} strokeWidth={2.5} />
-        </button>
+        </motion.button>
 
       </div>
     </div>

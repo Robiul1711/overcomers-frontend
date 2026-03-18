@@ -1,27 +1,27 @@
-import React from 'react';
-import { Phone, Mail, Clock, MapPin } from 'lucide-react';
+import React from "react";
+import { Phone, Mail, Clock, MapPin } from "lucide-react";
 
 const contactDetails = [
   {
     icon: Phone,
-    title: 'Phone',
-    desc: '908-342-7584',
+    title: "Phone",
+    desc: "908-342-7584",
   },
   {
     icon: Mail,
-    title: 'Email',
-    desc: 'info@overcomersaba.com.',
+    title: "Email",
+    desc: "info@overcomersaba.com.",
   },
   {
     icon: Clock,
-    title: 'Office Hours',
-    desc: 'Monday – Friday\n8:00 AM – 5:00 PM',
+    title: "Office Hours",
+    desc: "Monday – Friday\n8:00 AM – 5:00 PM",
   },
   {
     icon: MapPin,
-    title: 'Service Area',
-    desc: 'New Jersey, United States',
-  }
+    title: "Service Area",
+    desc: "New Jersey, United States",
+  },
 ];
 
 const ContactInfo = () => {
@@ -34,7 +34,7 @@ const ContactInfo = () => {
         <h2 className="text-[#76121F] text-[32px] md:text-[40px] font-bold mb-10">
           We're here to support
         </h2>
-        
+
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between w-full gap-8 md:gap-4">
           {contactDetails.map((item, idx) => {
             const Icon = item.icon;
@@ -45,7 +45,9 @@ const ContactInfo = () => {
                     <Icon size={18} strokeWidth={2} />
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-[#3A331E] font-bold text-[15px]">{item.title}</span>
+                    <span className="text-[#3A331E] font-bold text-[15px]">
+                      {item.title}
+                    </span>
                     <span className="text-gray-600 text-[14px] leading-relaxed whitespace-pre-line mt-1">
                       {item.desc}
                     </span>

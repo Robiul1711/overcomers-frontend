@@ -1,6 +1,7 @@
 import React from 'react';
 import { ArrowUpRight } from 'lucide-react';
 import { ImageProvider } from '@/utils/ImageProvider';
+import { motion } from 'motion/react';
 
 const JoinOurMailingList = () => {
   return (
@@ -18,10 +19,22 @@ const JoinOurMailingList = () => {
       </div>
 
       {/* Main Content Card Container */}
-      <div className="relative z-10 w-[90%] max-w-[800px] bg-Secondary/30 backdrop-blur-md rounded-[24px] py-14 px-8 md:px-16 flex flex-col items-center justify-center text-center shadow-lg border border-white/10">
+      <motion.div 
+        initial={{ opacity: 0, y: 40 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, amount: 0.3 }}
+        transition={{ duration: 0.8, ease: "easeOut" }}
+        className="relative z-10 w-[90%] max-w-[800px] bg-Secondary/30 backdrop-blur-md rounded-[24px] py-14 px-8 md:px-16 flex flex-col items-center justify-center text-center shadow-lg border border-white/10"
+      >
         
         {/* Header Content */}
-        <div className="flex flex-col items-center mb-8 w-full">
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+          className="flex flex-col items-center mb-8 w-full"
+        >
           <h3 className="text-white font-bold text-[14px] md:text-[16px] tracking-[2px] uppercase mb-3 relative inline-block">
             Join Our Mailing List
             <span className="absolute -bottom-1.5 left-0 w-full h-[2px] bg-Primary rounded-full"></span>
@@ -29,10 +42,17 @@ const JoinOurMailingList = () => {
           <h2 className="text-[36px] md:text-[46px] font-bold text-white mt-1">
             Stay Updated
           </h2>
-        </div>
+        </motion.div>
 
         {/* Input Form */}
-        <form className="w-full max-w-[600px] flex flex-col gap-2" onSubmit={(e) => e.preventDefault()}>
+        <motion.form 
+          initial={{ opacity: 0, scale: 0.95 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, delay: 0.5 }}
+          className="w-full max-w-[600px] flex flex-col gap-2" 
+          onSubmit={(e) => e.preventDefault()}
+        >
           <div className="flex flex-col items-start w-full">
             <label className="text-white font-bold text-[13px] mb-2 px-1">
               Email Address
@@ -52,9 +72,9 @@ const JoinOurMailingList = () => {
               </button>
             </div>
           </div>
-        </form>
+        </motion.form>
 
-      </div>
+      </motion.div>
 
     </div>
   );

@@ -56,7 +56,7 @@ const Banner = () => {
           <button className="bg-Primary hover:bg-Primary/90 text-Third font-bold text-[15px] px-8 py-3.5 rounded-[12px] flex items-center justify-center gap-2 transition-colors w-full sm:w-auto">
             Enroll A Child <ArrowUpRight size={18} strokeWidth={2.5} />
           </button>
-          <button onClick={() => window.location.href = "tel:9083427584"} className="bg-Secondary hover:bg-Secondary/90 text-white font-bold text-[15px] px-8 py-3.5 rounded-[12px] flex items-center justify-center gap-2 transition-colors w-full sm:w-auto border border-Secondary">
+          <button onClick={() => window.location.href = ("/dashboard")} className="bg-Secondary hover:bg-Secondary/90 text-white font-bold text-[15px] px-8 py-3.5 rounded-[12px] flex items-center justify-center gap-2 transition-colors w-full sm:w-auto border border-Secondary">
             Free ABA Consultation <ArrowUpRight size={18} strokeWidth={2.5}/>
           </button>
         </motion.div>

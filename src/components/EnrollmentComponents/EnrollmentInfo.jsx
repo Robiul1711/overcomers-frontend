@@ -1,29 +1,28 @@
-import React from 'react';
-import { Check } from 'lucide-react';
+import React from "react";
+import { Check } from "lucide-react";
 
 const steps = [
-  { num: '01', title: 'Enrollment Application Submission' },
-  { num: '02', title: 'We Review & Get in Touch' },
-  { num: '03', title: 'Await Approvals' },
-  { num: '04', title: 'Conduct Initial Assessment & Treatment Plan' },
-  { 
-    num: '05', 
-    title: 'Services Begin', 
-    desc: 'We match your child with the right therapist and services begin based on the approved treatment plan and schedule.' 
+  { num: "01", title: "Enrollment Application Submission" },
+  { num: "02", title: "We Review & Get in Touch" },
+  { num: "03", title: "Await Approvals" },
+  { num: "04", title: "Conduct Initial Assessment & Treatment Plan" },
+  {
+    num: "05",
+    title: "Services Begin",
+    desc: "We match your child with the right therapist and services begin based on the approved treatment plan and schedule.",
   },
 ];
 
 const documents = [
-  'Front & Back Of Insurance Card',
-  'Neurological Report / Proof Of Diagnosis',
-  'ABA Referral From Physician'
+  "Front & Back Of Insurance Card",
+  "Neurological Report / Proof Of Diagnosis",
+  "ABA Referral From Physician",
 ];
 
 const EnrollmentInfo = () => {
   return (
     <div className="bg-[#FAF7F2] w-full section-padding-x section-padding-y">
       <div className="border border-[#AD3946]/30 rounded-[12px] p-8 md:p-12 lg:p-16 flex flex-col md:flex-row gap-12 md:gap-8 lg:gap-24 relative bg-transparent">
-        
         {/* Left Column - How It Works */}
         <div className="flex-1 flex flex-col">
           <h2 className="text-[#76121F] text-[22px] md:text-[26px] lg:text-[28px] font-bold mb-8">
@@ -71,7 +70,6 @@ const EnrollmentInfo = () => {
             ))}
           </div>
         </div>
-
       </div>
     </div>
   );

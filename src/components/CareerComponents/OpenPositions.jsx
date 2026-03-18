@@ -1,7 +1,11 @@
-import React from 'react';
+import React from "react";
 
 const positions = [
-  'BCBA', 'BCaBA', 'RBT', 'ABA Therapist', 'Lead Behavior Specialist'
+  "BCBA",
+  "BCaBA",
+  "RBT",
+  "ABA Therapist",
+  "Lead Behavior Specialist",
 ];
 
 const OpenPositions = () => {
@@ -16,8 +20,8 @@ const OpenPositions = () => {
         </h2>
         <div className="flex flex-wrap items-center gap-4 w-full">
           {positions.map((pos, idx) => (
-            <div 
-              key={idx} 
+            <div
+              key={idx}
               className="bg-white text-[#76121F] font-bold text-[14px] md:text-[15px] px-8 md:px-10 py-3.5 rounded-lg shadow-[0_2px_10px_rgba(0,0,0,0.03)] cursor-pointer hover:shadow-md transition-shadow"
             >
               {pos}

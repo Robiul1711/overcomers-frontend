@@ -1,5 +1,6 @@
 import React from 'react';
 import { Home, GraduationCap, BrainCircuit, HeartHandshake } from 'lucide-react';
+import { motion } from 'motion/react';
 
 const servicesData = [
   {
@@ -39,13 +40,29 @@ const servicesData = [
 
 const ServicesList = () => {
   return (
-    <div className="bg-[#FAF7F2] w-full section-padding-x section-padding-y">
-      <div className="flex flex-col gap-8">
+    <div className="bg-[#FAF7F2] w-full section-padding-x section-padding-y overflow-hidden">
+      <motion.div 
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.15 }}
+        variants={{
+          visible: {
+            transition: {
+              staggerChildren: 0.2
+            }
+          }
+        }}
+        className="flex flex-col gap-8"
+      >
         {servicesData.map((service, index) => {
           const Icon = service.icon;
           return (
-            <div 
+            <motion.div 
               key={index} 
+              variants={{
+                hidden: { opacity: 0, x: -50 },
+                visible: { opacity: 1, x: 0, transition: { duration: 0.7, ease: "easeOut" } }
+              }}
               className="bg-white rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.04)]  border-[#AD3946] flex flex-col md:flex-row items-start md:items-center p-8 md:p-10 lg:p-12 gap-8 lg:gap-14 transition-transform hover:-translate-y-1 duration-300"
               style={{ borderLeftWidth: '8px' }}
             >
@@ -77,10 +94,10 @@ const ServicesList = () => {
                 ))}
               </div>
 
-            </div>
+            </motion.div>
           );
         })}
-      </div>
+      </motion.div>
     </div>
   );
 };

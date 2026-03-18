@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion } from 'motion/react';
 
 const resources = [
   {
@@ -15,12 +16,28 @@ const resources = [
 
 const DownloadResources = () => {
   return (
-    <div className="w-full bg-[#FAFAFA] section-padding-x py-20 md:py-28 flex justify-center items-center">
-      <div className="max-w-[1440px] w-full flex flex-col md:flex-row justify-center gap-8 md:gap-12 lg:gap-16">
+    <div className="w-full bg-[#FAFAFA] section-padding-x py-20 md:py-28 flex justify-center items-center overflow-hidden">
+      <motion.div 
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.2 }}
+        variants={{
+          visible: {
+            transition: {
+              staggerChildren: 0.2
+            }
+          }
+        }}
+        className="max-w-[1440px] w-full flex flex-col md:flex-row justify-center gap-8 md:gap-12 lg:gap-16"
+      >
         
         {resources.map((resource) => (
-          <div 
+          <motion.div 
             key={resource.id} 
+            variants={{
+              hidden: { opacity: 0, y: 50 },
+              visible: { opacity: 1, y: 0, transition: { duration: 0.7, ease: "easeOut" } }
+            }}
             className="bg-white rounded-[16px] p-10 md:p-14 w-full md:w-1/2 flex flex-col items-center text-center shadow-[0_4px_24px_rgba(0,0,0,0.04)]"
           >
             <h3 className="text-Secondary font-bold text-[18px] md:text-[20px] leading-[1.5] mb-8 min-h-[60px] whitespace-pre-line">
@@ -38,10 +55,10 @@ const DownloadResources = () => {
             <p className="text-gray-400 text-[13px]">
               Click on a file to download.
             </p>
-          </div>
+          </motion.div>
         ))}
 
-      </div>
+      </motion.div>
     </div>
   );
 };

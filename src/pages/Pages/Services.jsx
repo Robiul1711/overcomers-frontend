@@ -1,10 +1,18 @@
+import CommonBanner from '@/components/common/CommonBanner'
+import JoinOurMailingList from '@/components/common/JoinOurMailingList'
+import ServicesList from '@/components/ServiceComponents/ServicesList'
 import React from 'react'
 
 const Services = () => {
   return (
-    <div className="pt-32 px-6 md:px-12 max-w-[1440px] mx-auto min-h-screen">
-      <h1 className="text-4xl font-bold text-Third mb-6">Our Services</h1>
-      <p className="text-gray-600">Services page content goes here...</p>
+    <div className="">
+      <CommonBanner 
+        link="Services"
+        title="Our ABA Therapy Service"
+        subtitle="Applied Behavior Analysis (ABA) is a scientific approach that uses behavioral principles to produce meaningful, measurable change in the lives of children and their families."
+      />
+      <ServicesList />
+      <JoinOurMailingList />
     </div>
   )
 }

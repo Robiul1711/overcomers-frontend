@@ -1,27 +1,44 @@
 import React from 'react';
 import { ArrowRight } from 'lucide-react';
 import { ImageProvider } from '@/utils/ImageProvider';
+import { motion } from 'motion/react';
 
 const AboutUs = () => {
   return (
     <div className="w-full bg-[#FFFBF3] section-padding-x section-padding-y">
-      <div className=" grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
         
         {/* Left Side: Image */}
-        <div className="w-full h-full min-h-[400px] lg:min-h-[600px] rounded-[24px] overflow-hidden shadow-sm relative">
+        <motion.div 
+          initial={{ opacity: 0, x: -30 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          viewport={{ once: true, amount: 0.2 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          className="w-full h-full min-h-[400px] lg:min-h-[600px] rounded-[24px] overflow-hidden shadow-sm relative"
+        >
           {/* Using a placeholder URL for the children running image */}
-          <img 
+          <motion.img 
+            initial={{ scale: 1.1 }}
+            whileInView={{ scale: 1 }}
+            viewport={{ once: true, amount: 0.2 }}
+            transition={{ duration: 1.2, ease: "easeOut" }}
             src={ImageProvider.AboutUs} 
             alt="Children running in school" 
             className="absolute inset-0 w-full h-full object-cover object-center"
           />
-        </div>
+        </motion.div>
 
         {/* Right Side: Content */}
         <div className="flex flex-col">
           
           {/* Header */}
-          <div className="mb-6 flex flex-col items-start">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.2 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+            className="mb-6 flex flex-col items-start"
+          >
             <h3 className="text-Third font-bold text-[18px] mb-2 relative inline-block">
               About Us
               <span className="absolute -bottom-1 left-0 w-full h-[3px] bg-Primary rounded-full"></span>
@@ -29,12 +46,30 @@ const AboutUs = () => {
             <h2 className="text-[36px] md:text-[46px] font-bold text-Secondary leading-[1.2] mt-4">
               Our Mission &<br />Commitment
             </h2>
-          </div>
+          </motion.div>
 
-          {/* List Items */}
-          <div className="flex flex-col gap-8 mt-4">
+          {/* List Items staggered container */}
+          <motion.div 
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.2 }}
+            variants={{
+              visible: {
+                transition: {
+                  staggerChildren: 0.2
+                }
+              }
+            }}
+            className="flex flex-col gap-8 mt-4"
+          >
             
-            <div className="flex items-start gap-4">
+            <motion.div 
+              variants={{
+                hidden: { opacity: 0, y: 20 },
+                visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } }
+              }}
+              className="flex items-start gap-4"
+            >
               <ArrowRight className="text-Secondary shrink-0 mt-1" size={20} />
               <div className="flex flex-col">
                 <h4 className="text-Secondary font-bold text-[16px] md:text-[18px] mb-2">
@@ -48,9 +83,15 @@ const AboutUs = () => {
                   hindering them.
                 </p>
               </div>
-            </div>
+            </motion.div>
 
-            <div className="flex items-start gap-4">
+            <motion.div 
+              variants={{
+                hidden: { opacity: 0, y: 20 },
+                visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } }
+              }}
+              className="flex items-start gap-4"
+            >
               <ArrowRight className="text-Secondary shrink-0 mt-1" size={20} />
               <div className="flex flex-col">
                 <h4 className="text-Secondary font-bold text-[16px] md:text-[18px] mb-2">
@@ -63,9 +104,15 @@ const AboutUs = () => {
                   individualized programs to meet your child's social and behavioral needs.
                 </p>
               </div>
-            </div>
+            </motion.div>
 
-            <div className="flex items-start gap-4">
+            <motion.div 
+              variants={{
+                hidden: { opacity: 0, y: 20 },
+                visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } }
+              }}
+              className="flex items-start gap-4"
+            >
               <ArrowRight className="text-Secondary shrink-0 mt-1" size={20} />
               <div className="flex flex-col">
                 <h4 className="text-Secondary font-bold text-[16px] md:text-[18px] mb-2">
@@ -80,9 +127,9 @@ const AboutUs = () => {
                   several other populations and age groups as well.
                 </p>
               </div>
-            </div>
+            </motion.div>
 
-          </div>
+          </motion.div>
         </div>
 
       </div>

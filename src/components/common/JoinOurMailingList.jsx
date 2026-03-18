@@ -9,7 +9,7 @@ const JoinOurMailingList = () => {
       {/* Background Image Setup */}
       <div className="absolute inset-0 w-full h-full">
         <img 
-          src={ImageProvider.AboutUs} 
+          src={ImageProvider.newsletter} 
           alt="Children running" 
           className="w-full h-full object-cover object-center"
         />

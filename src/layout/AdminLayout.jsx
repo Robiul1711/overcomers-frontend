@@ -3,7 +3,7 @@ import SideBar from "@/pages/admin/SideBar";
 
 import React, { useEffect, useState } from "react";
 import { Outlet, ScrollRestoration, useLocation } from "react-router-dom";
-import { LayoutDashboard, Briefcase, FileText, Settings } from "lucide-react";
+import { LayoutDashboard, Briefcase, FileText, Settings, Wallet, Calendar, Bell } from "lucide-react";
 
 const AdminLayout = () => {
   const [Open, setOpen] = useState(false);
@@ -33,6 +33,27 @@ const AdminLayout = () => {
     },
     {
       id: 4,
+      icon: <Wallet size={20} />,
+      text: "Payroll",
+      path: "/dashboard/payroll",
+      activePaths: ["/dashboard/payroll"],
+    },
+    {
+      id: 5,
+      icon: <Calendar size={20} />,
+      text: "My Schedule",
+      path: "/dashboard/schedule",
+      activePaths: ["/dashboard/schedule"],
+    },
+    {
+      id: 6,
+      icon: <Bell size={20} />,
+      text: "Notifications",
+      path: "/dashboard/notifications",
+      activePaths: ["/dashboard/notifications"],
+    },
+    {
+      id: 7,
       icon: <Settings size={20} />,
       text: "Profile & Settings",
       path: "/dashboard/settings",

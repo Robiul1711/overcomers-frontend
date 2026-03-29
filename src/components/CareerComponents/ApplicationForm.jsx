@@ -217,6 +217,29 @@ const ApplicationForm = () => {
                 </div>
               </div>
             </div>
+            {/* Text Document*/}
+            <div className="flex flex-col gap-2 md:col-span-2 mt-4">
+              <label className="text-[13px] md:text-[14px] font-bold text-[#3A331E]">
+                Text Document <span className="text-[#3A331E]">*</span>
+              </label>
+              <div className="w-full border border-dashed border-Primary bg-[#FFFAF0] rounded-lg py-12 px-8 flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-[#fff7e5] transition-colors relative mt-1">
+                <input
+                  type="file"
+                  {...register("textDocument", { required: true })}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                />
+                <Upload
+                  className="text-[#AD3946] w-6 h-6 mb-1"
+                  strokeWidth={2}
+                />
+                <div className="text-[#AD3946] font-semibold text-[14px] md:text-[15px]">
+                  Click to upload or drag and drop
+                </div>
+                <div className="text-gray-500 text-[12px] md:text-[13px]">
+                  Supported: JPG, PDF. Max size: 10MB
+                </div>
+              </div>
+            </div>
           </div>
 
           <div className="flex flex-col items-center justify-center mt-6 gap-4">

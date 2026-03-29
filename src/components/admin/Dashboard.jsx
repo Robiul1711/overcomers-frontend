@@ -1,5 +1,6 @@
 import React from 'react';
 import { Briefcase, FileText, Bell, ArrowUpRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const Dashboard = () => {
   const casesData = [
@@ -70,9 +71,9 @@ const Dashboard = () => {
             <h3 className="text-xl font-bold text-Third mb-1">Recent Case Assignments</h3>
             <p className="text-gray-500 text-sm">View the most recent cases assigned to you</p>
           </div>
-          <button className="flex items-center justify-center gap-2 bg-Secondary hover:bg-Secondary/90 text-white font-medium text-sm py-2.5 px-5 rounded-lg transition duration-300">
+          <Link to="/dashboard/cases" className="flex items-center justify-center gap-2 bg-Secondary hover:bg-Secondary/90 text-white font-medium text-sm py-2.5 px-5 rounded-lg transition duration-300">
             View All Cases <ArrowUpRight size={18} strokeWidth={2} />
-          </button>
+          </Link>
         </div>
 
         <div className="overflow-x-auto">
@@ -102,9 +103,9 @@ const Dashboard = () => {
                     </span>
                   </td>
                   <td className="py-5 px-6">
-                    <button className="border border-Secondary text-Secondary hover:bg-Secondary hover:text-white font-bold text-[13px] py-2 px-4 rounded-[10px] transition-colors w-full">
+                    <Link to={`/dashboard/cases/${item.id}`}className="border border-Secondary text-Secondary hover:bg-Secondary hover:text-white font-bold text-[13px] py-2 px-4 rounded-[10px] transition-colors w-full">
                       View Details
-                    </button>
+                    </Link>
                   </td>
                 </tr>
               ))}

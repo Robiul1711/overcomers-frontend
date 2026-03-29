@@ -3,6 +3,10 @@ import Cases from "@/components/admin/Cases";
 import CaseDetails from "@/components/admin/CaseDetails";
 import Documents from "@/components/admin/Documents";
 import ProfileSettings from "@/components/admin/ProfileSettings";
+import Payroll from "@/components/admin/Payroll";
+import MySchedule from "@/components/admin/MySchedule";
+import Notifications from "@/components/admin/Notifications";
+
 import AdminLayout from "@/layout/AdminLayout";
 import AuthLayout from "@/layout/AuthLayout";
 import Layout from "@/layout/Layout";
@@ -112,6 +116,18 @@ const router = createBrowserRouter([
       {
         path: "/dashboard/settings",
         element: <ProfileSettings />, 
+      },
+      {
+        path: "/dashboard/payroll",
+        element: <Payroll />, 
+      },
+      {
+        path: "/dashboard/schedule",
+        element: <MySchedule />, 
+      },
+      {
+        path: "/dashboard/notifications",
+        element: <Notifications />, 
       },
     ],
   },

@@ -9,7 +9,14 @@ const SideBar = ({ sidebar, open, setOpen, isCollapsed, setIsCollapsed }) => {
   const isActive = (paths) => {
     if (!paths) return false;
     const pathArray = Array.isArray(paths) ? paths : [paths];
-    return pathArray.includes(location.pathname);
+    return pathArray.some(path => {
+      // For the root dashboard, we want an exact match to avoid highlighting it for every dashboard sub-route
+      if (path === "/dashboard") {
+        return location.pathname === "/dashboard";
+      }
+      // For other routes, we use startsWith to catch detail pages like /dashboard/cases/:id
+      return location.pathname.startsWith(path);
+    });
   };
 
   return (

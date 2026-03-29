@@ -5,6 +5,10 @@ import { Dialog, DialogContent } from '@/components/ui/dialog';
 const Documents = () => {
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const documentsData = [
+    { name: "W9", type: "PDF", uploadDate: "March 1, 2026", expirationDate: "March 9, 2027", status: "Valid" },
+    { name: "I9", type: "PDF", uploadDate: "March 1, 2026", expirationDate: "March 9, 2027", status: "Valid" },
+    { name: "Signed Contract", type: "PDF", uploadDate: "March 1, 2026", expirationDate: "March 9, 2027", status: "Valid" },
+    { name: "Photo ID", type: "PDF", uploadDate: "March 1, 2026", expirationDate: "March 9, 2027", status: "Valid" },
     { name: "RBT Certification", type: "PDF", uploadDate: "March 1, 2026", expirationDate: "March 9, 2027", status: "Expired" },
     { name: "Background Check", type: "PDF", uploadDate: "March 1, 2026", expirationDate: "March 9, 2027", status: "Valid" },
     { name: "HIPAA Training Certificate", type: "PDF", uploadDate: "March 1, 2026", expirationDate: "March 9, 2027", status: "Valid" },
@@ -17,7 +21,7 @@ const Documents = () => {
         <div className="flex justify-between items-start mb-6">
           <div>
             <h3 className="text-[22px] font-bold text-Third">All Documents</h3>
-            <p className="text-gray-500 text-[14px] mt-1">3 documents on file</p>
+            <p className="text-gray-500 text-[14px] mt-1">{documentsData.length} documents on file</p>
           </div>
           
           <button 

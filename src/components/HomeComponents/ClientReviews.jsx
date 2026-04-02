@@ -8,6 +8,7 @@ import { motion } from 'motion/react';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
+import { Link } from 'react-router-dom';
 
 const reviews = [
   {
@@ -168,7 +169,7 @@ const ClientReviews = () => {
           transition={{ duration: 0.6, delay: 0.4 }}
           className="bg-Primary hover:bg-Primary/90 text-Third font-bold text-[14px] md:text-[15px] px-6 md:px-8 py-3 md:py-3.5 rounded-[12px] flex items-center justify-center gap-2 transition-colors shadow-sm"
         >
-          Enroll A Child <ArrowUpRight size={18} strokeWidth={2.5} />
+          <Link to="/enrollment" className="flex items-center gap-2">Enroll A Child <ArrowUpRight size={18} strokeWidth={2.5} /></Link>
         </motion.button>
 
       </div>

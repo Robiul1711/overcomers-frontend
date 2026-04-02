@@ -10,7 +10,8 @@ import {
   ChevronDown,
   FileText,
   X,
-  Search
+  Search,
+  Info
 } from 'lucide-react';
 import { ImageProvider } from '@/utils/ImageProvider';
 

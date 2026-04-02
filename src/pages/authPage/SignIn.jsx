@@ -3,13 +3,15 @@ import { useForm } from 'react-hook-form';
 import { Link } from 'react-router-dom';
 import { ImageProvider } from '@/utils/ImageProvider';
 import { ArrowUpRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const SignIn = () => {
   const { register, handleSubmit, formState: { errors } } = useForm();
-
+  const navigate = useNavigate();
   const onSubmit = (data) => {
     console.log('Login Form Data:', data);
     // Handle authentication logic here
+    navigate('/dashboard');
   };
 
   return (
@@ -58,13 +60,16 @@ const SignIn = () => {
           </div>
         </div>
 
-        <div className="pt-4 flex justify-center">
+        <div className="pt-4 flex flex-col items-center gap-4">
           <button 
             type="submit"
             className="flex items-center justify-center gap-2 bg-Primary hover:bg-Primary/90 text-Secondary font-bold text-[16px] py-3.5 px-8 rounded-xl w-3/4 transition duration-300 shadow-md hover:shadow-lg"
           >
             Log In <ArrowUpRight size={20} strokeWidth={2.5} />
           </button>
+          {/* <p className="text-Third font-medium text-[15px]">
+            Don't have an account? <Link to="/auth/sign-up" className="text-Secondary font-bold underline hover:text-Secondary/80">Sign Up</Link>
+          </p> */}
         </div>
       </form>
 

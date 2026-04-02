@@ -94,15 +94,15 @@ const Navbar = () => {
           </div>
             <Link to="/auth/sign-in" className="hidden lg:block">
               <button className="bg-Secondary hover:bg-Secondary/90 text-white font-bold text-[13px] px-6 py-2.5 rounded-[10px] flex items-center justify-center gap-2 transition-colors whitespace-nowrap">
-                Employee Login <ArrowUpRight size={16} strokeWidth={2.5}/>
+                Login <ArrowUpRight size={16} strokeWidth={2.5}/>
               </button>
             </Link>
 
           {/* Mobile Hamburger Icon */}
           <div className="flex items-center gap-4 lg:hidden z-50">
-            <Link to="/auth/sign-in" className="hidden sm:block">
+            <Link to="/auth/sign-up" className="hidden sm:block">
               <button className="bg-Secondary hover:bg-Secondary/90 text-white font-bold text-[12px] px-4 py-2 rounded-[8px] flex items-center justify-center gap-1.5 transition-colors whitespace-nowrap">
-                Login <ArrowUpRight size={14} strokeWidth={2.5}/>
+                Sign Up <ArrowUpRight size={14} strokeWidth={2.5}/>
               </button>
             </Link>
             <button 
@@ -157,10 +157,11 @@ const Navbar = () => {
               >
                 <Link to="/auth/sign-in" className="w-full max-w-[250px]">
                   <button className="bg-Secondary text-white font-bold text-[16px] px-6 py-4 rounded-[12px] flex items-center justify-center gap-2 transition-colors w-full">
-                    Employee Login <ArrowUpRight size={18} strokeWidth={2.5}/>
+                   Login <ArrowUpRight size={18} strokeWidth={2.5}/>
                   </button>
                 </Link>
               </motion.div>
+
             </div>
           </motion.div>
         )}

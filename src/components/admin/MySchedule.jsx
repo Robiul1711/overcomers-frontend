@@ -120,19 +120,19 @@ const MySchedule = () => {
   };
 
   return (
-    <div className='flex flex-col gap-6 font-poppins'>
+    <div className='flex flex-col gap-6 md:gap-8 font-poppins pb-10 px-1 md:px-0'>
       {/* Top Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6">
         {stats.map((stat, i) => (
-          <div key={i} className="bg-white rounded-[32px] p-8 shadow-sm flex items-center gap-6 border border-gray-50">
-            <div className={`w-14 h-14 rounded-2xl ${stat.bgColor} flex items-center justify-center flex-shrink-0Shadow-sm`}>
+          <div key={i} className="bg-white rounded-[24px] md:rounded-[32px] p-6 md:p-8 shadow-sm flex items-center gap-4 md:gap-6 border border-gray-50 hover:shadow-md transition-shadow">
+            <div className={`w-12 h-12 md:w-14 md:h-14 rounded-2xl ${stat.bgColor} flex items-center justify-center flex-shrink-0 shadow-sm border border-black/5`}>
               {stat.icon}
             </div>
-            <div>
-              <p className="text-[15px] font-bold text-gray-400 mb-1">{stat.label}</p>
+            <div className="min-w-0">
+              <p className="text-[13px] md:text-[15px] font-bold text-gray-400 mb-0.5 truncate">{stat.label}</p>
               <div className="flex items-baseline gap-1">
-                <span className="text-3xl font-extrabold text-Secondary leading-tight">{stat.value}</span>
-                <span className="text-md font-bold text-Secondary">{stat.unit}</span>
+                <span className="text-2xl md:text-3xl font-extrabold text-Secondary leading-tight">{stat.value}</span>
+                <span className="text-sm md:text-md font-bold text-Secondary opacity-60">{stat.unit}</span>
               </div>
             </div>
           </div>
@@ -140,128 +140,177 @@ const MySchedule = () => {
       </div>
 
       {/* Main Calendar Card */}
-      <div className="bg-white rounded-[40px] p-8 shadow-sm border border-gray-100">
+      <div className="bg-white rounded-[32px] md:rounded-[40px] p-5 md:p-8 shadow-sm border border-gray-100">
         {/* Calendar Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
           <div className="flex items-center gap-4">
-            <div className="flex border border-gray-200 rounded-xl overflow-hidden shadow-sm">
-                <button className="p-2.5 hover:bg-gray-50 transition-colors text-Secondary"><ChevronLeft size={20} strokeWidth={2.5}/></button>
-                <div className="px-5 py-2.5 bg-white font-bold text-Secondary text-[15px] border-x border-gray-100 italic">March 2026</div>
-                <button className="p-2.5 hover:bg-gray-50 transition-colors text-Secondary"><ChevronRight size={20} strokeWidth={2.5}/></button>
+            <div className="flex items-center bg-gray-50 p-1.5 rounded-2xl shadow-inner border border-gray-100">
+                <button className="p-2 md:p-2.5 hover:bg-white hover:shadow-sm rounded-xl transition-all text-Secondary active:scale-90"><ChevronLeft size={20} strokeWidth={2.5}/></button>
+                <div className="px-4 md:px-6 py-2 bg-transparent font-extrabold text-Secondary text-[14px] md:text-[16px] uppercase tracking-wider">March 2026</div>
+                <button className="p-2 md:p-2.5 hover:bg-white hover:shadow-sm rounded-xl transition-all text-Secondary active:scale-90"><ChevronRight size={20} strokeWidth={2.5}/></button>
             </div>
           </div>
-          <button className="flex items-center gap-2 px-6 py-2.5 bg-[#FAF6F4] text-Secondary font-bold text-[14px] rounded-xl hover:bg-[#F2ECE8] transition-colors">
-            Weekly View
-          </button>
+          <div className="flex items-center gap-3">
+             <button className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-[#FAF6F4] text-Secondary font-bold text-[13px] md:text-[14px] rounded-xl hover:bg-[#F2ECE8] transition-colors shadow-sm">
+               <Calendar size={18} /> Schedule View
+             </button>
+             <button className="sm:hidden w-12 h-12 bg-Primary text-Secondary rounded-xl flex items-center justify-center shadow-lg active:scale-95">
+                <LayoutGrid size={20} />
+             </button>
+          </div>
         </div>
 
-        {/* Weekly Grid */}
-        <div className="grid grid-cols-7 gap-3">
-          {weeklySessions.map((dayData, i) => (
-            <div key={i} className="flex flex-col gap-3 min-w-[140px]">
-              {/* Day Header */}
-              <div className={`rounded-t-2xl p-4 text-center border-b-2 ${dayData.day === 'Sun' ? 'bg-Primary border-Secondary/20' : 'bg-[#F2F2F2] border-transparent'}`}>
-                 <p className={`text-[13px] font-bold ${dayData.day === 'Sun' ? 'text-Secondary' : 'text-gray-500'}`}>{dayData.day}</p>
-                 <p className={`text-2xl font-extrabold ${dayData.day === 'Sun' ? 'text-Secondary' : 'text-Secondary/80'}`}>{dayData.date}</p>
-              </div>
+        {/* Weekly Grid Container with Horizontal Scroll */}
+        <div className="overflow-x-auto custom-scrollbar pb-4 -mx-1 px-1">
+          <div className="flex gap-4 min-w-max xl:grid xl:grid-cols-7 xl:min-w-0">
+            {weeklySessions.map((dayData, i) => (
+              <div key={i} className="flex flex-col gap-4 w-[160px] md:w-[180px] xl:w-auto">
+                {/* Day Header */}
+                <div className={`rounded-2xl p-4 text-center border-2 transition-colors ${dayData.day === 'Sun' ? 'bg-Primary/10 border-Primary' : 'bg-gray-50 border-transparent'}`}>
+                   <p className={`text-[12px] font-bold uppercase tracking-widest leading-none mb-1.5 ${dayData.day === 'Sun' ? 'text-Secondary' : 'text-gray-400'}`}>{dayData.day}</p>
+                   <p className={`text-[26px] md:text-3xl font-extrabold leading-none ${dayData.day === 'Sun' ? 'text-Secondary' : 'text-Secondary/90'}`}>{dayData.date}</p>
+                </div>
 
-              {/* Sessions List */}
-              <div className="flex flex-col gap-3">
-                {dayData.sessions.map((session) => (
-                  <div key={session.id} className="bg-[#FAF9F6] rounded-[24px] p-4 border border-[#F5F5F4] flex flex-col gap-3 group hover:border-Secondary/20 transition-all duration-300">
-                     <div className="flex flex-col gap-0.5">
-                        <h4 className="font-bold text-Third text-[14px] leading-tight truncate">{session.client}</h4>
-                        <span className={`text-[10px] font-bold ${
-                          session.status === 'In Progress' ? 'text-green-500' : 
-                          session.status === 'Completed' ? 'text-gray-400' : 'text-blue-400'
-                        }`}>
-                          {session.status}
-                        </span>
-                     </div>
-                     
-                     <div className="flex flex-col gap-1.5">
-                        <div className="flex items-center gap-1.5 text-gray-500 font-bold text-[11px]">
-                           <Clock size={12} className="text-Secondary/40" /> <span>{session.time}</span>
-                        </div>
-                        <div className="px-3 py-1 bg-[#FAF6F7] text-Secondary rounded-full text-[10px] font-bold w-fit border border-Secondary/5">
-                           {session.type}
-                        </div>
-                        <div className="flex items-center gap-1.5 text-gray-500 font-bold text-[11px]">
-                           <MapPin size={12} className="text-Primary" /> <span>{session.room}</span>
-                        </div>
-                     </div>
+                {/* Sessions List */}
+                <div className="flex flex-col gap-3">
+                  {dayData.sessions.map((session) => (
+                    <div key={session.id} className="bg-white rounded-[24px] p-4 border border-gray-100 shadow-[0_4px_15px_-4px_rgba(0,0,0,0.05)] flex flex-col gap-4 group hover:border-Secondary/30 hover:shadow-md transition-all duration-300 relative overflow-hidden">
+                       <div className="flex flex-col gap-1 relative z-10">
+                          <h4 className="font-extrabold text-Third text-[14px] md:text-[15px] leading-tight line-clamp-1">{session.client}</h4>
+                          <div className="flex items-center gap-1.5 mt-0.5">
+                             <div className={`w-1.5 h-1.5 rounded-full animate-pulse shrink-0 ${
+                               session.status === 'In Progress' ? 'bg-green-500' : 
+                               session.status === 'Completed' ? 'bg-gray-300' : 'bg-blue-400'
+                             }`}></div>
+                             <span className={`text-[10px] uppercase font-bold tracking-wider ${
+                               session.status === 'In Progress' ? 'text-green-600' : 
+                               session.status === 'Completed' ? 'text-gray-400' : 'text-blue-500'
+                             }`}>
+                               {session.status}
+                             </span>
+                          </div>
+                       </div>
+                       
+                       <div className="flex flex-col gap-2 relative z-10">
+                          <div className="flex items-center gap-2 text-gray-400 font-bold text-[11px]">
+                             <Clock size={12} className="text-Secondary/30 shrink-0" /> <span className="truncate">{session.time}</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-gray-400 font-bold text-[11px]">
+                             <MapPin size={12} className="text-Primary/50 shrink-0" /> <span className="truncate">{session.room}</span>
+                          </div>
+                       </div>
+                       
+                       <div className="px-3 py-1 bg-gray-50 border border-gray-100 text-Secondary/60 rounded-full text-[10px] font-bold w-fit relative z-10 shrink-0">
+                          {session.type} Alt
+                       </div>
 
-                     {session.status !== 'Completed' ? (
-                       <button 
-                         onClick={() => handleClockAction(session)}
-                         className={`w-full py-2.5 rounded-xl font-bold text-[13px] transition-all duration-300 shadow-sm ${
-                           session.status === 'In Progress' 
-                             ? 'bg-Secondary text-white hover:bg-Secondary/90' 
-                             : 'bg-Primary text-Secondary hover:bg-Primary/90'
-                         }`}
-                       >
-                         {session.status === 'In Progress' ? 'Clock Out' : 'Clock In'}
-                       </button>
-                     ) : (
-                        <div className="w-full py-2.5 rounded-xl font-bold text-[13px] text-center bg-white border border-gray-100 text-gray-300">
-                           Clock In
+                       {session.status !== 'Completed' ? (
+                         <button 
+                           onClick={() => handleClockAction(session)}
+                           className={`w-full py-3 rounded-xl font-bold text-[12px] md:text-[13px] transition-all duration-300 shadow-sm active:scale-95 z-10 mt-1 uppercase tracking-wider ${
+                             session.status === 'In Progress' 
+                               ? 'bg-Secondary text-white hover:shadow-lg shadow-Secondary/10' 
+                               : 'bg-Primary text-Secondary hover:bg-Primary/90'
+                           }`}
+                         >
+                           {session.status === 'In Progress' ? 'End Session' : 'Start Session'}
+                         </button>
+                       ) : (
+                          <div className="w-full py-3 rounded-xl font-bold text-[12px] text-center bg-gray-50 border border-gray-100 text-gray-300 pointer-events-none mt-1 uppercase tracking-wider z-10">
+                             Archived
+                          </div>
+                       )}
+                       
+                       {/* Subtle Decoration */}
+                       <div className={`absolute top-0 right-0 w-16 h-16 opacity-[0.03] transition-opacity group-hover:opacity-[0.07] pointer-events-none -translate-x-1/4 -translate-y-1/4 ${
+                          session.status === 'In Progress' ? 'text-green-500' : 'text-Secondary'
+                       }`}>
+                          <Calendar size={64} strokeWidth={2} />
+                       </div>
+                    </div>
+                  ))}
+                  
+                  {/* Empty placeholders if less than 3 sessions */}
+                  {dayData.sessions.length < 3 && Array(3 - dayData.sessions.length).fill(0).map((_, idx) => (
+                    <div key={`empty-${idx}`} className="h-[180px] md:h-[220px] rounded-[24px] border-2 border-dashed border-gray-100 bg-gray-50/30 flex items-center justify-center group/empty transition-colors hover:border-gray-200">
+                        <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-gray-200 group-hover/empty:scale-110 transition-transform">
+                           <Plus size={16} />
                         </div>
-                     )}
-                  </div>
-                ))}
-                
-                {/* Empty placeholders if less than 3 sessions */}
-                {dayData.sessions.length < 3 && Array(3 - dayData.sessions.length).fill(0).map((_, idx) => (
-                  <div key={`empty-${idx}`} className="h-[180px] rounded-[24px] border border-dashed border-gray-100 bg-gray-50/20"></div>
-                ))}
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
+        </div>
+        
+        {/* Mobile Scroll Hint */}
+        <div className="xl:hidden mt-4 text-center">
+           <p className="text-[11px] text-gray-300 font-bold uppercase tracking-widest italic">Slide horizontally to view your full week</p>
         </div>
       </div>
 
       {/* Clock In Modal */}
       {showClockInModal && selectedSession && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowClockInModal(false)}></div>
-           <div className="bg-white rounded-[32px] w-full max-w-lg relative z-10 shadow-2xl p-8 animate-in fade-in zoom-in duration-300">
+           <div className="absolute inset-0 bg-black/60 backdrop-blur-md" onClick={() => setShowClockInModal(false)}></div>
+           <div className="bg-white rounded-[32px] w-full max-w-[95vw] sm:max-w-lg relative z-10 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.3)] p-6 sm:p-10 animate-in fade-in zoom-in duration-300">
               <div className="flex justify-between items-center mb-6">
-                 <h2 className="text-2xl font-bold text-Third">Start Session</h2>
-                 <button onClick={() => setShowClockInModal(false)} className="w-10 h-10 rounded-full border border-gray-100 flex items-center justify-center text-red-500 hover:bg-red-50 transition-colors">
+                 <div className="flex items-center gap-3">
+                    <div className="w-1.5 h-8 bg-Primary rounded-full"></div>
+                    <h2 className="text-2xl md:text-3xl font-extrabold text-Third leading-tight">Session Ready</h2>
+                 </div>
+                 <button onClick={() => setShowClockInModal(false)} className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all active:scale-90">
                     <X size={20} />
                  </button>
               </div>
-              <div className="w-full h-[3px] bg-Primary mb-6"></div>
 
-              <div className="bg-blue-50 border border-blue-200 rounded-xl p-5 mb-8">
-                 <p className="text-blue-600 font-bold text-[16px]">Session: {selectedSession.client} - {selectedSession.type}</p>
-              </div>
-
-              <div className="flex flex-col gap-4 mb-8">
-                 <h4 className="font-bold text-Third text-lg">Confirm your session start time.</h4>
-                 <div className="flex flex-col gap-2">
-                    <label className="text-[13px] font-bold text-gray-500">Actual Start Time</label>
-                    <input 
-                      type="text"
-                      value={actualStartTime}
-                      onChange={(e) => setActualStartTime(e.target.value)}
-                      className="w-full bg-[#F2F2F2] border border-gray-100 px-5 py-4 rounded-xl text-Third font-bold text-[15px] focus:outline-none focus:ring-2 focus:ring-Primary/20"
-                    />
+              <div className="bg-Secondary/[0.03] border border-Secondary/10 rounded-2xl p-5 mb-8 shadow-inner shadow-black/[0.01]">
+                 <div className="flex items-center gap-3 mb-2">
+                    <div className="p-2 bg-white rounded-lg text-Secondary shadow-sm">
+                       <LayoutGrid size={16} />
+                    </div>
+                    <span className="text-[13px] font-bold text-gray-400 uppercase tracking-widest">Protocol Check</span>
+                 </div>
+                 <p className="text-Secondary font-extrabold text-[18px] md:text-[20px] leading-tight">
+                    {selectedSession.client} <span className="opacity-40 px-2">|</span> {selectedSession.type}
+                 </p>
+                 <div className="flex items-center gap-2 mt-3 text-Secondary/60 font-bold text-[13px]">
+                    <Clock size={14} className="opacity-50" />
+                    <span>Scheduled Window: {selectedSession.time}</span>
                  </div>
               </div>
 
-              <div className="flex gap-4">
+              <div className="flex flex-col gap-6 mb-10">
+                 <div className="flex flex-col gap-2">
+                    <label className="text-[13px] font-extrabold text-Third uppercase tracking-wider ml-1">Confirmation Time</label>
+                    <div className="relative">
+                       <Clock size={18} className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" />
+                       <input 
+                         type="text"
+                         value={actualStartTime}
+                         onChange={(e) => setActualStartTime(e.target.value)}
+                         className="w-full bg-[#FAF9F6] border border-gray-100 px-12 py-5 rounded-2xl text-Third font-extrabold text-[16px] focus:outline-none focus:border-Primary transition-all shadow-sm"
+                       />
+                    </div>
+                    <p className="text-[11px] text-gray-400 font-bold italic mt-1 px-1 flex items-center gap-1.5">
+                       <ShieldCheck size={12} className="text-green-500" /> Logged timestamp for billing accuracy
+                    </p>
+                 </div>
+              </div>
+
+              <div className="flex flex-col-reverse sm:flex-row gap-4">
                  <button 
                    onClick={() => setShowClockInModal(false)}
-                   className="flex-1 py-4 bg-Primary text-Secondary font-bold rounded-2xl shadow-sm hover:bg-Primary/90 transition-colors"
+                   className="w-full sm:flex-1 py-4.5 bg-gray-50 text-gray-500 font-bold rounded-2xl border border-gray-100 hover:bg-gray-100 transition-all active:scale-95"
                  >
-                    Cancel
+                    Hold On
                  </button>
                  <button 
                    onClick={confirmClockIn}
-                   className="flex-1 py-4 bg-Secondary text-white font-bold rounded-2xl shadow-lg hover:bg-Secondary/90 transition-colors"
+                   className="w-full sm:flex-1 py-4.5 bg-Secondary text-white font-extrabold rounded-2xl shadow-xl shadow-Secondary/20 hover:scale-[1.02] active:scale-95 transition-all text-[15px] uppercase tracking-wider"
                  >
-                    Confirm & Clock In
+                    Confirm Start
                  </button>
               </div>
            </div>
@@ -271,51 +320,62 @@ const MySchedule = () => {
       {/* Clock Out Modal */}
       {showClockOutModal && selectedSession && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowClockOutModal(false)}></div>
-           <div className="bg-white rounded-[32px] w-full max-w-lg relative z-10 shadow-2xl p-8 animate-in fade-in zoom-in duration-300">
-              <div className="flex justify-between items-center mb-6">
-                 <h2 className="text-2xl font-bold text-Third">Start Session</h2>
-                 <button onClick={() => setShowClockOutModal(false)} className="w-10 h-10 rounded-full border border-gray-100 flex items-center justify-center text-red-500 hover:bg-red-50 transition-colors">
+           <div className="absolute inset-0 bg-black/60 backdrop-blur-md" onClick={() => setShowClockOutModal(false)}></div>
+           <div className="bg-white rounded-[32px] w-full max-w-[95vw] sm:max-w-lg max-h-[90vh] overflow-y-auto relative z-10 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.3)] p-6 sm:p-10 animate-in fade-in slide-in-from-bottom-8 duration-300 custom-scrollbar">
+              <div className="flex justify-between items-center mb-8">
+                 <div className="flex items-center gap-3">
+                    <div className="w-1.5 h-8 bg-Secondary rounded-full"></div>
+                    <h2 className="text-2xl md:text-3xl font-extrabold text-Third leading-tight">Session Summary</h2>
+                 </div>
+                 <button onClick={() => setShowClockOutModal(false)} className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all active:scale-90">
                     <X size={20} />
                  </button>
               </div>
-              <div className="w-full h-[3px] bg-Primary mb-6"></div>
 
-              <div className="bg-blue-50 border border-blue-200 rounded-xl p-5 mb-8">
-                 <p className="text-blue-600 font-bold text-[16px]">Session: {selectedSession.client} - {selectedSession.type}</p>
+              <div className="bg-[#FAF6F7] border border-Secondary/10 rounded-2xl p-5 mb-8 shadow-inner shadow-black/[0.01]">
+                 <p className="text-Secondary font-extrabold text-[18px] md:text-[20px] leading-tight">
+                    {selectedSession.client} <span className="opacity-20 px-2">|</span> {selectedSession.type}
+                 </p>
+                 <div className="flex items-center gap-2 mt-3 text-Secondary/50 font-bold text-[13px]">
+                    <CheckCircle2 size={14} className="text-green-500" />
+                    <span>Started at: <span className="text-Secondary/80 font-extrabold">{actualStartTime}</span></span>
+                 </div>
               </div>
 
-              <div className="flex flex-col gap-6 mb-8">
+              <div className="flex flex-col gap-6 mb-10">
                  <div className="flex flex-col gap-2">
-                    <label className="text-[13px] font-bold text-gray-500">Actual End Time</label>
-                    <input 
-                      type="text"
-                      value={actualEndTime}
-                      onChange={(e) => setActualEndTime(e.target.value)}
-                      className="w-full bg-[#F2F2F2] border border-gray-100 px-5 py-4 rounded-xl text-Third font-bold text-[15px] focus:outline-none focus:ring-2 focus:ring-Secondary/20"
-                    />
+                    <label className="text-[13px] font-extrabold text-Third uppercase tracking-wider ml-1">Ending Time</label>
+                    <div className="relative">
+                       <Clock size={18} className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" />
+                       <input 
+                         type="text"
+                         value={actualEndTime}
+                         onChange={(e) => setActualEndTime(e.target.value)}
+                         className="w-full bg-[#FAF9F6] border border-gray-100 px-12 py-5 rounded-2xl text-Third font-extrabold text-[16px] focus:outline-none focus:border-Secondary transition-all shadow-sm"
+                       />
+                    </div>
                  </div>
                  <div className="flex flex-col gap-2">
-                    <label className="text-[13px] font-bold text-gray-500">Add Session Notes *</label>
+                    <label className="text-[13px] font-extrabold text-Third uppercase tracking-wider ml-1">Clinical Observations *</label>
                     <textarea 
-                      placeholder="Write a session notes..."
-                      className="w-full bg-[#F2F2F2] border border-gray-100 px-5 py-4 rounded-xl text-Third font-medium text-[14px] min-h-[120px] focus:outline-none focus:ring-2 focus:ring-Secondary/20"
+                      placeholder="Detail key behaviors, objectives met, and any critical notes..."
+                      className="w-full bg-[#FAF9F6] border border-gray-100 px-5 py-5 rounded-2xl text-Third font-medium text-[14px] min-h-[140px] focus:outline-none focus:border-Secondary transition-all shadow-sm resize-none"
                     />
                  </div>
               </div>
 
-              <div className="flex gap-4">
+              <div className="flex flex-col-reverse sm:flex-row gap-4">
                  <button 
                    onClick={() => setShowClockOutModal(false)}
-                   className="flex-1 py-4 bg-Primary text-Secondary font-bold rounded-2xl shadow-sm hover:bg-Primary/90 transition-colors"
+                   className="w-full sm:flex-1 py-4.5 bg-gray-50 text-gray-500 font-bold rounded-2xl border border-gray-100 hover:bg-gray-100 transition-all active:scale-95"
                  >
-                    Cancel
+                    Keep Modifying
                  </button>
                  <button 
                    onClick={confirmClockOut}
-                   className="flex-1 py-4 bg-Secondary text-white font-bold rounded-2xl shadow-lg hover:bg-Secondary/90 transition-colors"
+                   className="w-full sm:flex-1 py-4.5 bg-Secondary text-white font-extrabold rounded-2xl shadow-xl shadow-Secondary/20 hover:scale-[1.02] active:scale-95 transition-all text-[15px] uppercase tracking-wider"
                  >
-                    Submit & Clock Out
+                    Finalize Session
                  </button>
               </div>
            </div>

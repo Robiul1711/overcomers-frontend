@@ -51,7 +51,7 @@ const SideBar = ({ sidebar, open, setOpen, isCollapsed, setIsCollapsed }) => {
              <img 
                src={ImageProvider.Logo} 
                alt="Overcomers Logo" 
-               className="w-36 h-auto object-contain transition-all duration-300" 
+               className="md:w-36 w-[80px] sm:w-24 h-auto object-contain transition-all duration-300" 
              />
           ) : (
             <div className="w-11 h-11 bg-Primary rounded-xl flex items-center justify-center text-Third font-bold text-xl shadow-sm">
@@ -70,12 +70,12 @@ const SideBar = ({ sidebar, open, setOpen, isCollapsed, setIsCollapsed }) => {
                 to={item?.path}
                 onClick={() => setOpen(false)}
                 title={isCollapsed ? item.text : ""}
-                className={`flex items-center gap-4 py-3.5 rounded-xl text-[15px] font-medium transition-all duration-200 ${
-                  isCollapsed ? "justify-center px-0" : "px-5"
+                className={`flex items-center gap-4 py-3.5 rounded-xl text-[15px]  transition-all duration-200 ${
+                  isCollapsed ? "justify-center px-0" : "px-5 "
                 } ${
                   active
-                    ? "bg-Primary text-[#76121F] shadow-sm"
-                    : "text-gray-500 hover:bg-gray-50 hover:text-black"
+                    ? "bg-Primary text-[#76121F] shadow-sm font-bold"
+                    : "text-gray-500 hover:bg-gray-50 hover:text-black font-medium"
                 }`}
               >
                 <div className="min-w-[20px] flex justify-center">{item?.icon}</div>

@@ -39,7 +39,7 @@ const JoinOurMailingList = () => {
             Join Our Mailing List
             <span className="absolute -bottom-1.5 left-0 w-full h-[2px] bg-Primary rounded-full"></span>
           </h3>
-          <h2 className="text-[36px] md:text-[46px] font-bold text-white mt-1">
+          <h2 className="text-[28px] sm:text-[36px] md:text-[46px] font-bold text-white mt-1">
             Stay Updated
           </h2>
         </motion.div>

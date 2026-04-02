@@ -3,7 +3,16 @@ import SideBar from "@/pages/admin/SideBar";
 
 import React, { useEffect, useState } from "react";
 import { Outlet, ScrollRestoration, useLocation } from "react-router-dom";
-import { LayoutDashboard, Briefcase, FileText, Settings, Wallet, Calendar, Bell } from "lucide-react";
+import {
+  LayoutDashboard,
+  Briefcase,
+  FileText,
+  Settings,
+  Wallet,
+  Calendar,
+  Bell,
+  Layers,
+} from "lucide-react";
 
 const AdminLayout = () => {
   const [Open, setOpen] = useState(false);
@@ -33,27 +42,41 @@ const AdminLayout = () => {
     },
     {
       id: 4,
+      icon: <Layers size={20} />,
+      text: "Programs",
+      path: "/dashboard/programs",
+      activePaths: ["/dashboard/programs"],
+    },
+    {
+      id: 5,
       icon: <Wallet size={20} />,
       text: "Payroll",
       path: "/dashboard/payroll",
       activePaths: ["/dashboard/payroll"],
     },
     {
-      id: 5,
+      id: 6,
       icon: <Calendar size={20} />,
       text: "My Schedule",
       path: "/dashboard/schedule",
       activePaths: ["/dashboard/schedule"],
     },
     {
-      id: 6,
+      id: 7,
+      icon: <FileText size={20} />,
+      text: "Clinic Files",
+      path: "/dashboard/clinic-files",
+      activePaths: ["/dashboard/clinic-files"],
+    },
+    {
+      id: 8,
       icon: <Bell size={20} />,
       text: "Notifications",
       path: "/dashboard/notifications",
       activePaths: ["/dashboard/notifications"],
     },
     {
-      id: 7,
+      id: 9,
       icon: <Settings size={20} />,
       text: "Profile & Settings",
       path: "/dashboard/settings",
@@ -61,7 +84,7 @@ const AdminLayout = () => {
     },
   ];
   const location = useLocation();
-  
+
   useEffect(() => {
     window.scrollTo({
       top: 0,
@@ -73,7 +96,13 @@ const AdminLayout = () => {
     <>
       <ScrollRestoration />
       <div className="flex bg-[#FAFAFA] h-screen w-full font-poppins text-Third overflow-hidden">
-        <SideBar open={Open} setOpen={setOpen} sidebar={sideBar} isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
+        <SideBar
+          open={Open}
+          setOpen={setOpen}
+          sidebar={sideBar}
+          isCollapsed={isCollapsed}
+          setIsCollapsed={setIsCollapsed}
+        />
         <div className="flex-1 flex flex-col overflow-y-auto h-screen w-full relative">
           <CommonNavbar open={Open} setOpen={setOpen} />
           <div className="p-6 md:p-8 bg-[#FAF6F7]">

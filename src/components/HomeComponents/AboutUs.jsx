@@ -43,10 +43,10 @@ const AboutUs = () => {
               About Us
               <span className="absolute -bottom-1 left-0 w-full h-[3px] bg-Primary rounded-full"></span>
             </h3>
-            <h2 className="text-[36px] md:text-[46px] font-bold text-Secondary leading-[1.2] mt-4">
+            <h2 className="text-[28px] sm:text-[36px] md:text-[46px] font-bold text-Secondary leading-[1.2] mt-4">
               Our Mission &<br />Commitment
             </h2>
-          </motion.div>
+          </motion.div> 
 
           {/* List Items staggered container */}
           <motion.div 

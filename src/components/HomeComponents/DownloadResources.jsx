@@ -16,7 +16,7 @@ const resources = [
 
 const DownloadResources = () => {
   return (
-    <div className="w-full bg-[#FAFAFA] section-padding-x py-20 md:py-28 flex justify-center items-center overflow-hidden">
+    <div className="w-full bg-[#FAFAFA] section-padding-x section-padding-y flex justify-center items-center overflow-hidden">
       <motion.div 
         initial="hidden"
         whileInView="visible"

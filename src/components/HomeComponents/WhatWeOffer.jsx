@@ -72,7 +72,7 @@ const WhatWeOffer = () => {
             What We Offer
             <span className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-[80%] h-[2px] bg-Primary rounded-full"></span>
           </h3>
-          <h2 className="text-[32px] md:text-[42px] font-bold text-Secondary mt-2 leading-[1.2]">
+          <h2 className="text-[28px] sm:text-[36px] md:text-[42px] font-bold text-Secondary mt-2 leading-[1.2]">
             Comprehensive ABA<br />Therapy Services
           </h2>
         </motion.div>

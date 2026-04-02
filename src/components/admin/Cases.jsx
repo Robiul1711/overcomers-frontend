@@ -36,26 +36,29 @@ const Cases = () => {
   return (
     <div className='flex flex-col gap-6 h-full'>
       {/* Table Container */}
-      <div className="bg-white rounded-3xl shadow-sm p-6 flex flex-col min-h-full">
-        <div className="flex justify-between items-start mb-6">
+      <div className="bg-white rounded-[24px] md:rounded-3xl shadow-sm p-4 md:p-8 flex flex-col min-h-full border border-gray-50">
+        <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-8">
           <div>
-            <h3 className="text-[22px] font-bold text-Third">All Cases</h3>
-            <p className="text-gray-500 text-[14px] mt-1">3 active case assignments</p>
+            <h3 className="text-[20px] md:text-[24px] font-bold text-Third">All Managed Cases</h3>
+            <p className="text-gray-500 text-[13px] md:text-[14px] mt-1">Showing {filteredData.length} total records</p>
           </div>
           
-          <div className="relative">
+          <div className="relative w-full sm:w-auto">
             <button 
               onClick={() => setDropdownOpen(!dropdownOpen)}
-              className="flex items-center gap-2 bg-Secondary hover:bg-Secondary/90 text-white font-medium text-[14px] px-5 py-2.5 rounded-lg transition-colors"
+              className="flex items-center justify-between gap-2 w-full sm:w-auto bg-Secondary hover:bg-Secondary/90 text-white font-bold text-[13px] px-5 py-2.5 rounded-xl transition-all shadow-sm active:scale-95"
             >
-              {selectedStatus} <ChevronDown size={18} />
+              <span className="flex items-center gap-2">
+                 <span className="opacity-70 font-medium">Filter:</span> {selectedStatus}
+              </span>
+              <ChevronDown size={18} />
             </button>
             
             {/* Dropdown Options */}
             {dropdownOpen && (
               <>
                 <div className="fixed inset-0 z-10" onClick={() => setDropdownOpen(false)}></div>
-                <div className="absolute right-0 top-[110%] w-[180px] bg-[#FFFBF3] rounded-xl shadow-lg border border-gray-100 p-2 z-20 flex flex-col gap-2">
+                <div className="absolute right-0 top-[110%] w-full sm:w-[200px] bg-white rounded-2xl shadow-xl border border-gray-100 p-2 z-20 flex flex-col gap-1.5 animate-in fade-in zoom-in duration-200">
                   {statuses.map(status => {
                     const isSelected = selectedStatus === status;
                     return (
@@ -65,14 +68,14 @@ const Cases = () => {
                           setSelectedStatus(status);
                           setDropdownOpen(false);
                         }}
-                        className={`flex items-center gap-2 px-3 py-2.5 rounded-lg cursor-pointer transition-colors text-[14px] ${
+                        className={`flex items-center justify-between px-4 py-3 rounded-xl cursor-pointer transition-all text-[13px] ${
                           isSelected 
-                            ? 'bg-Primary border border-Primary font-bold text-Third' 
-                            : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
+                            ? 'bg-Secondary text-white font-bold' 
+                            : 'bg-white border border-transparent text-gray-600 hover:bg-gray-50'
                         }`}
                       >
-                        {isSelected && <Check size={16} className="text-Third" strokeWidth={3}/>}
                         {status}
+                        {isSelected && <Check size={16} className="text-white" strokeWidth={3}/>}
                       </div>
                     )
                   })}
@@ -82,35 +85,35 @@ const Cases = () => {
           </div>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse min-w-[800px]">
+        <div className="overflow-x-auto custom-scrollbar">
+          <table className="w-full text-left border-collapse min-w-[850px]">
             <thead>
-              <tr className="bg-[#EFEFEF]">
-                <th className="py-4 px-6 font-bold text-Third text-[14px] rounded-tl-xl w-[20%]">Client Name</th>
-                <th className="py-4 px-6 font-bold text-Third text-[14px] w-[15%]">Case ID</th>
-                <th className="py-4 px-6 font-bold text-Third text-[14px] w-[15%]">Date</th>
-                <th className="py-4 px-6 font-bold text-Third text-[14px] w-[12%]">Time</th>
-                <th className="py-4 px-6 font-bold text-Third text-[14px] w-[13%]">Location</th>
-                <th className="py-4 px-6 font-bold text-Third text-[14px] w-[10%]">Status</th>
-                <th className="py-4 px-6 font-bold text-Third text-[14px] rounded-tr-xl w-[15%]">Action</th>
+              <tr className="bg-gray-50/80">
+                <th className="py-4 px-6 font-bold text-Third text-[13px] uppercase tracking-wider rounded-tl-xl">Client Name</th>
+                <th className="py-4 px-6 font-bold text-Third text-[13px] uppercase tracking-wider">Case ID</th>
+                <th className="py-4 px-6 font-bold text-Third text-[13px] uppercase tracking-wider">Date</th>
+                <th className="py-4 px-6 font-bold text-Third text-[13px] uppercase tracking-wider">Time</th>
+                <th className="py-4 px-6 font-bold text-Third text-[13px] uppercase tracking-wider">Location</th>
+                <th className="py-4 px-6 font-bold text-Third text-[13px] uppercase tracking-wider text-center">Status</th>
+                <th className="py-4 px-6 font-bold text-Third text-[13px] uppercase tracking-wider rounded-tr-xl text-center">Action</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-gray-50">
               {filteredData.map((item, index) => (
-                <tr key={index} className="border-b border-[#F0F0F0] hover:bg-gray-50/50 transition-colors">
+                <tr key={index} className="hover:bg-gray-50/50 transition-colors">
                   <td className="py-5 px-6 font-bold text-Third text-[14px]">{item.name}</td>
-                  <td className="py-5 px-6 text-gray-500 text-[14px] font-medium">{item.id}</td>
-                  <td className="py-5 px-6 text-gray-500 text-[14px] font-medium">{item.date}</td>
-                  <td className="py-5 px-6 text-gray-500 text-[14px] font-medium">{item.time}</td>
-                  <td className="py-5 px-6 text-gray-500 text-[14px] font-medium">{item.location}</td>
-                  <td className="py-5 px-6">
-                    <span className={`px-4 py-1.5 rounded-full text-[11px] font-bold ${getStatusStyles(item.status)}`}>
+                  <td className="py-5 px-6 text-gray-500 text-[13px] md:text-[14px] font-medium">{item.id}</td>
+                  <td className="py-5 px-6 text-gray-500 text-[13px] md:text-[14px] font-medium whitespace-nowrap">{item.date}</td>
+                  <td className="py-5 px-6 text-gray-500 text-[13px] md:text-[14px] font-medium">{item.time}</td>
+                  <td className="py-5 px-6 text-gray-500 text-[13px] md:text-[14px] font-medium">{item.location}</td>
+                  <td className="py-5 px-6 text-center">
+                    <span className={`px-4 py-1.5 rounded-full text-[11px] font-bold border border-transparent shadow-[0_2px_10px_rgba(0,0,0,0.02)] ${getStatusStyles(item.status)}`}>
                       {item.status}
                     </span>
                   </td>
-                  <td className="py-5 px-6">
-                    <Link to={`/dashboard/cases/${item.id}`} className="inline-block w-full">
-                      <button className="border border-Secondary text-Secondary hover:bg-Secondary hover:text-white font-bold text-[13px] py-2 px-5 rounded-[10px] transition-colors w-full text-center">
+                  <td className="py-5 px-6 text-center">
+                    <Link to={`/dashboard/cases/${item.id}`} className="inline-block min-w-[120px]">
+                      <button className="border border-Secondary/20 text-Secondary hover:bg-Secondary hover:text-white font-bold text-[12px] py-2 px-5 rounded-xl transition-all duration-200 shadow-sm">
                         View Details
                       </button>
                     </Link>
@@ -120,9 +123,15 @@ const Cases = () => {
             </tbody>
           </table>
         </div>
+
+        {/* mobile hint */}
+        <div className="md:hidden mt-4 py-3 px-4 bg-gray-50/50 rounded-xl text-center">
+           <p className="text-[11px] text-gray-400 italic">Scroll horizontally to view complete records</p>
+        </div>
       </div>
     </div>
   );
 };
 
 export default Cases;
+

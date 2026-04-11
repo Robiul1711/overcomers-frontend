@@ -1,5 +1,6 @@
 import CommonNavbar from "@/pages/admin/CommonNavbar";
 import SideBar from "@/pages/admin/SideBar";
+import TopTabs from "@/components/common/TopTabs";
 
 import React, { useEffect, useState } from "react";
 import { Outlet, ScrollRestoration, useLocation } from "react-router-dom";
@@ -105,7 +106,10 @@ const AdminLayout = () => {
         />
         <div className="flex-1 flex flex-col overflow-y-auto h-screen w-full relative">
           <CommonNavbar open={Open} setOpen={setOpen} />
-          <div className="p-6 md:p-8 bg-[#FAF6F7]">
+          <div className="p-4 sm:p-6 md:p-8 bg-[#FAF6F7]">
+            <TopTabs 
+              tabs={sideBar.map(item => ({ name: item.text, path: item.path }))} 
+            />
             <Outlet />
           </div>
         </div>

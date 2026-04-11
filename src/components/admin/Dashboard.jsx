@@ -1,8 +1,10 @@
 import React from 'react';
-import { Briefcase, FileText, Bell, ArrowUpRight } from 'lucide-react';
+import { Briefcase, FileText, Bell, ArrowUpRight, Layers, Clock } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import ClientSchedule from './CaseDetailComponents/Modals/ClientSchedule';
 
 const Dashboard = () => {
+  const [isAddModalOpen, setIsAddModalOpen] = React.useState(false);
   const casesData = [
     { name: "John Smith", id: "ABA-2026-009", date: "March 9, 2026", time: "10:00 AM", location: "Home", status: "Active" },
     { name: "Sarah Johnson", id: "ABA-2026-009", date: "March 9, 2026", time: "10:00 AM", location: "School", status: "Active" },
@@ -72,11 +74,22 @@ const Dashboard = () => {
             <h3 className="text-lg md:text-xl font-bold text-Third">Recent Case Assignments</h3>
             <p className="text-gray-500 text-[13px] md:text-sm mt-0.5">View the most recent cases assigned to you</p>
           </div>
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
+               <button 
+            onClick={() => setIsAddModalOpen(true)}
+          className="w-full sm:w-auto flex items-center justify-center gap-2 bg-Primary hover:bg-Primary/90 text-Secondary font-bold text-[13px] py-2.5 px-6 rounded-xl transition duration-300 shadow-sm active:scale-95">
+            <Clock size={18} className="group-hover/btn:-rotate-12 transition-transform hidden sm:block" /> Client Schedule
+          </button>
           <Link to="/dashboard/cases" className="w-full sm:w-auto flex items-center justify-center gap-2 bg-Secondary hover:bg-Secondary/90 text-white font-bold text-[13px] py-2.5 px-6 rounded-xl transition duration-300 shadow-sm active:scale-95">
             View All <span className="hidden xs:inline">Cases</span> <ArrowUpRight size={16} strokeWidth={2.5} />
           </Link>
-        </div>
 
+          </div>
+        </div>
+ <ClientSchedule
+        isOpen={isAddModalOpen} 
+        onClose={() => setIsAddModalOpen(false)} 
+      />
         {/* Responsive Table Wrapper */}
         <div className="overflow-x-auto custom-scrollbar">
           <table className="w-full text-left border-collapse min-w-[900px]">

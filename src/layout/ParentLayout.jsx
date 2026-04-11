@@ -17,20 +17,21 @@ import {
   Layers
 } from "lucide-react";
 import { ImageProvider } from "@/utils/ImageProvider";
+import TopTabs from "@/components/common/TopTabs";
+
+const sidebarItems = [
+  { icon: <LayoutDashboard size={20} />, text: "Dashboard", path: "/parent-dashboard" },
+  { icon: <User size={20} />, text: "My Child", path: "/parent-dashboard/my-child" },
+  { icon: <Layers size={20} />, text: "Programs", path: "/parent-dashboard/programs" },
+  { icon: <TrendingUp size={20} />, text: "Progress Reports", path: "/parent-dashboard/reports" },
+  { icon: <Users size={20} />, text: "Care Team", path: "/parent-dashboard/care-team" },
+  { icon: <ShieldCheck size={20} />, text: "Authorizations", path: "/parent-dashboard/authorizations" },
+  { icon: <Bell size={20} />, text: "Notifications", path: "/parent-dashboard/notifications" },
+  { icon: <Settings size={20} />, text: "Profile & Settings", path: "/parent-dashboard/settings" },
+];
 
 const ParentSidebar = ({ open, setOpen, isCollapsed, setIsCollapsed }) => {
   const location = useLocation();
-
-  const sidebarItems = [
-    { icon: <LayoutDashboard size={20} />, text: "Dashboard", path: "/parent-dashboard" },
-    { icon: <User size={20} />, text: "My Child", path: "/parent-dashboard/my-child" },
-    { icon: <Layers size={20} />, text: "Programs", path: "/parent-dashboard/programs" },
-    { icon: <TrendingUp size={20} />, text: "Progress Reports", path: "/parent-dashboard/reports" },
-    { icon: <Users size={20} />, text: "Care Team", path: "/parent-dashboard/care-team" },
-    { icon: <ShieldCheck size={20} />, text: "Authorizations", path: "/parent-dashboard/authorizations" },
-    { icon: <Bell size={20} />, text: "Notifications", path: "/parent-dashboard/notifications" },
-    { icon: <Settings size={20} />, text: "Profile & Settings", path: "/parent-dashboard/settings" },
-  ];
 
   const isActive = (path) => {
     if (path === "/parent-dashboard") {
@@ -78,7 +79,7 @@ const ParentSidebar = ({ open, setOpen, isCollapsed, setIsCollapsed }) => {
                   isCollapsed ? "justify-center px-0" : "px-5"
                 } ${
                   active
-                    ? "bg-[#FFBB03] text-black font-semibold shadow-sm"
+                    ? "bg-[#FFBB03] text-Secondary font-semibold shadow-sm"
                     : "text-[#6B7280] hover:bg-[#FAF6F7] hover:text-[#2D2D2D]"
                 }`}
               >
@@ -225,7 +226,10 @@ const ParentLayout = () => {
         />
         <div className="flex-1 flex flex-col overflow-y-auto h-screen w-full relative">
           <ParentNavbar setOpen={setOpen} />
-          <div className="p-6 md:p-10 bg-[#FAF6F7]">
+          <div className="p-4 sm:p-6 md:p-8 bg-[#FAF6F7]">
+            <TopTabs 
+              tabs={sidebarItems.map(item => ({ name: item.text, path: item.path }))} 
+            />
             <Outlet />
           </div>
         </div>

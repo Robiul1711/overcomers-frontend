@@ -42,12 +42,12 @@ const Footer = () => {
               
               <div className="flex items-center gap-3 justify-center sm:justify-start">
                 <Phone size={18} strokeWidth={1.5} className="text-Secondary shrink-0" />
-                <span className="text-gray-600 text-[14px] font-medium">908-342-7584</span>
+                <span className="text-gray-600 text-[14px] font-medium">+19083427584</span>
               </div>
               
               <div className="flex items-center gap-3 justify-center sm:justify-start">
                 <Mail size={18} strokeWidth={1.5} className="text-Secondary shrink-0" />
-                <span className="text-gray-600 text-[14px] font-medium">provider@booknlink.ca</span>
+                <span className="text-gray-600 text-[14px] font-medium">info@overcomersaba.com</span>
               </div>
               
               <div className="flex items-center gap-3 justify-center sm:justify-start">

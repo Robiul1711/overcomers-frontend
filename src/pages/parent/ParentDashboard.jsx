@@ -176,7 +176,7 @@ const ParentDashboard = () => {
                             <p className="text-gray-400 font-bold text-[12px] md:text-[13px] uppercase tracking-wider">Latest updates from the team</p>
                         </div>
                         <button className="w-full sm:w-auto bg-Secondary text-white hover:bg-Secondary/90 px-6 py-2.5 rounded-xl text-[13px] font-black uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-Secondary/10">
-                            View History
+                            View All
                         </button>
                     </div>
 
@@ -228,9 +228,9 @@ const ParentDashboard = () => {
                         </div>
                     </div>
                 </div>
-                <div className="bg-Primary text-Secondary px-8 py-3.5 rounded-2xl font-black text-[13px] md:text-[14px] uppercase tracking-widest h-fit relative z-10 shadow-xl shadow-Primary/10 active:scale-95 transition-all cursor-pointer">
+                {/* <div className="bg-Primary text-Secondary px-8 py-3.5 rounded-2xl font-black text-[13px] md:text-[14px] uppercase tracking-widest h-fit relative z-10 shadow-xl shadow-Primary/10 active:scale-95 transition-all cursor-pointer">
                     Confirm Attendance
-                </div>
+                </div> */}
             </div>
         </div>
     );

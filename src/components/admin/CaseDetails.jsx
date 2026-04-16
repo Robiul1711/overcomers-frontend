@@ -1,28 +1,39 @@
 import React, { useState } from 'react';
-import { LayoutGrid, Clock, ShieldCheck } from 'lucide-react';
+import { 
+  User, 
+  Calendar, 
+  Layers, 
+  FileText, 
+  ShieldCheck 
+} from 'lucide-react';
 
 // Sub-components
 import HeroSection from './CaseDetailComponents/HeroSection';
-import ClientInfoSection from './CaseDetailComponents/ClientInfoSection';
-import ServiceDetailsSection from './CaseDetailComponents/ServiceDetailsSection';
+import ProfileTab from './CaseDetailComponents/ProfileTab';
 import ProgramsTab from './CaseDetailComponents/ProgramsTab';
 import ScheduleTab from './CaseDetailComponents/ScheduleTab';
 import InsuranceTab from './CaseDetailComponents/InsuranceTab';
-import CaseNotesSection from './CaseDetailComponents/CaseNotesSection';
-import ClinicFilesSection from './CaseDetailComponents/ClinicFilesSection';
+import NotesReportsTab from './CaseDetailComponents/NotesReportsTab';
+
 
 // Modals
 import NoteModal from './CaseDetailComponents/Modals/NoteModal';
-import ProgramDetailModal from './CaseDetailComponents/Modals/ProgramDetailModal';
 import TeamMemberModal from './CaseDetailComponents/Modals/TeamMemberModal';
+import ClientDetailModal from './CaseDetailComponents/Modals/ClientDetailModal';
+import AddReportModal from './CaseDetailComponents/Modals/AddReportModal';
 
 const CaseDetails = () => {
-  const [activeTab, setActiveTab] = useState('Programs');
+  const [activeTab, setActiveTab] = useState('Profile');
   const [isNoteModalOpen, setIsNoteModalOpen] = useState(false);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [isTeamModalOpen, setIsTeamModalOpen] = useState(false);
-  const [isProgramModalOpen, setIsProgramModalOpen] = useState(false);
+  const [isClientModalOpen, setIsClientModalOpen] = useState(false);
   const [selectedMember, setSelectedMember] = useState(null);
-  const [selectedProgram, setSelectedProgram] = useState(null);
+
+  const teamMembers = {
+    "Eleanor Pena": { name: "Eleanor Pena", role: "Therapist / BCBA", phone: "(000) 000-0000", email: "example@company.com", dateRange: "Feb 15 – Feb 28, 2026" },
+    "Dr. Devon Lane": { name: "Dr. Devon Lane", role: "Supervising BCBA", phone: "(111) 222-3333", email: "devon@company.com", dateRange: "Feb 1 – Feb 28, 2026" },
+  };
 
   const programsDataset = [
     {
@@ -67,11 +78,6 @@ const CaseDetails = () => {
     }
   ];
 
-  const teamMembers = {
-    "Eleanor Pena": { name: "Eleanor Pena", role: "Therapist / BCBA", phone: "(000) 000-0000", email: "example@company.com", dateRange: "Feb 15 – Feb 28, 2026" },
-    "Dr. Devon Lane": { name: "Dr. Devon Lane", role: "Supervising BCBA", phone: "(111) 222-3333", email: "devon@company.com", dateRange: "Feb 1 – Feb 28, 2026" },
-  };
-
   const sectionRef = React.useRef(null);
 
   const scrollToContent = (tabName) => {
@@ -79,44 +85,12 @@ const CaseDetails = () => {
     sectionRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
+
   const handleViewMember = (name) => {
     setSelectedMember(teamMembers[name] || teamMembers["Eleanor Pena"]);
     setIsTeamModalOpen(true);
   };
 
-  const handleViewProgram = (program) => {
-    setSelectedProgram(program);
-    setIsProgramModalOpen(true);
-  };
-
-  const clientInfo = [
-    { label: "Client Name", value: "John Smith" },
-    { label: "Date of Birth", value: "June 14, 2018" },
-    { label: "Service Location", value: "Home" },
-    { label: "Assigned Date", value: "March 1, 2026" },
-  ];
-
-  const serviceDetails = [
-    { label: "Assigned Therapist", value: "Eleanor Pena", hasLink: true },
-    { label: "Supervising BCBA", value: "Dr. Devon Lane", hasLink: true },
-    { label: "Service Type", value: "ABA Therapy" },
-    { label: "Session Frequency", value: "3x per week" },
-    { label: "Service Start Date", value: "March 1, 2026" },
-    { label: "Session Time", value: "2:00 PM – 5:00 PM" },
-  ];
-
-  const caseNotes = [
-    { author: "Eleanor Pena (RBT)", date: "March 5, 2026", note: "Client showing improvement in communication and social interaction during recent sessions. Successfully completed 3 of 4 targeted goals this week." },
-    { author: "Dr. Devon Lane (BCBA)", date: "February 28, 2026", note: "Client showing improvement in communication and social interaction during recent sessions. Successfully completed 3 of 4 targeted goals this week." },
-    { author: "Eleanor Pena (RBT)", date: "Sarah Martinez (RBT)", note: "Initial session completed. Client was responsive and comfortable in home setting. Baseline data collected for all target behaviors." }
-  ];
-
-  const clinicFiles = [
-    { name: "ABA Referral", date: "Feb 15, 2026" },
-    { name: "Behavior Assessment Report", date: "Feb 20, 2026" },
-    { name: "Behavior Assessment Report", date: "Feb 20, 2026" },
-    { name: "Behavior Assessment Report", date: "Feb 20, 2026" },
-  ];
 
   const weeklySchedule = [
     { day: "Sun", date: "22", session: { client: "John Smith", time: "09:00 - 10:00", type: "One-to-One", room: "Room 101", status: "Upcoming", isActiveDay: true } },
@@ -151,29 +125,29 @@ const CaseDetails = () => {
     <div className="flex flex-col gap-6 md:gap-8 pb-10 font-poppins ">
       <HeroSection onScrollToContent={scrollToContent} />
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8 ">
-        <ClientInfoSection clientInfo={clientInfo} />
-        <ServiceDetailsSection serviceDetails={serviceDetails} onViewMember={handleViewMember} />
-      </div>
 
       <div className="mt-4" ref={sectionRef}>
         <div className="flex items-center border-b border-gray-100 mb-8 px-4 md:px-8 overflow-x-auto custom-scrollbar no-scrollbar scroll-smooth">
-          <div className="flex items-center min-w-max">
-            {['Programs', 'Client Schedule', 'Insurance'].map((tab) => (
+          <div className="flex items-center min-w-max gap-2">
+            {[
+              { id: 'Profile', label: 'Profile', icon: <User size={18} /> },
+              { id: 'Client Schedule', label: 'Client Schedule', icon: <Calendar size={18} /> },
+              { id: 'Programs', label: 'Programs', icon: <Layers size={18} /> },
+              { id: 'Notes & Reports', label: 'Notes & Reports', icon: <FileText size={18} /> },
+              { id: 'Insurance', label: 'Insurance', icon: <ShieldCheck size={18} /> },
+            ].map((tab) => (
               <button 
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`px-4 md:px-8 py-4 md:py-5 font-extrabold text-[14px] md:text-[16px] transition-all relative whitespace-nowrap ${
-                  activeTab === tab 
-                  ? 'text-Secondary border-b-4 border-Secondary translate-y-[1px]' 
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`px-4 md:px-8 py-4 md:py-5 font-bold text-[14px] md:text-[15px] transition-all relative whitespace-nowrap ${
+                  activeTab === tab.id 
+                  ? 'text-[#76121F] border-b-4 border-[#76121F] translate-y-[1px]' 
                   : 'text-gray-400 hover:text-gray-600'
                 }`}
               >
-                <div className="flex items-center gap-2">
-                  {tab === 'Programs' && <LayoutGrid size={18} />}
-                  {tab === 'Client Schedule' && <Clock size={18} />}
-                  {tab === 'Insurance' && <ShieldCheck size={18} />}
-                  {tab}
+                <div className="flex items-center gap-2.5">
+                  {tab.icon}
+                  {tab.label}
                 </div>
               </button>
             ))}
@@ -181,9 +155,24 @@ const CaseDetails = () => {
         </div>
 
         <div className="">
-          {activeTab === 'Programs' && (
-            <ProgramsTab programsDataset={programsDataset} onViewDetails={handleViewProgram} />
+          {activeTab === 'Profile' && (
+            <ProfileTab 
+              onViewClientDetail={() => setIsClientModalOpen(true)} 
+              onViewMember={handleViewMember}
+            />
           )}
+
+          {activeTab === 'Programs' && (
+            <ProgramsTab programsDataset={programsDataset} onAddNote={() => setIsNoteModalOpen(true)} />
+          )}
+
+          {activeTab === 'Notes & Reports' && (
+            <NotesReportsTab 
+              onAddNote={() => setIsNoteModalOpen(true)} 
+              onAddReport={() => setIsReportModalOpen(true)} 
+            />
+          )}
+
           {activeTab === 'Client Schedule' && (
             <ScheduleTab weeklySchedule={weeklySchedule} />
           )}
@@ -198,27 +187,28 @@ const CaseDetails = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
-        <CaseNotesSection caseNotes={caseNotes} onAddNote={() => setIsNoteModalOpen(true)} />
-        <ClinicFilesSection clinicFiles={clinicFiles} />
-      </div>
+
 
       {/* Modals */}
       <NoteModal 
         isOpen={isNoteModalOpen} 
         onClose={() => setIsNoteModalOpen(false)} 
       />
-      
-      <ProgramDetailModal 
-        isOpen={isProgramModalOpen} 
-        onClose={() => setIsProgramModalOpen(false)} 
-        selectedProgram={selectedProgram} 
+
+      <AddReportModal 
+         isOpen={isReportModalOpen} 
+         onClose={() => setIsReportModalOpen(false)} 
       />
       
       <TeamMemberModal 
         isOpen={isTeamModalOpen} 
         onClose={() => setIsTeamModalOpen(false)} 
         selectedMember={selectedMember} 
+      />
+
+      <ClientDetailModal 
+        isOpen={isClientModalOpen} 
+        onClose={() => setIsClientModalOpen(false)} 
       />
     </div>
   );

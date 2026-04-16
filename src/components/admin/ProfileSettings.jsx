@@ -205,79 +205,103 @@ const ProfileSettings = () => {
 
       {/* MODAL 3: Edit Profile */}
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent className="max-w-[95vw] sm:max-w-[600px] p-5 sm:p-8 rounded-[24px] max-h-[90vh] overflow-y-auto custom-scrollbar">
-          <div className="flex flex-col gap-6">
+        <DialogContent className="max-w-[95vw] sm:max-w-[550px] p-0 rounded-[32px] overflow-hidden border-none shadow-2xl">
+          <div className="p-8 sm:p-10 flex flex-col gap-8 bg-white max-h-[90vh] overflow-y-auto custom-scrollbar">
+            {/* Header */}
             <div>
-              <h2 className="text-[24px] md:text-[28px] font-bold text-Third leading-tight">Edit Profile</h2>
-              <p className="text-gray-500 text-[13px] md:text-[14px] mt-1 mb-4">Update your public identity and contact details</p>
-              <div className="w-full h-[3px] bg-Primary rounded-full"></div>
+              <h2 className="text-[32px] font-bold text-[#3A331E] leading-tight">Edit Profile</h2>
+              <p className="text-[#6B7280] text-[16px] mt-1 mb-4">Update your personal information</p>
+              <div className="w-full h-[2px] bg-[#FFBB03] rounded-full"></div>
             </div>
 
             {/* Profile Picture Upload */}
-            <div className="flex flex-col items-center justify-center gap-4 mb-2">
-              <div className="relative w-[100px] h-[100px] rounded-full bg-Secondary flex items-center justify-center text-Primary font-bold text-[36px] shadow-sm">
+            <div className="flex justify-start">
+              <div className="relative w-[120px] h-[120px] rounded-full bg-[#76121F] flex items-center justify-center text-[#FFBB03] font-bold text-[44px] shadow-lg">
                 EP
-                <button className="absolute -bottom-1 -right-1 w-10 h-10 bg-white border border-gray-100 rounded-full flex items-center justify-center shadow-lg text-Secondary hover:bg-gray-50 transition-colors">
+                <button className="absolute bottom-1 right-1 w-9 h-9 bg-white border border-gray-100 rounded-full flex items-center justify-center shadow-md text-[#76121F] hover:bg-gray-50 transition-colors cursor-pointer">
                   <Camera size={18} strokeWidth={2.5}/>
                 </button>
               </div>
-              <p className="text-Secondary text-[13px] font-bold uppercase tracking-wider">Update Avatar</p>
             </div>
 
             {/* Form Fields */}
-            <div className="flex flex-col gap-4">
-              <div className="flex flex-col gap-2">
-                <label className="text-Third font-bold text-[14px]">Preferred Name</label>
+            <div className="flex flex-col gap-6">
+              <div className="flex flex-col gap-2.5">
+                <label className="text-[#3A331E] font-bold text-[14px]">Full Name</label>
                 <input 
                   type="text" 
                   defaultValue="Eleanor Pena" 
-                  className="w-full bg-[#F4F4F4] rounded-xl p-4 text-[14px] text-gray-700 outline-none border border-transparent focus:border-Primary transition-all"
+                  className="w-full bg-[#F4F4F4] rounded-xl p-4 text-[15px] text-[#3A331E] outline-none border border-transparent focus:border-[#FFBB03] transition-all"
                 />
               </div>
 
-              <div className="flex flex-col gap-2">
-                <label className="text-Third font-bold text-[14px]">Work Email (Verified)</label>
+              <div className="flex flex-col gap-2.5">
+                <label className="text-[#3A331E] font-bold text-[14px]">Work Email (Read-only)</label>
                 <input 
                   type="email" 
                   readOnly
-                  defaultValue="eleanor.pena@mail.com" 
-                  className="w-full bg-[#FAF9F6] rounded-xl p-4 text-[14px] text-Secondary font-semibold border border-Primary/20 cursor-not-allowed opacity-80"
+                  defaultValue="your@email.com" 
+                  className="w-full bg-[#FAF9F6] rounded-xl p-4 text-[15px] text-[#800000] font-medium border border-[#FFBB03]/20 cursor-not-allowed opacity-80"
                 />
-                <p className="text-[11px] text-gray-400 italic px-1">Email changes require admin approval.</p>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                 <div className="flex flex-col gap-2">
-                  <label className="text-Third font-bold text-[14px]">Primary Phone</label>
+              <div className="flex flex-col gap-2.5">
+                <label className="text-[#3A331E] font-bold text-[14px]">Phone Number</label>
+                <input 
+                  type="tel" 
+                  defaultValue="(908) 000 - 0000" 
+                  className="w-full bg-[#F4F4F4] rounded-xl p-4 text-[15px] text-[#3A331E] outline-none border border-transparent focus:border-[#FFBB03] transition-all"
+                />
+              </div>
+
+              <div className="flex flex-col gap-2.5">
+                <label className="text-[#3A331E] font-bold text-[14px]">Home Address (Dirección) *</label>
+                <input 
+                  type="text" 
+                  defaultValue="Union County, NJ" 
+                  className="w-full bg-[#F4F4F4] rounded-xl p-4 text-[15px] text-[#3A331E] outline-none border border-transparent focus:border-[#FFBB03] transition-all"
+                />
+              </div>
+
+              {/* Professional Section */}
+              <div className="bg-[#FFFBEE] border border-[#FFF3D6] rounded-3xl p-6 flex flex-col gap-5 mt-2">
+                <h4 className="text-[#3A331E] font-extrabold text-[18px] tracking-wide">Professional (Read-only)</h4>
+                
+                <div className="flex flex-col gap-2">
+                  <label className="text-[#3A331E] font-bold text-[13px]">Role</label>
                   <input 
-                    type="tel" 
-                    defaultValue="(908) 555-0142" 
-                    className="w-full bg-[#F4F4F4] rounded-xl p-4 text-[14px] text-gray-700 outline-none border border-transparent focus:border-Primary transition-all"
+                    type="text" 
+                    readOnly
+                    defaultValue="Registered Behavior Technician" 
+                    className="w-full bg-white rounded-xl p-4 text-[14px] text-[#800000] font-semibold border border-[#FFBB03]/30"
                   />
                 </div>
-                 <div className="flex flex-col gap-2">
-                    <label className="text-Third font-bold text-[14px]">Current Address</label>
-                    <input 
-                      type="text" 
-                      defaultValue="Union County, NJ" 
-                      className="w-full bg-[#F4F4F4] rounded-xl p-4 text-[14px] text-gray-700 outline-none border border-transparent focus:border-Primary transition-all"
-                    />
-                  </div>
+
+                <div className="flex flex-col gap-2">
+                  <label className="text-[#3A331E] font-bold text-[13px]">Department</label>
+                  <input 
+                    type="text" 
+                    readOnly
+                    defaultValue="Behavior Services" 
+                    className="w-full bg-white rounded-xl p-4 text-[14px] text-[#800000] font-semibold border border-[#FFBB03]/30"
+                  />
+                </div>
               </div>
             </div>
 
-            <div className="flex flex-col-reverse sm:flex-row items-center justify-end gap-3 mt-4">
+            {/* Actions */}
+            <div className="flex items-center justify-end gap-3 mt-4">
               <button 
                 onClick={() => setIsEditModalOpen(false)}
-                className="w-full sm:w-auto bg-gray-100 font-bold text-[14px] px-10 py-3.5 rounded-xl text-gray-500 transition-colors"
+                className="bg-[#FFBB03] hover:bg-[#eab002] text-white font-bold text-[15px] px-8 py-3.5 rounded-xl transition-all active:scale-95 shadow-md shadow-[#FFBB03]/10"
               >
-                Discard Changes
+                Cancel
               </button>
               <button 
                 onClick={() => setIsEditModalOpen(false)}
-                className="w-full sm:w-auto bg-Secondary text-white font-bold text-[14px] px-10 py-3.5 rounded-xl transition-all shadow-md active:scale-95"
+                className="bg-[#76121F] hover:bg-[#600000] text-white font-bold text-[15px] px-8 py-3.5 rounded-xl transition-all shadow-md active:scale-95"
               >
-                Update Profile
+                Save Changes
               </button>
             </div>
           </div>

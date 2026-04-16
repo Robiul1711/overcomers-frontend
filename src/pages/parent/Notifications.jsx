@@ -104,7 +104,7 @@ const ParentNotifications = () => {
                             
                             <div className="flex items-center gap-3 w-full lg:w-auto mt-4 lg:mt-0 relative z-10">
                                 <button className="flex-1 lg:flex-none bg-Secondary text-white px-8 py-3.5 rounded-xl md:rounded-2xl text-[13px] font-black uppercase tracking-widest hover:bg-Secondary/90 active:scale-95 transition-all shadow-xl shadow-Secondary/10 whitespace-nowrap">
-                                    View Logic
+                                    View Details
                                 </button>
                                 <button className="p-3.5 bg-gray-100 text-gray-400 rounded-xl md:rounded-2xl hover:bg-red-50 hover:text-red-500 transition-all group/delete shadow-sm border border-transparent hover:border-red-100 active:scale-90">
                                     <Trash2 size={20} strokeWidth={2.5} className="group-hover/delete:scale-110 transition-transform" />

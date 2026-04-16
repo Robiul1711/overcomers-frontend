@@ -70,7 +70,7 @@ const ResetPasswordModal = ({ isOpen, onClose }) => {
               Cancel
             </button>
             <button className="flex-[2] bg-Secondary text-white py-4 rounded-[20px] font-black text-[14px] uppercase tracking-widest hover:bg-Secondary/90 transition-all active:scale-95 shadow-[0_20px_40px_rgba(118,18,31,0.2)]">
-              Update Vault
+              Update Password
             </button>
           </div>
         </div>
@@ -157,7 +157,7 @@ const EditProfileModal = ({ isOpen, onClose, data }) => {
               Cancel
             </button>
             <button className="flex-[2] bg-Secondary text-white py-4 rounded-[20px] font-black text-[14px] uppercase tracking-widest hover:bg-Secondary/90 transition-all active:scale-95 shadow-[0_20px_40px_rgba(118,18,31,0.2)]">
-              Validate & Sync
+             Update Profile
             </button>
           </div>
         </div>
@@ -232,13 +232,13 @@ const ProfileSettings = () => {
               onClick={() => setIsPasswordModalOpen(true)}
               className="group/btn flex items-center justify-center gap-3 bg-Primary text-Secondary px-8 py-4 rounded-[20px] font-black text-[13px] sm:text-[14px] uppercase tracking-widest hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-Primary/10"
             >
-              Update Vault <ChevronRight size={18} className="group-hover/btn:translate-x-1 transition-transform" />
+            Change Password <ChevronRight size={18} className="group-hover/btn:translate-x-1 transition-transform" />
             </button>
             <button
               onClick={() => setIsEditModalOpen(true)}
               className="group/btn flex items-center justify-center gap-3 bg-white/5 border-2 border-white/10 text-white px-8 py-4 rounded-[20px] font-black text-[13px] sm:text-[14px] uppercase tracking-widest hover:bg-white/10 active:scale-95 transition-all"
             >
-              Edit Identity <ChevronRight size={18} className="group-hover/btn:translate-x-1 transition-transform" />
+              Edit Profile <ChevronRight size={18} className="group-hover/btn:translate-x-1 transition-transform" />
             </button>
           </div>
         </div>

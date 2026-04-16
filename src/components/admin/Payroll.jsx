@@ -282,109 +282,103 @@ const Payroll = () => {
 
       {/* Paystub Modal */}
       {showModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-md" onClick={() => setShowModal(false)}></div>
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowModal(false)}></div>
           
-          <div className="bg-white rounded-[32px] w-full max-w-2xl max-h-[90vh] overflow-y-auto relative z-10 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.3)] flex flex-col p-6 sm:p-10 font-poppins animate-in fade-in slide-in-from-bottom-8 duration-300">
+          <div className="bg-white rounded-[32px] w-full max-w-[650px] max-h-[95vh] overflow-y-auto relative z-10 shadow-2xl flex flex-col p-8 sm:p-10 font-poppins animate-in fade-in zoom-in duration-300 custom-scrollbar">
             {/* Modal Header */}
-            <div className="flex flex-col sm:flex-row justify-between items-start gap-6 mb-8">
-              <div>
-                <h2 className="text-[24px] md:text-3xl font-extrabold text-Third leading-tight">Paystub Record</h2>
-                <div className="flex items-center gap-2 mt-1">
-                   <Calendar size={14} className="text-gray-400" />
-                   <p className="text-gray-400 text-[13px] font-bold">Feb 15 – Feb 28, 2026</p>
-                </div>
-                <div className="w-24 h-[4px] bg-Primary rounded-full mt-6"></div>
+            <div className="flex justify-between items-start mb-6">
+              <div className="w-full">
+                <h2 className="text-[32px] font-bold text-[#3A331E] leading-tight mb-2">Paystub</h2>
+                <p className="text-[#6B7280] text-[15px] font-medium mb-3">Feb 15 – Feb 28, 2026</p>
+                <div className="w-full h-[2px] bg-[#FFBB03] rounded-full"></div>
               </div>
-              <img src={ImageProvider.Logo} alt="Overcomers" className="h-16 md:h-20 w-auto object-contain self-end sm:self-auto" />
+              <img src={ImageProvider.Logo} alt="Overcomers" className="h-[90px] w-auto object-contain -mt-4" />
             </div>
 
-            {/* Summary Box */}
-            <div className="bg-Secondary rounded-[24px] p-6 md:p-8 mb-8 text-center text-white relative overflow-hidden shadow-xl shadow-Secondary/20">
-               <div className="relative z-10">
-                  <p className="text-white/60 text-[11px] font-bold uppercase tracking-[0.2em] mb-2">Total Professional Disbursement</p>
-                  <div className="flex items-center justify-center gap-1 mb-2">
-                     <span className="text-Primary font-extrabold text-[40px] md:text-[52px] leading-none">$923.50</span>
-                  </div>
-                  <div className="inline-flex items-center gap-3 px-4 py-1.5 bg-white/10 rounded-full text-[12px] font-bold border border-white/5 backdrop-blur-sm">
-                     <span className="opacity-70">Gross: $1,000.00</span>
-                     <div className="w-1 h-1 bg-white/30 rounded-full"></div>
-                     <span className="text-red-300">Taxes: $76.50</span>
-                  </div>
-               </div>
-               
-               {/* Decorative Circle */}
-               <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full translate-x-1/3 -translate-y-1/3 blur-2xl"></div>
+            {/* Top Summary Card */}
+            <div className="bg-[#FAF8F8] border border-[#F3F4F6] rounded-[32px] p-8 mb-8 text-center shadow-sm">
+                <div className="flex items-center justify-center gap-2 mb-2">
+                   <span className="text-[#800000] font-bold text-[18px]">Gross</span>
+                   <span className="text-[#800000] font-black text-[40px] leading-tight">$1,000</span>
+                </div>
+                <div className="flex items-center justify-center gap-4 text-[#6B7280] text-[15px] font-bold mb-4">
+                   <span>Deductions: $76.50</span>
+                   <div className="w-[1px] h-4 bg-gray-300"></div>
+                   <span>Net Pay: $923.50</span>
+                </div>
+                <p className="text-[#3A331E] font-extrabold text-[16px] uppercase tracking-wider">Total Payment Summary</p>
             </div>
 
-            {/* Information Grid Container */}
-            <div className="bg-gray-50/50 border border-gray-100 rounded-[28px] p-5 sm:p-8 mb-6">
-               <div className="flex items-center gap-2 mb-6">
-                  <div className="w-1.5 h-6 bg-Secondary rounded-full"></div>
-                  <h4 className="text-[14px] md:text-[15px] font-bold text-Third uppercase tracking-wider">Statement Details</h4>
-               </div>
+            {/* Professional Section */}
+            <div className="bg-[#FFFBEE] border border-[#FFF3D6] rounded-[28px] p-6 sm:p-8 mb-6">
+               <h4 className="text-[#3A331E] font-extrabold text-[18px] tracking-wide mb-6">Professional (Read-only)</h4>
                
                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {[
-                    { label: "Payee Name", value: "Eleanor Pena" },
-                    { label: "Personnel ID", value: "EMP-2024-017" },
-                    { label: "Pay Frequency", value: "Bi-Weekly" },
-                    { label: "Issuance Date", value: "April 1, 2026" },
-                    { label: "Hours Claimed", value: "40.00 hrs" },
-                    { label: "Base Rate", value: "$25.00 / hr" },
+                    { label: "Employee Name", value: "Eleanor Pena" },
+                    { label: "Employee ID", value: "EMP-2024-017" },
+                    { label: "Pay Period", value: "Mar 1 – Mar 15, 2026" },
+                    { label: "Payment Date", value: "April 1, 2026" },
+                    { label: "Hours Worked", value: "40 hrs" },
+                    { label: "Pay Rate", value: "$25.00 / hr" },
+                    { label: "Gross Payment", value: "$1,000" },
+                    { label: "Status", value: "Pending", isStatus: true },
                   ].map((info, i) => (
-                    <div key={i} className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm flex flex-col gap-1">
-                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider leading-none">{info.label}</p>
-                      <p className="text-[15px] font-bold text-Third leading-tight">{info.value}</p>
+                    <div key={i} className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm flex flex-col gap-1.5">
+                      <p className="text-[#800000]/50 text-[11px] font-bold uppercase tracking-wider leading-none">{info.label}</p>
+                      {info.isStatus ? (
+                        <span className="bg-[#FFFBEE] text-[#FFBB03] px-3 py-1 rounded-full text-[11px] font-bold w-fit">
+                          {info.value}
+                        </span>
+                      ) : (
+                        <p className="text-[#800000] font-bold text-[16px] leading-tight">{info.value}</p>
+                      )}
                     </div>
                   ))}
                </div>
             </div>
 
             {/* Deductions Breakdown */}
-            <div className="bg-white border border-gray-100 rounded-[28px] p-6 md:p-8 mb-8 shadow-sm">
-               <div className="flex items-center gap-2 mb-6">
-                  <div className="w-1.5 h-6 bg-red-400 rounded-full"></div>
-                  <h4 className="text-[14px] md:text-[15px] font-bold text-Third uppercase tracking-wider">Adjustment Summary</h4>
-               </div>
+            <div className="bg-[#FFFBEE] border border-[#FFF3D6] rounded-[28px] p-6 sm:p-8 mb-6">
+               <h4 className="text-[#3A331E] font-extrabold text-[18px] tracking-wide mb-6">Deductions Breakdown</h4>
                
                <div className="space-y-4">
                  <div className="flex justify-between items-center px-2">
-                    <span className="text-gray-500 font-bold text-[13px]">Statutory Deductions (FICA)</span>
-                    <span className="font-bold text-red-500">-$76.50</span>
+                    <span className="text-[#6B7280] font-bold text-[14px]">Federal Tax (FICA 7.65%)</span>
+                    <span className="font-bold text-[#3A331E]">$76.50</span>
                  </div>
-                 <div className="h-px bg-gray-50 my-4"></div>
-                 <div className="flex justify-between items-center text-[15px] px-2 pt-2">
-                    <span className="text-gray-400 font-bold">Total Earnings</span>
-                    <span className="font-bold text-Third">$1,000.00</span>
+                 <div className="h-px bg-[#FFF3D6] my-2"></div>
+                 <div className="flex justify-between items-center px-2">
+                    <span className="text-[#6B7280] font-bold text-[14px]">Total Deductions</span>
+                    <span className="font-bold text-[#EF4444]">$76.50</span>
                  </div>
-                 <div className="flex justify-between items-center text-[18px] md:text-[20px] bg-Primary/5 px-4 py-4 rounded-2xl border border-Primary/10 mt-6">
-                    <span className="text-Secondary font-extrabold uppercase tracking-tight">Net Transfer</span>
-                    <span className="font-extrabold text-[#1eb15d]">$923.50</span>
+                 <div className="h-px bg-[#FFF3D6] my-2"></div>
+                 <div className="flex justify-between items-center px-2 pt-2">
+                    <span className="text-[#6B7280] font-bold text-[14px]">Net Payment</span>
+                    <span className="font-extrabold text-[#10B981] text-[16px]">$923.50</span>
                  </div>
                </div>
             </div>
 
             {/* Notice */}
-            <div className="bg-orange-50/50 rounded-2xl p-4 flex items-center gap-4 mb-8 border border-orange-100/50">
-               <div className="w-6 h-6 rounded-full bg-orange-100 flex items-center justify-center shrink-0">
-                  <Info size={14} className="text-orange-600" />
-               </div>
-               <p className="text-[12px] font-bold text-orange-800/80 leading-relaxed">This record is automatically generated based on verified session logs and approved clinical overrides.</p>
+            <div className="bg-[#FFFBEE] border border-[#FFF3D6] rounded-2xl p-4 flex items-center gap-3 mb-8">
+               <ShieldCheck size={18} className="text-[#800000] shrink-0" />
+               <p className="text-[13px] font-bold text-[#800000]/70 leading-relaxed">Payroll is automatically calculated from approved clock-in/out records</p>
             </div>
 
             {/* Actions */}
-            <div className="flex flex-col sm:flex-row gap-4 mt-auto">
+            <div className="flex items-center justify-end gap-3 mt-auto">
               <button 
                 onClick={() => setShowModal(false)}
-                className="w-full sm:flex-1 bg-gray-100 hover:bg-gray-200 text-gray-500 font-bold py-4 rounded-2xl transition-all active:scale-95"
+                className="bg-[#FFBB03] hover:bg-[#eab002] text-white font-bold text-[15px] px-10 py-3.5 rounded-xl transition-all active:scale-95 shadow-md shadow-[#FFBB03]/10"
               >
-                Close Statement
+                Cancel
               </button>
               <button 
-                className="w-full sm:flex-1 bg-Secondary hover:bg-Secondary/90 text-white font-bold py-4 rounded-2xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-Secondary/20 active:scale-95"
+                className="bg-[#76121F] hover:bg-[#600000] text-white font-bold text-[15px] px-10 py-3.5 rounded-xl flex items-center justify-center gap-2 transition-all shadow-md active:scale-95"
               >
-                <Download size={20} /> Download PDF
+                <Download size={18} /> Download
               </button>
             </div>
           </div>

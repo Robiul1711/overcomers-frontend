@@ -175,10 +175,10 @@ const router = createBrowserRouter([
         path: "/parent-dashboard/care-team",
         element: <CareTeam />,
       },
-      {
-        path: "/parent-dashboard/authorizations",
-        element: <Authorizations />,
-      },
+      // {
+      //   path: "/parent-dashboard/authorizations",
+      //   element: <Authorizations />,
+      // },
       {
         path: "/parent-dashboard/notifications",
         element: <ParentNotifications />,

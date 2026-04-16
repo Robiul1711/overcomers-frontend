@@ -227,9 +227,9 @@ const ParentLayout = () => {
         <div className="flex-1 flex flex-col overflow-y-auto h-screen w-full relative">
           <ParentNavbar setOpen={setOpen} />
           <div className="p-4 sm:p-6 md:p-8 bg-[#FAF6F7]">
-            <TopTabs 
+            {/* <TopTabs 
               tabs={sidebarItems.map(item => ({ name: item.text, path: item.path }))} 
-            />
+            /> */}
             <Outlet />
           </div>
         </div>

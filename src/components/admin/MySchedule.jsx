@@ -9,13 +9,13 @@ import {
   Plus,
   ShieldCheck,
   CheckCircle2,
-  CircleDashed,
   LayoutGrid
 } from 'lucide-react';
 
 const MySchedule = () => {
   const [showClockInModal, setShowClockInModal] = useState(false);
   const [showClockOutModal, setShowClockOutModal] = useState(false);
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [selectedSession, setSelectedSession] = useState(null);
   
   // Weekly Data structure
@@ -152,11 +152,16 @@ const MySchedule = () => {
           </div>
           <div className="flex items-center gap-3">
              <button className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-[#FAF6F4] text-Secondary font-bold text-[13px] md:text-[14px] rounded-xl hover:bg-[#F2ECE8] transition-colors shadow-sm">
-               <Calendar size={18} /> Schedule View
+              Weekly View
              </button>
-             <button className="sm:hidden w-12 h-12 bg-Primary text-Secondary rounded-xl flex items-center justify-center shadow-lg active:scale-95">
-                <LayoutGrid size={20} />
+     
+             <button 
+               onClick={() => setShowScheduleModal(true)}
+               className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 text-white bg-Secondary font-bold text-[13px] md:text-[14px] rounded-xl hover:bg-[#426c3c] transition-colors shadow-sm"
+             >
+               <Calendar size={18} /> Schedule Session
              </button>
+     
           </div>
         </div>
 
@@ -358,8 +363,8 @@ const MySchedule = () => {
                  <div className="flex flex-col gap-2">
                     <label className="text-[13px] font-extrabold text-Third uppercase tracking-wider ml-1">Clinical Observations *</label>
                     <textarea 
-                      placeholder="Detail key behaviors, objectives met, and any critical notes..."
-                      className="w-full bg-[#FAF9F6] border border-gray-100 px-5 py-5 rounded-2xl text-Third font-medium text-[14px] min-h-[140px] focus:outline-none focus:border-Secondary transition-all shadow-sm resize-none"
+                       placeholder="Detail key behaviors, objectives met, and any critical notes..."
+                       className="w-full bg-[#FAF9F6] border border-gray-100 px-5 py-5 rounded-2xl text-Third font-medium text-[14px] min-h-[140px] focus:outline-none focus:border-Secondary transition-all shadow-sm resize-none"
                     />
                  </div>
               </div>
@@ -379,6 +384,145 @@ const MySchedule = () => {
                  </button>
               </div>
            </div>
+        </div>
+      )}
+
+      {/* Schedule Session Modal */}
+      {showScheduleModal && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowScheduleModal(false)}></div>
+          <div className="bg-white rounded-[32px] w-full max-w-[600px] max-h-[95vh] overflow-y-auto relative z-10 shadow-2xl p-8 sm:p-10 animate-in fade-in zoom-in duration-300 custom-scrollbar">
+            <div className="flex justify-between items-start mb-6">
+              <div className="w-full">
+                <h2 className="text-[32px] font-bold text-[#3A331E] leading-tight mb-2">Schedule Session</h2>
+                <div className="w-full h-[2px] bg-[#FFBB03] rounded-full"></div>
+              </div>
+              <button 
+                onClick={() => setShowScheduleModal(false)}
+                className="ml-4 w-10 h-10 rounded-full border-2 border-[#800000] flex items-center justify-center text-[#800000] hover:bg-[#800000] hover:text-white transition-all active:scale-90"
+              >
+                <X size={20} strokeWidth={3} />
+              </button>
+            </div>
+
+            <div className="flex flex-col gap-6">
+              {/* Client Selection */}
+              <div className="flex flex-col gap-2.5">
+                <label className="text-[#3A331E] font-bold text-[14px]">Select Client *</label>
+                <div className="relative group">
+                  <select className="w-full bg-[#F4F4F4] rounded-xl p-4 pr-12 text-[15px] text-[#3A331E] outline-none border border-transparent focus:border-[#FFBB03] transition-all appearance-none cursor-pointer">
+                    <option value="">Select</option>
+                    <option value="john">John Smith</option>
+                    <option value="sarah">Sarah Johnson</option>
+                    <option value="mike">Mike Wilson</option>
+                    <option value="lisa">Lisa Davis</option>
+                    <option value="bessie">Bessie Cooper</option>
+                    <option value="robert">Robert Fox</option>
+                  </select>
+                  <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400 group-hover:text-Secondary transition-colors">
+                    <ChevronRight size={18} className="rotate-90" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Session Type */}
+              <div className="flex flex-col gap-2.5">
+                <label className="text-[#3A331E] font-bold text-[14px]">Session Type *</label>
+                <div className="relative group">
+                  <select className="w-full bg-[#F4F4F4] rounded-xl p-4 pr-12 text-[15px] text-[#3A331E] outline-none border border-transparent focus:border-[#FFBB03] transition-all appearance-none cursor-pointer">
+                    <option value="">Select type</option>
+                    <option value="1-1">One-to-One</option>
+                    <option value="group">Group</option>
+                  </select>
+                  <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400 group-hover:text-Secondary transition-colors">
+                    <ChevronRight size={18} className="rotate-90" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Session Date */}
+              <div className="flex flex-col gap-2.5">
+                <label className="text-[#3A331E] font-bold text-[14px]">Session Date *</label>
+                <div className="relative">
+                  <Calendar size={18} className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <input 
+                    type="text" 
+                    placeholder="dd/mm/yyyy"
+                    className="w-full bg-[#F4F4F4] rounded-xl p-4 pl-12 text-[15px] text-[#3A331E] outline-none border border-transparent focus:border-[#FFBB03] transition-all"
+                  />
+                </div>
+              </div>
+
+              {/* Start & End Time */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex flex-col gap-2.5">
+                  <label className="text-[#3A331E] font-bold text-[14px]">Start Time *</label>
+                  <div className="relative">
+                    <Clock size={18} className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" />
+                    <input 
+                      type="text" 
+                      placeholder="9:00 AM"
+                      className="w-full bg-[#F4F4F4] rounded-xl p-4 pl-12 text-[15px] text-[#3A331E] outline-none border border-transparent focus:border-[#FFBB03] transition-all"
+                    />
+                  </div>
+                </div>
+                <div className="flex flex-col gap-2.5">
+                  <label className="text-[#3A331E] font-bold text-[14px]">End Time *</label>
+                  <div className="relative">
+                    <Clock size={18} className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" />
+                    <input 
+                      type="text" 
+                      placeholder="11:00 AM"
+                      className="w-full bg-[#F4F4F4] rounded-xl p-4 pl-12 text-[15px] text-[#3A331E] outline-none border border-transparent focus:border-[#FFBB03] transition-all"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Location */}
+              <div className="flex flex-col gap-2.5">
+                <label className="text-[#3A331E] font-bold text-[14px]">Location *</label>
+                <div className="relative group">
+                  <select className="w-full bg-[#F4F4F4] rounded-xl p-4 pr-12 text-[15px] text-[#3A331E] outline-none border border-transparent focus:border-[#FFBB03] transition-all appearance-none cursor-pointer">
+                    <option value="">Select</option>
+                    <option value="home">In-Home</option>
+                    <option value="school">School</option>
+                    <option value="daycare">Daycare</option>
+                    <option value="clinic">Clinic</option>
+                    <option value="community">Community</option>
+                  </select>
+                  <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400 group-hover:text-Secondary transition-colors">
+                    <ChevronRight size={18} className="rotate-90" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Session Notes */}
+              <div className="flex flex-col gap-2.5">
+                <label className="text-[#3A331E] font-bold text-[14px]">Session Notes (Optional)</label>
+                <textarea 
+                  placeholder="Add any notes..."
+                  className="w-full bg-[#F4F4F4] rounded-xl p-5 text-[15px] text-[#3A331E] min-h-[120px] outline-none border border-transparent focus:border-[#FFBB03] transition-all resize-none font-medium"
+                />
+              </div>
+
+              {/* Footer Actions */}
+              <div className="flex items-center justify-end gap-4 mt-4">
+                <button 
+                  onClick={() => setShowScheduleModal(false)}
+                  className="bg-[#FFBB03] hover:bg-[#eab002] text-white font-bold text-[16px] px-10 py-3.5 rounded-xl transition-all active:scale-95 shadow-md shadow-[#FFBB03]/10"
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={() => setShowScheduleModal(false)}
+                  className="bg-[#76121F] hover:bg-[#600000] text-white font-bold text-[16px] px-10 py-3.5 rounded-xl transition-all shadow-md active:scale-95"
+                >
+                  Save Session
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>

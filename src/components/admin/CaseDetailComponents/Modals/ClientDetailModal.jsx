@@ -1,25 +1,35 @@
 import React from 'react';
 import { X } from 'lucide-react';
 
-const TeamMemberModal = ({ isOpen, onClose, selectedMember }) => {
-  if (!isOpen || !selectedMember) return null;
+const ClientDetailModal = ({ isOpen, onClose }) => {
+  if (!isOpen) return null;
 
   const sections = [
-    { label: "Full Name", value: selectedMember.name },
-    { label: "Role", value: selectedMember.role },
-    { label: "Phone Number", value: selectedMember.phone },
-    { label: "Email Address", value: selectedMember.email },
+    { label: "Parent Name", value: "John Smith" },
+    { label: "Relationship to Child", value: "Father" },
+    { label: "Phone Number", value: "(555) 482-7391" },
+    { label: "Email Address", value: "example@company.com" },
+    { label: "Home Address", value: "245 Maplewood Drive" },
+    { label: "City, State, ZIP", value: "Austin, TX 78704" },
+    { label: "Child Name", value: "Cody Fisher" },
+    { label: "Date of Birth", value: "March 12, 2018" },
+    { label: "Age", value: "6 Years" },
+    { label: "Primary Diagnosis", value: "Autism Spectrum Disorder" },
+    { label: "School Name", value: "Greenwood School" },
+    { label: "School Location", value: "Austin, TX 78704" },
+    { label: "Service Location", value: "In-Home Therapy" },
+    { label: "Case Status", value: "Active" },
   ];
 
   return (
     <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose}></div>
       
-      <div className="bg-white rounded-[32px] w-full max-w-[650px] relative z-10 shadow-2xl flex flex-col p-8 sm:p-10 font-poppins animate-in fade-in zoom-in duration-300">
+      <div className="bg-white rounded-[32px] w-full max-w-[650px] max-h-[95vh] overflow-y-auto relative z-10 shadow-2xl flex flex-col p-8 sm:p-10 font-poppins animate-in fade-in zoom-in duration-300 custom-scrollbar">
         <div className="flex justify-between items-start mb-6">
           <div className="w-full">
-            <h2 className="text-[32px] font-bold text-[#3A331E] leading-tight mb-2">{selectedMember.name}</h2>
-            <p className="text-[#6B7280] text-[15px] font-medium mb-3">{selectedMember.dateRange || "Feb 15 – Feb 28, 2026"}</p>
+            <h2 className="text-[32px] font-bold text-[#3A331E] leading-tight mb-2">Client Information</h2>
+            <p className="text-[#6B7280] text-[15px] font-medium mb-3">Additional Client Information</p>
             <div className="w-full h-[2px] bg-[#FFBB03] rounded-full"></div>
           </div>
           <button 
@@ -45,4 +55,4 @@ const TeamMemberModal = ({ isOpen, onClose, selectedMember }) => {
   );
 };
 
-export default TeamMemberModal;
+export default ClientDetailModal;

@@ -8,7 +8,7 @@ const Layout = () => {
   return (
     <>
     <ScrollRestoration/>
-      <Navbar />
+      <Navbar />  
       <Outlet />
       <Footer />
     </>

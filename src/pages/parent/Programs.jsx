@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   ArrowLeft,
   Bell,
@@ -7,11 +7,104 @@ import {
   ClipboardList,
   X,
   CheckCircle2,
+  RotateCcw,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 
 const ProgramDetailsView = ({ program, onBack }) => {
   const [isSavedAll, setIsSavedAll] = useState(false);
+  const [taskData, setTaskData] = useState(
+    (program.tasks || [
+      "Responds To Name Within 3 Seconds",
+      "Labels 5+ Common Objects Verbally",
+      "Initiates Conversation With Peer",
+      "Labels 5+ Common Objects Verbally",
+    ]).map((taskTitle) => ({
+      title: taskTitle,
+      trials: 0,
+      correct: 0,
+      incorrect: 0,
+      undoAction: null,
+    }))
+  );
+
+  const handleAction = (index, type) => {
+    setTaskData((prev) => {
+      const next = [...prev];
+      const task = { ...next[index] };
+      
+      task.trials += 1;
+      if (type === "yes") {
+        task.correct += 1;
+      } else {
+        task.incorrect += 1;
+      }
+      
+      task.undoAction = {
+        type,
+        expiresAt: Date.now() + 10000,
+      };
+      
+      next[index] = task;
+      return next;
+    });
+  };
+
+  const handleUndo = (index) => {
+    setTaskData((prev) => {
+      const next = [...prev];
+      const task = { ...next[index] };
+      
+      if (!task.undoAction) return prev;
+
+      task.trials -= 1;
+      if (task.undoAction.type === "yes") {
+        task.correct -= 1;
+      } else {
+        task.incorrect -= 1;
+      }
+      
+      task.undoAction = null;
+      next[index] = task;
+      return next;
+    });
+  };
+
+  // Background timer to clear expired undo actions and force re-renders for the countdown
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTaskData((prev) => {
+        const now = Date.now();
+        let changed = false;
+        const next = prev.map((task) => {
+          if (task.undoAction && now > task.undoAction.expiresAt) {
+            changed = true;
+            return { ...task, undoAction: null, isLocked: true };
+          }
+          return task;
+        });
+        
+        // Also trigger a re-render even if nothing "changed" to update the countdown text
+        // We do this by always returning a new array if any undo is active
+        const anyUndoActive = prev.some(t => t.undoAction);
+        if (anyUndoActive && !changed) {
+          return [...prev]; 
+        }
+
+        return changed ? next : prev;
+      });
+    }, 100);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // Clear "Locked" state after a short delay
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setTaskData(prev => prev.map(t => ({ ...t, isLocked: false })));
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, [taskData.some(t => t.isLocked)]);
 
   return (
     <div className="animate-in fade-in slide-in-from-right-4 duration-500 pb-10">
@@ -78,18 +171,13 @@ const ProgramDetailsView = ({ program, onBack }) => {
 
         {/* Task Cards Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {(program.tasks || [
-            "Responds To Name Within 3 Seconds",
-            "Labels 5+ Common Objects Verbally",
-            "Initiates Conversation With Peer",
-            "Labels 5+ Common Objects Verbally",
-          ]).map((task, i) => (
+          {taskData.map((task, i) => (
             <div
               key={i}
-              className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm"
+              className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm transition-all"
             >
               <h5 className="text-lg font-bold text-[#3A331E] mb-6 pb-4 border-b border-gray-100">
-                Task {i + 1} - {task}
+                Task {i + 1} - {task.title}
               </h5>
 
               <div className="grid grid-cols-3 gap-4 mb-8">
@@ -97,41 +185,109 @@ const ProgramDetailsView = ({ program, onBack }) => {
                   <label className="block text-xs font-bold text-[#3A331E] mb-2 text-center uppercase tracking-wider opacity-60">
                     Trials
                   </label>
-                  <input 
+                  <input
                     type="number"
-                    defaultValue={5}
-                    className="w-full bg-[#F3F4F6] rounded-xl py-3 text-center font-bold text-lg outline-none focus:ring-2 focus:ring-[#FFBB03] transition-all"
+                    value={task.trials}
+                    onChange={(e) => {
+                      if (task.isLocked) return;
+                      const val = parseInt(e.target.value) || 0;
+                      setTaskData(prev => {
+                        const next = [...prev];
+                        next[i] = { ...next[i], trials: val, hasChanges: true };
+                        return next;
+                      });
+                    }}
+                    disabled={task.isLocked || task.undoAction}
+                    className={`w-full ${task.isLocked ? "bg-gray-100 text-gray-400" : "bg-[#F3F4F6] text-[#374151]"} rounded-xl py-3 text-center font-bold text-lg outline-none transition-all`}
                   />
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-[#3A331E] mb-2 text-center uppercase tracking-wider opacity-60">
                     Correct
                   </label>
-                  <input 
+                  <input
                     type="number"
-                    defaultValue={3}
-                    className="w-full bg-[#F0FDF4] border border-[#DCFCE7] rounded-xl py-3 text-center font-bold text-lg outline-none focus:ring-2 focus:ring-green-400 transition-all text-green-700"
+                    value={task.correct}
+                    onChange={(e) => {
+                      if (task.isLocked) return;
+                      const val = parseInt(e.target.value) || 0;
+                      setTaskData(prev => {
+                        const next = [...prev];
+                        next[i] = { ...next[i], correct: val, hasChanges: true };
+                        return next;
+                      });
+                    }}
+                    disabled={task.isLocked || task.undoAction}
+                    className={`w-full ${task.isLocked ? "bg-gray-50 text-gray-400" : "bg-[#F0FDF4] border border-[#DCFCE7] text-green-700"} rounded-xl py-3 text-center font-bold text-lg outline-none transition-all`}
                   />
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-[#3A331E] mb-2 text-center uppercase tracking-wider opacity-60">
                     Incorrect
                   </label>
-                  <input 
+                  <input
                     type="number"
-                    defaultValue={2}
-                    className="w-full bg-[#FEF2F2] border border-[#FEE2E2] rounded-xl py-3 text-center font-bold text-lg outline-none focus:ring-2 focus:ring-red-400 transition-all text-red-700"
+                    value={task.incorrect}
+                    onChange={(e) => {
+                      if (task.isLocked) return;
+                      const val = parseInt(e.target.value) || 0;
+                      setTaskData(prev => {
+                        const next = [...prev];
+                        next[i] = { ...next[i], incorrect: val, hasChanges: true };
+                        return next;
+                      });
+                    }}
+                    disabled={task.isLocked || task.undoAction}
+                    className={`w-full ${task.isLocked ? "bg-gray-50 text-gray-400" : "bg-[#FEF2F2] border border-[#FEE2E2] text-red-700"} rounded-xl py-3 text-center font-bold text-lg outline-none transition-all`}
                   />
                 </div>
               </div>
 
               <div className="flex gap-4">
-                <button className="flex-1 bg-[#10B981] text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-[#059669] transition-all">
-                  <span className="text-lg text-white">✓</span> Yes
-                </button>
-                <button className="flex-1 border-2 border-[#FEE2E2] text-[#EF4444] py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-[#FEF2F2] transition-all">
-                  <span className="text-lg">✕</span> No
-                </button>
+                {task.isLocked ? (
+                  <div className="flex-1 bg-gray-100 text-gray-400 py-3 rounded-xl font-bold flex items-center justify-center gap-2 border border-gray-200">
+                    <X size={18} />
+                    Finalized & Locked
+                  </div>
+                ) : task.undoAction ? (
+                  <button
+                    onClick={() => handleUndo(i)}
+                    className="flex-1 bg-[#4B5563] text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-[#374151] transition-all animate-in fade-in zoom-in duration-300"
+                  >
+                    <RotateCcw size={18} />
+                    Undo Save ({Math.max(0, Math.ceil((task.undoAction.expiresAt - Date.now()) / 1000))}s)
+                  </button>
+                ) : (
+                  <>
+                    <button
+                      onClick={() => handleAction(i, "yes")}
+                      className="flex-1 bg-[#10B981] text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-[#059669] transition-all active:scale-95"
+                    >
+                      <span className="text-lg text-white">✓</span> Yes
+                    </button>
+                    <button
+                      onClick={() => handleAction(i, "no")}
+                      className="flex-1 border-2 border-[#FEE2E2] text-[#EF4444] py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-[#FEF2F2] transition-all active:scale-95"
+                    >
+                      <span className="text-lg">✕</span> No
+                    </button>
+                    <button
+                      onClick={() => {
+                        setTaskData(prev => {
+                          const next = [...prev];
+                          next[i] = {
+                            ...next[i],
+                            undoAction: { type: "save", expiresAt: Date.now() + 10000 }
+                          };
+                          return next;
+                        });
+                      }}
+                      className="bg-[#76121F] text-white px-6 py-3 rounded-xl font-bold hover:bg-[#600000] transition-all active:scale-95"
+                    >
+                      Save
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           ))}

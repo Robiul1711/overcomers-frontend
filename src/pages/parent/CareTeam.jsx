@@ -6,16 +6,16 @@ const TeamMemberModal = ({ isOpen, onClose, member }) => {
   if (!isOpen || !member) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center">
       {/* Overlay */}
       <div
-        className="absolute inset-0 bg-black/40 backdrop-blur-sm animate-in fade-in duration-300"
+        className="absolute inset-0 bg-black/40 backdrop-blur-sm animate-in h-screen fade-in duration-300"
         onClick={onClose}
       ></div>
 
       {/* Modal Content */}
-      <div className="bg-white rounded-[2rem] w-full max-w-lg relative z-10 shadow-2xl animate-in zoom-in-95 duration-300 overflow-hidden">
-        <div className="p-8">
+      <div className="bg-white rounded-[2rem] w-full max-w-xl relative z-10 shadow-2xl animate-in zoom-in-95 duration-300 overflow-hidden">
+        <div className="sm:p-6 p-4">
           <div className="flex justify-between items-start mb-6">
             <div className="relative">
               <h3 className="text-3xl font-bold text-[#3A331E]">
@@ -31,13 +31,13 @@ const TeamMemberModal = ({ isOpen, onClose, member }) => {
             </button>
           </div>
 
-          <div className="bg-[#FFFBEE] border border-[#FFF3D6] rounded-3xl p-6 mt-8">
+          <div className="bg-[#FFFBEE] border border-[#FFF3D6] rounded-3xl p-4 mt-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-white p-5 rounded-2xl shadow-sm border border-[#F3F4F6]">
+              <div className="bg-white p-4 rounded-2xl shadow-sm border border-[#F3F4F6]">
                 <p className="text-xs text-[#B45309] font-bold uppercase tracking-wider mb-1 opacity-70">
                   Full Name
                 </p>
-                <p className="text-lg font-bold text-[#76121F]">
+                <p className=" text-base font-semibold text-[#76121F]">
                   {member.name}
                 </p>
               </div>
@@ -45,7 +45,7 @@ const TeamMemberModal = ({ isOpen, onClose, member }) => {
                 <p className="text-xs text-[#B45309] font-bold uppercase tracking-wider mb-1 opacity-70">
                   Role
                 </p>
-                <p className="text-lg font-bold text-[#76121F]">
+                <p className=" text-base font-semibold text-[#76121F]">
                   {member.detailsRole || "Professional"}
                 </p>
               </div>
@@ -53,7 +53,7 @@ const TeamMemberModal = ({ isOpen, onClose, member }) => {
                 <p className="text-xs text-[#B45309] font-bold uppercase tracking-wider mb-1 opacity-70">
                   Phone Number
                 </p>
-                <p className="text-lg font-bold text-[#76121F]">
+                <p className=" text-base font-semibold text-[#76121F]">
                   {member.phone || "(555) 000-0000"}
                 </p>
               </div>
@@ -61,7 +61,7 @@ const TeamMemberModal = ({ isOpen, onClose, member }) => {
                 <p className="text-xs text-[#B45309] font-bold uppercase tracking-wider mb-1 opacity-70">
                   Email Address
                 </p>
-                <p className="text-lg font-bold text-[#76121F] break-all">
+                <p className=" text-base font-semibold text-[#76121F] break-all">
                   {member.email || "example@overcomers.com"}
                 </p>
               </div>

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { ArrowLeft } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const ProgramsTab = ({ programsDataset, onAddNote }) => {
   const [view, setView] = useState("list"); // 'list' or 'details'
@@ -193,9 +194,9 @@ const ProgramsTab = ({ programsDataset, onAddNote }) => {
         <h3 className="text-[18px] md:text-[20px] font-bold text-[#3A331E]">
           Assigned programs
         </h3>
-        <button className="bg-[#76121F] hover:bg-[#600000] text-white font-bold text-[14px] px-8 py-2.5 rounded-xl transition-all shadow-md active:scale-95">
+        <Link to="/dashboard/programs" className="bg-[#76121F] hover:bg-[#600000] text-white font-bold text-[14px] px-8 py-2.5 rounded-xl transition-all shadow-md active:scale-95">
           View All Programs
-        </button>
+        </Link>
       </div>
 
       {/* Grid of Programs */}

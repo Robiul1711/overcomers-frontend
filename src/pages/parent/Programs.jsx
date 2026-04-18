@@ -109,35 +109,35 @@ const ProgramDetailsView = ({ program, onBack }) => {
   return (
     <div className="animate-in fade-in slide-in-from-right-4 duration-500 pb-10">
       {/* Header */}
-      <div className="flex items-center gap-4 mb-8">
+      <div className="flex items-center gap-3 md:gap-4 mb-6 md:mb-8">
         <button
           onClick={onBack}
-          className="p-2 hover:bg-gray-100 rounded-full transition-colors group"
+          className="p-1.5 md:p-2 hover:bg-gray-100 rounded-full transition-colors group"
         >
-          <ArrowLeft className="group-hover:-translate-x-1 transition-transform" />
+          <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
         </button>
         <div className="relative w-fit">
-          <h2 className="text-3xl font-bold text-[#2D2D2D]">Program Details</h2>
+          <h2 className="text-2xl md:text-3xl font-bold text-[#2D2D2D]">Program Details</h2>
           <div className="absolute -bottom-2 left-0 w-full h-1 bg-[#FFBB03] rounded-full"></div>
         </div>
       </div>
 
-      <div className="mb-6">
-        <h3 className="text-2xl font-bold text-[#3A331E]">
+      <div className="mb-4 md:mb-6">
+        <h3 className="text-xl md:text-2xl font-bold text-[#3A331E]">
           {program.title}
         </h3>
-        <div className="w-full h-[1px] bg-gray-200 mt-4"></div>
+        <div className="w-full h-[1px] bg-gray-200 mt-3 md:mt-4"></div>
       </div>
 
       {/* Main Content Card */}
-      <div className="bg-[#FAF8F8] border border-[#F3F4F6] rounded-[2.5rem] p-10 shadow-sm">
+      <div className="bg-[#FAF8F8] border border-[#F3F4F6] rounded-[2.5rem] md:p-10 p-4 shadow-sm">
         {/* Category & Description */}
-        <div className="mb-10">
-          <span className="bg-[#FAF6F7] text-[#800000] px-4 py-1.5 rounded-full text-sm font-bold border border-[#FEE2E2] inline-block mb-4">
+        <div className="mb-6 md:mb-10">
+          <span className="bg-[#FAF6F7] text-[#800000] px-3 md:px-4 py-1.5 rounded-full text-xs md:text-sm font-bold border border-[#FEE2E2] inline-block mb-3 md:mb-4">
             {program.category}
           </span>
-          <h4 className="text-2xl font-bold text-[#800000] mb-3">Description</h4>
-          <p className="text-[#6B7280] leading-relaxed mb-4 text-lg">
+          <h4 className="text-xl md:text-2xl font-bold text-[#800000] mb-2 md:mb-3">Description</h4>
+          <p className="text-[#6B7280] leading-relaxed mb-3 md:mb-4 text-base md:text-lg">
             {program.longDescription || program.description}
             {program.isSpecial &&
               " This comprehensive program includes evidence-based strategies and structured interventions designed to support skill development and track progress over time. The program follows ABA principles and is suitable for individualized treatment plans."}
@@ -152,21 +152,6 @@ const ProgramDetailsView = ({ program, onBack }) => {
         {/* Task List Header */}
         <div className="flex justify-between items-center mb-8">
           <h4 className="text-2xl font-bold text-[#3A331E]">Task List</h4>
-          <button 
-            onClick={() => setIsSavedAll(!isSavedAll)}
-            className={`${
-              isSavedAll ? "bg-green-600" : "bg-[#76121F] hover:bg-[#600000]"
-            } text-white px-8 py-3 rounded-xl font-bold transition-all active:scale-95 shadow-md flex items-center gap-2`}
-          >
-            {isSavedAll ? (
-              <>
-                <CheckCircle2 size={18} />
-                All Completed
-              </>
-            ) : (
-              "Save all as complete"
-            )}
-          </button>
         </div>
 
         {/* Task Cards Grid */}
@@ -174,9 +159,9 @@ const ProgramDetailsView = ({ program, onBack }) => {
           {taskData.map((task, i) => (
             <div
               key={i}
-              className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm transition-all"
+              className="bg-white rounded-[2rem] p-5 md:p-8 border border-gray-100 shadow-sm transition-all"
             >
-              <h5 className="text-lg font-bold text-[#3A331E] mb-6 pb-4 border-b border-gray-100">
+              <h5 className="text-base md:text-lg font-bold text-[#3A331E] mb-5 md:mb-6 pb-4 border-b border-gray-100">
                 Task {i + 1} - {task.title}
               </h5>
 
@@ -198,7 +183,7 @@ const ProgramDetailsView = ({ program, onBack }) => {
                       });
                     }}
                     disabled={task.isLocked || task.undoAction}
-                    className={`w-full ${task.isLocked ? "bg-gray-100 text-gray-400" : "bg-[#F3F4F6] text-[#374151]"} rounded-xl py-3 text-center font-bold text-lg outline-none transition-all`}
+                    className={`w-full ${task.isLocked ? "bg-gray-100 text-gray-400" : "bg-[#F3F4F6] text-[#374151]"} rounded-xl py-1 sm:py-2 md:py-3 text-center font-bold text-lg outline-none transition-all`}
                   />
                 </div>
                 <div>
@@ -218,7 +203,7 @@ const ProgramDetailsView = ({ program, onBack }) => {
                       });
                     }}
                     disabled={task.isLocked || task.undoAction}
-                    className={`w-full ${task.isLocked ? "bg-gray-50 text-gray-400" : "bg-[#F0FDF4] border border-[#DCFCE7] text-green-700"} rounded-xl py-3 text-center font-bold text-lg outline-none transition-all`}
+                    className={`w-full ${task.isLocked ? "bg-gray-50 text-gray-400" : "bg-[#F0FDF4] border border-[#DCFCE7] text-green-700"} rounded-xl py-1 sm:py-2 md:py-3 text-center font-bold text-lg outline-none transition-all`}
                   />
                 </div>
                 <div>
@@ -238,7 +223,7 @@ const ProgramDetailsView = ({ program, onBack }) => {
                       });
                     }}
                     disabled={task.isLocked || task.undoAction}
-                    className={`w-full ${task.isLocked ? "bg-gray-50 text-gray-400" : "bg-[#FEF2F2] border border-[#FEE2E2] text-red-700"} rounded-xl py-3 text-center font-bold text-lg outline-none transition-all`}
+                    className={`w-full ${task.isLocked ? "bg-gray-50 text-gray-400" : "bg-[#FEF2F2] border border-[#FEE2E2] text-red-700"} rounded-xl py-1 sm:py-2 md:py-3 text-center font-bold text-lg outline-none transition-all`}
                   />
                 </div>
               </div>
@@ -261,30 +246,15 @@ const ProgramDetailsView = ({ program, onBack }) => {
                   <>
                     <button
                       onClick={() => handleAction(i, "yes")}
-                      className="flex-1 bg-[#10B981] text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-[#059669] transition-all active:scale-95"
+                      className="flex-1 bg-[#10B981] text-white py-1 sm:py-2 md:py-3 rounded-xl font-semibold flex items-center justify-center gap-2 hover:bg-[#059669] transition-all active:scale-95"
                     >
                       <span className="text-lg text-white">✓</span> Yes
                     </button>
                     <button
                       onClick={() => handleAction(i, "no")}
-                      className="flex-1 border-2 border-[#FEE2E2] text-[#EF4444] py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-[#FEF2F2] transition-all active:scale-95"
+                      className="flex-1 border-2 border-[#FEE2E2] text-[#EF4444] py-1 sm:py-2 md:py-3 rounded-xl font-semibold flex items-center justify-center gap-2 hover:bg-[#FEF2F2] transition-all active:scale-95"
                     >
                       <span className="text-lg">✕</span> No
-                    </button>
-                    <button
-                      onClick={() => {
-                        setTaskData(prev => {
-                          const next = [...prev];
-                          next[i] = {
-                            ...next[i],
-                            undoAction: { type: "save", expiresAt: Date.now() + 10000 }
-                          };
-                          return next;
-                        });
-                      }}
-                      className="bg-[#76121F] text-white px-6 py-3 rounded-xl font-bold hover:bg-[#600000] transition-all active:scale-95"
-                    >
-                      Save
                     </button>
                   </>
                 )}
@@ -376,11 +346,6 @@ const Programs = () => {
     window.scrollTo(0, 0);
   };
 
-  const toggleComplete = (index) => {
-    setCompletedPrograms((prev) =>
-      prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index]
-    );
-  };
 
   if (view === "details" && selectedProgram) {
     return <ProgramDetailsView program={selectedProgram} onBack={() => setView("list")} />;
@@ -427,14 +392,6 @@ const Programs = () => {
                     className="flex-1 border border-[#800000] text-[#800000] py-2.5 rounded-xl text-sm font-bold hover:bg-[#800000] hover:text-white transition-all active:scale-95"
                   >
                     View Details
-                  </button>
-                  <button
-                    onClick={() => toggleComplete(i)}
-                    className={`flex-1 ${
-                      isCompleted ? "bg-green-600 text-white" : "bg-[#FFBB03] text-black"
-                    } py-2.5 rounded-xl text-sm font-bold shadow-sm hover:shadow-md transition-all active:scale-95`}
-                  >
-                    {isCompleted ? "Completed" : "Mark as Complete"}
                   </button>
                 </div>
               </div>

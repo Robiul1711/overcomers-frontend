@@ -36,7 +36,7 @@ const EmployeePrograms = () => {
     <div className="flex flex-col gap-8 min-h-screen ">
       
 
-      <div className="flex flex-col gap-6 md:gap-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <div className="flex flex-col gap-6 md:gap-8 ">
         {/* Main Content Area - Full Width */}
         <div className="w-full flex flex-col gap-6 md:gap-8">
           <div className="bg-white rounded-[24px] md:rounded-[40px] p-5 md:p-12 shadow-sm border border-gray-50 md:border-gray-100">

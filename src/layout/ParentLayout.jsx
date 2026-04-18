@@ -25,7 +25,7 @@ const sidebarItems = [
   { icon: <Layers size={20} />, text: "Programs", path: "/parent-dashboard/programs" },
   { icon: <TrendingUp size={20} />, text: "Progress Reports", path: "/parent-dashboard/reports" },
   { icon: <Users size={20} />, text: "Care Team", path: "/parent-dashboard/care-team" },
-  { icon: <ShieldCheck size={20} />, text: "Authorizations", path: "/parent-dashboard/authorizations" },
+  // { icon: <ShieldCheck size={20} />, text: "Authorizations", path: "/parent-dashboard/authorizations" },
   { icon: <Bell size={20} />, text: "Notifications", path: "/parent-dashboard/notifications" },
   { icon: <Settings size={20} />, text: "Profile & Settings", path: "/parent-dashboard/settings" },
 ];
@@ -143,10 +143,10 @@ const ParentNavbar = ({ setOpen }) => {
       info.title = "Care Team";
       info.subtitle = "View professionals assigned to Cody's care";
       info.showBack = true;
-    } else if (path.includes("/authorizations")) {
-      info.title = "Authorizations";
-      info.subtitle = "View insurance authorization details";
-      info.showBack = true;
+    // } else if (path.includes("/authorizations")) {
+    //   info.title = "Authorizations";
+    //   info.subtitle = "View insurance authorization details";
+    //   info.showBack = true;
     } else if (path.includes("/notifications")) {
       info.title = "Notifications";
       info.subtitle = "Stay informed about updates and important announcements";

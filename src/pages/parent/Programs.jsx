@@ -10,8 +10,11 @@ import {
   RotateCcw,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { updateTaskResult } from "../../redux/slices/programsSlice";
 
 const ProgramDetailsView = ({ program, onBack }) => {
+  const dispatch = useDispatch();
   const [isSavedAll, setIsSavedAll] = useState(false);
   const [taskData, setTaskData] = useState(
     (program.tasks || [
@@ -106,27 +109,25 @@ const ProgramDetailsView = ({ program, onBack }) => {
     return () => clearTimeout(timer);
   }, [taskData.some(t => t.isLocked)]);
 
+  // Sync data to Redux for global charts
+  useEffect(() => {
+    dispatch(updateTaskResult({ programTitle: program.title, tasks: taskData }));
+  }, [taskData, dispatch, program.title]);
+
   return (
     <div className="animate-in fade-in slide-in-from-right-4 duration-500 pb-10">
-      {/* Header */}
-      <div className="flex items-center gap-3 md:gap-4 mb-6 md:mb-8">
+
+
+      <div className="mb-4 md:mb-6 flex items-center gap-2">
         <button
           onClick={onBack}
-          className="p-1.5 md:p-2 hover:bg-gray-100 rounded-full transition-colors group"
+          className="p-1.5 md:p-2 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors group"
         >
           <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
         </button>
-        <div className="relative w-fit">
-          <h2 className="text-2xl md:text-3xl font-bold text-[#2D2D2D]">Program Details</h2>
-          <div className="absolute -bottom-2 left-0 w-full h-1 bg-[#FFBB03] rounded-full"></div>
-        </div>
-      </div>
-
-      <div className="mb-4 md:mb-6">
         <h3 className="text-xl md:text-2xl font-bold text-[#3A331E]">
           {program.title}
         </h3>
-        <div className="w-full h-[1px] bg-gray-200 mt-3 md:mt-4"></div>
       </div>
 
       {/* Main Content Card */}
@@ -173,17 +174,9 @@ const ProgramDetailsView = ({ program, onBack }) => {
                   <input
                     type="number"
                     value={task.trials}
-                    onChange={(e) => {
-                      if (task.isLocked) return;
-                      const val = parseInt(e.target.value) || 0;
-                      setTaskData(prev => {
-                        const next = [...prev];
-                        next[i] = { ...next[i], trials: val, hasChanges: true };
-                        return next;
-                      });
-                    }}
+                    readOnly
                     disabled={task.isLocked || task.undoAction}
-                    className={`w-full ${task.isLocked ? "bg-gray-100 text-gray-400" : "bg-[#F3F4F6] text-[#374151]"} rounded-xl py-1 sm:py-2 md:py-3 text-center font-bold text-lg outline-none transition-all`}
+                    className={`w-full ${task.isLocked ? "bg-gray-100 text-gray-400" : "bg-[#F3F4F6] text-[#374151]"} rounded-xl py-1 sm:py-2 md:py-3 text-center font-bold text-lg outline-none transition-all cursor-default`}
                   />
                 </div>
                 <div>
@@ -193,17 +186,9 @@ const ProgramDetailsView = ({ program, onBack }) => {
                   <input
                     type="number"
                     value={task.correct}
-                    onChange={(e) => {
-                      if (task.isLocked) return;
-                      const val = parseInt(e.target.value) || 0;
-                      setTaskData(prev => {
-                        const next = [...prev];
-                        next[i] = { ...next[i], correct: val, hasChanges: true };
-                        return next;
-                      });
-                    }}
+                    readOnly
                     disabled={task.isLocked || task.undoAction}
-                    className={`w-full ${task.isLocked ? "bg-gray-50 text-gray-400" : "bg-[#F0FDF4] border border-[#DCFCE7] text-green-700"} rounded-xl py-1 sm:py-2 md:py-3 text-center font-bold text-lg outline-none transition-all`}
+                    className={`w-full ${task.isLocked ? "bg-gray-50 text-gray-400" : "bg-[#F0FDF4] border border-[#DCFCE7] text-green-700"} rounded-xl py-1 sm:py-2 md:py-3 text-center font-bold text-lg outline-none transition-all cursor-default`}
                   />
                 </div>
                 <div>
@@ -213,17 +198,9 @@ const ProgramDetailsView = ({ program, onBack }) => {
                   <input
                     type="number"
                     value={task.incorrect}
-                    onChange={(e) => {
-                      if (task.isLocked) return;
-                      const val = parseInt(e.target.value) || 0;
-                      setTaskData(prev => {
-                        const next = [...prev];
-                        next[i] = { ...next[i], incorrect: val, hasChanges: true };
-                        return next;
-                      });
-                    }}
+                    readOnly
                     disabled={task.isLocked || task.undoAction}
-                    className={`w-full ${task.isLocked ? "bg-gray-50 text-gray-400" : "bg-[#FEF2F2] border border-[#FEE2E2] text-red-700"} rounded-xl py-1 sm:py-2 md:py-3 text-center font-bold text-lg outline-none transition-all`}
+                    className={`w-full ${task.isLocked ? "bg-gray-50 text-gray-400" : "bg-[#FEF2F2] border border-[#FEE2E2] text-red-700"} rounded-xl py-1 sm:py-2 md:py-3 text-center font-bold text-lg outline-none transition-all cursor-default`}
                   />
                 </div>
               </div>

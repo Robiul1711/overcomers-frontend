@@ -1,5 +1,5 @@
 import React from 'react';
-import { MapPin, Calendar, Heart, Share2, MoreVertical, Layers, Clock } from 'lucide-react';
+import { MapPin, Calendar, } from 'lucide-react';
 
 const HeroSection = ({ onScrollToContent }) => {
   return (
@@ -21,9 +21,7 @@ const HeroSection = ({ onScrollToContent }) => {
  
           <div className="flex flex-col gap-1.5">
             <h1 className="text-[28px] md:text-4xl lg:text-5xl font-extrabold text-white leading-[1.1] md:leading-none tracking-tight">John <span className="text-[#FFBB03]">Smith</span></h1>
-            <p className="text-white/40 font-bold text-[11px] md:text-[13px] uppercase tracking-[0.1em] flex items-center gap-2">
-               Established Client <span className="w-1 h-1 rounded-full bg-white/20"></span> Priority Case
-            </p>
+
           </div>
 
           <div className="flex flex-wrap items-center gap-2.5 mt-1 md:mt-2">

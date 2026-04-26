@@ -41,11 +41,10 @@ const ProgramDetailsView = ({ program, onBack }) => {
         task.correct += 1;
       } else {
         task.incorrect += 1;
-      }
-      
+      }   
       task.undoAction = {
         type,
-        expiresAt: Date.now() + 10000,
+        expiresAt: Date.now() + 5000,
       };
       
       next[index] = task;
@@ -105,7 +104,7 @@ const ProgramDetailsView = ({ program, onBack }) => {
   useEffect(() => {
     const timer = setTimeout(() => {
       setTaskData(prev => prev.map(t => ({ ...t, isLocked: false })));
-    }, 2000);
+    }, 1000);
     return () => clearTimeout(timer);
   }, [taskData.some(t => t.isLocked)]);
 

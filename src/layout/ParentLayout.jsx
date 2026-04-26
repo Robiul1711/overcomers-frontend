@@ -49,9 +49,11 @@ const ParentSidebar = ({ open, setOpen, isCollapsed, setIsCollapsed }) => {
         onClick={() => setOpen(false)}
       ></div>
 
-      <div
-        className={`h-screen py-6 flex flex-col transition-all duration-300 ease-in-out z-50 bg-white border-r border-[#F3F4F6] xl:relative fixed ${
-          open ? "left-0 top-0 shadow-xl" : "-left-full xl:left-0"
+     <div
+        className={`h-screen py-6 flex flex-col gap-8 transition-all duration-300 ease-in-out z-50 bg-white border-r border-gray-100 xl:relative fixed ${
+          open 
+            ? "left-0 top-0 shadow-xl" 
+            : "-left-full xl:left-0"
         } ${isCollapsed ? "w-[90px]" : "w-[280px]"}`}
       >
         <button
@@ -61,10 +63,19 @@ const ParentSidebar = ({ open, setOpen, isCollapsed, setIsCollapsed }) => {
           {isCollapsed ? <ChevronRight size={16} strokeWidth={2.5} /> : <ChevronLeft size={16} strokeWidth={2.5} />}
         </button>
 
-        <Link to="/" className="flex justify-center items-center mb-10">
-          <div className={`transition-all duration-300 ${isCollapsed ? 'p-1' : 'w-24 h-24 rounded-full border-2 border-dashed border-[#FFBB03] p-2 flex items-center justify-center'}`}>
-            <img src={ImageProvider.Logo} alt="Logo" className={isCollapsed ? "w-10" : "w-20"} />
-          </div>
+        {/* Logo */}
+        <Link to={"/"} className="flex justify-center items-center mt-4 mb-2 transition-all duration-300">
+          {!isCollapsed ? (
+             <img 
+               src={ImageProvider.Logo} 
+               alt="Overcomers Logo" 
+               className="md:w-36 w-[80px] sm:w-24 h-auto object-contain transition-all duration-300" 
+             />
+          ) : (
+            <div className="w-11 h-11 bg-Primary rounded-xl flex items-center justify-center text-Third font-bold text-xl shadow-sm">
+              O
+            </div>
+          )}
         </Link>
 
         <div className="flex flex-col gap-1.5 flex-grow px-4 overflow-x-hidden overflow-y-auto custom-scrollbar">

@@ -39,12 +39,26 @@ const tableData = [
 const NotesReportsTab = ({ onAddNote, onAddReport }) => {
   const taskResults = useSelector(state => state.programs?.taskResults || []);
   const [selectedProgramTitle, setSelectedProgramTitle] = useState("Communication Skills Development");
+  const [timeframe, setTimeframe] = useState("All time");
 
   const selectedProgramResult = taskResults.find(p => p.programTitle === selectedProgramTitle);
-  const dynamicChartData = selectedProgramResult?.tasks.map((t, index) => ({
-    name: `Task ${index + 1}`,
-    value: t.trials > 0 ? Math.round((t.correct / t.trials) * 100) : 0
-  })) || chartData;
+  
+  // Filtering logic based on timeframe (mocking since we don't have real timestamps for tasks yet)
+  const getFilteredTasks = (tasks) => {
+    if (!tasks) return [];
+    if (timeframe === "Month") return tasks.slice(0, 4); // Just show first 4 for month
+    if (timeframe === "Year") return tasks.slice(0, 7);  // Show 7 for year
+    return tasks; // All time
+  };
+
+  const filteredTasks = getFilteredTasks(selectedProgramResult?.tasks);
+
+  const dynamicChartData = filteredTasks.length > 0 
+    ? filteredTasks.map((t, index) => ({
+        name: `Task ${index + 1}`,
+        value: t.trials > 0 ? Math.round((t.correct / t.trials) * 100) : 0
+      }))
+    : timeframe === "Month" ? chartData.slice(0, 4) : timeframe === "Year" ? chartData.slice(0, 7) : chartData;
 
   const dynamicTableData = taskResults.map(p => {
     const totalTrials = p.tasks.reduce((sum, t) => sum + (t.trials || 0), 0);
@@ -105,7 +119,24 @@ const NotesReportsTab = ({ onAddNote, onAddReport }) => {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
             <div>
               <h2 className="text-[24px] md:text-[28px] font-bold text-[#3A331E]">Overall Task Performance</h2>
-              <p className="text-[#6B7280] text-[13px] md:text-[14px] font-medium">Success rate (%) across sessions - 80% mastery target shown</p>
+              <div className="flex items-center gap-4 mt-1">
+                <p className="text-[#6B7280] text-[13px] md:text-[14px] font-medium">Success rate (%) across sessions</p>
+                <div className="flex bg-gray-50 p-1 rounded-lg border border-gray-100">
+                  {["Month", "Year", "All time"].map((tf) => (
+                    <button
+                      key={tf}
+                      onClick={() => setTimeframe(tf)}
+                      className={`px-3 py-1 text-[11px] font-bold rounded-md transition-all ${
+                        timeframe === tf
+                          ? "bg-Secondary text-white shadow-sm"
+                          : "text-gray-400 hover:text-gray-600"
+                      }`}
+                    >
+                      {tf}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
             <div className="relative">
               <select 

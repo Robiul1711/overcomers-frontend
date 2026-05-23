@@ -2,15 +2,26 @@ import React from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
 import { ImageProvider } from '@/utils/ImageProvider';
-import { ArrowUpRight } from 'lucide-react';
+import { ArrowUpRight, Loader2 } from 'lucide-react';
+import useMutationClient from '@/hooks/useMutationClient';
 
 const ForgetPassword = () => {
   const { register, handleSubmit, formState: { errors } } = useForm();
   const navigate = useNavigate();
+
+  const { mutate, isPending } = useMutationClient({
+    url: "/auth/forgot-password",
+  });
+
   const onSubmit = (data) => {
-    console.log('Forgot Password Data:', data);
-    navigate('/auth/verify-otp');
-    // Handle forgot password logic here
+    mutate(
+      { data },
+      {
+        onSuccess: (res) => {
+          navigate('/auth/verify-otp', { state: { email: data.email } });
+        },
+      }
+    );
   };
 
   return (
@@ -31,7 +42,7 @@ const ForgetPassword = () => {
         </p>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-2 sm:space-y-4 lg:space-y-6">
         <div>
           <label className="block text-[15px] font-bold text-Third mb-2">
             Work Email
@@ -51,17 +62,26 @@ const ForgetPassword = () => {
           {errors.email && <p className="text-red-500 text-xs mt-1.5 font-medium">{errors.email.message}</p>}
         </div>
 
-        <div className="pt-2 flex justify-center">
+        <div className=" flex justify-center">
           <button 
             type="submit"
-            className="flex items-center justify-center gap-2 bg-Primary hover:bg-Primary/90 text-Secondary font-bold text-[16px] py-3.5 px-8 rounded-xl w-3/4 transition duration-300 shadow-md hover:shadow-lg"
+            disabled={isPending}
+            className="flex items-center justify-center gap-2 bg-Primary hover:bg-Primary/90 text-Secondary font-bold text-[16px] py-3.5 px-8 rounded-xl w-3/4 transition duration-300 shadow-md hover:shadow-lg disabled:opacity-70 disabled:cursor-not-allowed"
           >
-            Submit <ArrowUpRight size={20} strokeWidth={2.5} />
+            {isPending ? (
+              <>
+                Submitting... <Loader2 className="animate-spin text-Secondary" size={20} />
+              </>
+            ) : (
+              <>
+                Submit <ArrowUpRight size={20} strokeWidth={2.5} />
+              </>
+            )}
           </button>
         </div>
       </form>
 
-      <div className="mt-8 text-center text-[15px] text-gray-500">
+      <div className="mt-6 text-center text-[15px] text-gray-500">
         Remember the password, back to <Link to="/auth/sign-in" className="text-Secondary font-bold underline hover:text-Secondary/80">Log In</Link>
       </div>
     </div>

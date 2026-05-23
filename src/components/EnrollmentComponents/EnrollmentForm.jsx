@@ -1,20 +1,89 @@
 import React from "react";
 import { useForm } from "react-hook-form";
-import { Upload, ChevronDown, ArrowUpRight } from "lucide-react";
+import { Upload, ChevronDown, ArrowUpRight, Loader2 } from "lucide-react";
+import useMutationClient from "@/hooks/useMutationClient";
+
+const formatDateTime = (val) => {
+  if (!val) return "";
+  const date = new Date(val);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  
+  let hours = date.getHours();
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  const ampm = hours >= 12 ? 'pm' : 'am';
+  hours = hours % 12;
+  hours = hours ? hours : 12; // the hour '0' should be '12'
+  const strHours = String(hours).padStart(2, '0');
+  
+  return `${year}-${month}-${day} ${strHours}:${minutes} ${ampm}`;
+};
 
 const EnrollmentForm = () => {
   const {
     register,
     handleSubmit,
     watch,
+    reset,
     formState: { errors },
   } = useForm();
 
+  const { mutate, isPending } = useMutationClient({
+    url: "/parent-applications",
+    successMessage: "Application submitted successfully!",
+  });
+
   const onSubmit = (data) => {
-    console.log("Form Submitted:", data);
+    const formData = new FormData();
+    formData.append("parent_name", data.parentName);
+    formData.append("phone", data.phone);
+    formData.append("email", data.email);
+    formData.append("address", data.address);
+    formData.append("child_name", data.childName);
+    formData.append("child_dob", data.dob);
+    formData.append("diagnosis", data.diagnosis);
+    formData.append("insurance_provider", data.insuranceProvider);
+    formData.append("member_id", data.memberId);
+    formData.append("service_location", data.location);
+    
+    // Format Preferred start-time to "YYYY-MM-DD hh:mm pm/am"
+    const formattedStartTime = formatDateTime(data.preferredStartTime);
+    formData.append("preferred_start_time", formattedStartTime);
+    
+    formData.append("specific_location", data.specificLocation || "");
+    formData.append("source", data.source || "");
+    formData.append("about_us", data.aboutUs);
+
+    // Files
+    if (data.insuranceCardFront?.[0]) {
+      formData.append("insurance_card_front", data.insuranceCardFront[0]);
+    }
+    if (data.insuranceCardBack?.[0]) {
+      formData.append("insurance_card_back", data.insuranceCardBack[0]);
+    }
+    if (data.neurologicalReport?.[0]) {
+      formData.append("neurological_report", data.neurologicalReport[0]);
+    }
+    if (data.abaReferral?.[0]) {
+      formData.append("aba_referral", data.abaReferral[0]);
+    }
+
+    mutate(
+      { data: formData },
+      {
+        onSuccess: () => {
+          reset();
+        },
+      }
+    );
   };
 
   const aboutUsValue = watch("aboutUs", "");
+  const insuranceFrontFile = watch("insuranceCardFront");
+  const insuranceBackFile = watch("insuranceCardBack");
+  const neurologicalReportFile = watch("neurologicalReport");
+  const abaReferralFile = watch("abaReferral");
 
   return (
     <div className="w-full section-padding-x py-16 bg-[#FAF7F2] flex justify-center">
@@ -110,10 +179,9 @@ const EnrollmentForm = () => {
                   <span className="text-[#3A331E]">*</span>
                 </label>
                 <input
-                  type="text"
-                  placeholder="dd/mm/yyyy"
+                  type="date"
                   {...register("dob", { required: true })}
-                  className="w-full bg-[#f4f4f4] text-gray-500 p-3.5 rounded-md outline-none focus:ring-1 focus:ring-Primary transition-all text-[14px]"
+                  className="w-full bg-[#f4f4f4] text-[#3A331E] p-3.5 rounded-md outline-none focus:ring-1 focus:ring-Primary transition-all text-[14px]"
                 />
               </div>
 
@@ -192,40 +260,43 @@ const EnrollmentForm = () => {
                 </div>
               </div>
 
-              {/* Start Time Select */}
+              {/* Specific Location */}
               <div className="flex flex-col gap-2">
                 <label className="text-[13px] md:text-[14px] font-bold text-[#3A331E]">
-                  Preferred start-time for services (Hora de inicio preferida
-                  para los servicios) <span className="text-[#3A331E]">*</span>
+                  Specific Location (Dirección o Nombre Específico de la Escuela/Daycare)
                 </label>
-                <div className="relative">
-                  <select
-                    {...register("startTime", { required: true })}
-                    className="w-full bg-[#f4f4f4] text-[#3A331E] p-3.5 rounded-md outline-none focus:ring-1 focus:ring-Primary transition-all appearance-none pr-10 text-[14px]"
-                    defaultValue=""
-                  >
-                    <option value="" disabled className="text-gray-500">
-                      Select a time / Seleccione una hora
-                    </option>
-                    <option value="Morning">
-                      Morning (8:00 AM - 10:00 AM) / Mañana
-                    </option>
-                    <option value="Mid-Morning">
-                      Mid-Morning (10:00 AM - 12:00 PM) / Media Mañana
-                    </option>
-                    <option value="Afternoon">
-                      Afternoon (12:00 PM - 3:00 PM) / Tarde
-                    </option>
-                    <option value="Late Afternoon">
-                      Late Afternoon (3:00 PM - 5:00 PM) / Tarde Noche
-                    </option>
-                    <option value="Flexible">Flexible / Flexible</option>
-                  </select>
-                  <ChevronDown
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none"
-                    size={20}
-                  />
-                </div>
+                <input
+                  type="text"
+                  placeholder="e.g. School Name or Daycare Address"
+                  {...register("specificLocation")}
+                  className="w-full bg-[#f4f4f4] text-[#3A331E] p-3.5 rounded-md outline-none focus:ring-1 focus:ring-Primary transition-all text-[14px]"
+                />
+              </div>
+
+              {/* Preferred start-time Selector */}
+              <div className="flex flex-col gap-2">
+                <label className="text-[13px] md:text-[14px] font-bold text-[#3A331E]">
+                  Preferred start-time for services (Hora de inicio preferida para los servicios){" "}
+                  <span className="text-[#3A331E]">*</span>
+                </label>
+                <input
+                  type="datetime-local"
+                  {...register("preferredStartTime", { required: true })}
+                  className="w-full bg-[#f4f4f4] text-[#3A331E] p-3.5 rounded-md outline-none focus:ring-1 focus:ring-Primary transition-all text-[14px]"
+                />
+              </div>
+
+              {/* Referral Source */}
+              <div className="flex flex-col gap-2">
+                <label className="text-[13px] md:text-[14px] font-bold text-[#3A331E]">
+                  Referral Source (Google, Referral, etc.) / Fuente de Referencia
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Referral, Google, Social Media"
+                  {...register("source")}
+                  className="w-full bg-[#f4f4f4] text-[#3A331E] p-3.5 rounded-md outline-none focus:ring-1 focus:ring-Primary transition-all text-[14px]"
+                />
               </div>
 
               <div className="flex flex-col gap-2 md:col-span-2">
@@ -254,34 +325,64 @@ const EnrollmentForm = () => {
             </h3>
 
             <div className="flex flex-col gap-6">
-              {/* Full width attachment */}
-              <div className="flex flex-col gap-2">
-                <label className="text-[13px] md:text-[14px] font-bold text-[#3A331E]">
-                  Front & Back of Insurance Card{" "}
-                  <span className="text-[#3A331E]">*</span>
-                </label>
-                <div className="w-full border border-dashed border-Primary bg-[#FFFAF0] rounded-lg py-12 px-8 flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-[#fff7e5] transition-colors relative">
-                  <input
-                    type="file"
-                    {...register("insuranceFile", { required: true })}
-                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                  />
-                  <Upload
-                    className="text-[#AD3946] w-6 h-6 mb-1"
-                    strokeWidth={2}
-                  />
-                  <div className="text-[#AD3946] font-semibold text-[14px] md:text-[15px]">
-                    Click to upload or drag and drop
-                  </div>
-                  <div className="text-gray-500 text-[12px] md:text-[13px]">
-                    Supported: JPG, PDF. Max size: 10MB
-                  </div>
-                </div>
-              </div>
-
-              {/* Grid attachments */}
+              {/* Separate Insurance Front & Back Upload */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="flex flex-col gap-2">
+                  <label className="text-[13px] md:text-[14px] font-bold text-[#3A331E]">
+                    Insurance Card - Front Side (Frente de la Tarjeta de Seguro){" "}
+                    <span className="text-[#3A331E]">*</span>
+                  </label>
+                  <div className="w-full border border-dashed border-Primary bg-[#FFFAF0] rounded-lg py-10 px-6 flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-[#fff7e5] transition-colors relative">
+                    <input
+                      type="file"
+                      {...register("insuranceCardFront", { required: true })}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    />
+                    <Upload
+                      className="text-[#AD3946] w-6 h-6 mb-1"
+                      strokeWidth={2}
+                    />
+                    <div className="text-[#AD3946] font-semibold text-[14px] md:text-[15px] text-center">
+                      {insuranceFrontFile?.[0]?.name ? (
+                        <span className="text-green-600 font-bold">{insuranceFrontFile[0].name}</span>
+                      ) : (
+                        "Upload Front Side"
+                      )}
+                    </div>
+                    <div className="text-gray-500 text-[12px] md:text-[13px]">
+                      Supported: JPG, PDF. Max size: 10MB
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <label className="text-[13px] md:text-[14px] font-bold text-[#3A331E]">
+                    Insurance Card - Back Side (Reverso de la Tarjeta de Seguro){" "}
+                    <span className="text-[#3A331E]">*</span>
+                  </label>
+                  <div className="w-full border border-dashed border-Primary bg-[#FFFAF0] rounded-lg py-10 px-6 flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-[#fff7e5] transition-colors relative">
+                    <input
+                      type="file"
+                      {...register("insuranceCardBack", { required: true })}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    />
+                    <Upload
+                      className="text-[#AD3946] w-6 h-6 mb-1"
+                      strokeWidth={2}
+                    />
+                    <div className="text-[#AD3946] font-semibold text-[14px] md:text-[15px] text-center">
+                      {insuranceBackFile?.[0]?.name ? (
+                        <span className="text-green-600 font-bold">{insuranceBackFile[0].name}</span>
+                      ) : (
+                        "Upload Back Side"
+                      )}
+                    </div>
+                    <div className="text-gray-500 text-[12px] md:text-[13px]">
+                      Supported: JPG, PDF. Max size: 10MB
+                    </div>
+                  </div>
+                </div>
+                          <div className="flex flex-col gap-2">
                   <label className="text-[13px] md:text-[14px] font-bold text-[#3A331E]">
                     Neurological Report / Proof of Diagnosis{" "}
                     <span className="text-[#3A331E]">*</span>
@@ -289,15 +390,19 @@ const EnrollmentForm = () => {
                   <div className="w-full border border-dashed border-Primary bg-[#FFFAF0] rounded-lg py-12 px-8 flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-[#fff7e5] transition-colors relative">
                     <input
                       type="file"
-                      {...register("diagnosisFile", { required: true })}
+                      {...register("neurologicalReport", { required: true })}
                       className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                     />
                     <Upload
                       className="text-[#AD3946] w-6 h-6 mb-1"
                       strokeWidth={2}
                     />
-                    <div className="text-[#AD3946] font-semibold text-[14px] md:text-[15px]">
-                      Click to upload or drag and drop
+                    <div className="text-[#AD3946] font-semibold text-[14px] md:text-[15px] text-center">
+                      {neurologicalReportFile?.[0]?.name ? (
+                        <span className="text-green-600 font-bold">{neurologicalReportFile[0].name}</span>
+                      ) : (
+                        "Click to upload or drag and drop"
+                      )}
                     </div>
                     <div className="text-gray-500 text-[12px] md:text-[13px]">
                       Supported: JPG, PDF. Max size: 10MB
@@ -312,15 +417,19 @@ const EnrollmentForm = () => {
                   <div className="w-full border border-dashed border-Primary bg-[#FFFAF0] rounded-lg py-12 px-8 flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-[#fff7e5] transition-colors relative">
                     <input
                       type="file"
-                      {...register("referralFile", { required: true })}
+                      {...register("abaReferral", { required: true })}
                       className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                     />
                     <Upload
                       className="text-[#AD3946] w-6 h-6 mb-1"
                       strokeWidth={2}
                     />
-                    <div className="text-[#AD3946] font-semibold text-[14px] md:text-[15px]">
-                      Click to upload or drag and drop
+                    <div className="text-[#AD3946] font-semibold text-[14px] md:text-[15px] text-center">
+                      {abaReferralFile?.[0]?.name ? (
+                        <span className="text-green-600 font-bold">{abaReferralFile[0].name}</span>
+                      ) : (
+                        "Click to upload or drag and drop"
+                      )}
                     </div>
                     <div className="text-gray-500 text-[12px] md:text-[13px]">
                       Supported: JPG, PDF. Max size: 10MB
@@ -328,15 +437,26 @@ const EnrollmentForm = () => {
                   </div>
                 </div>
               </div>
+
+  
             </div>
           </div>
 
           <div className="flex flex-col items-center justify-center mt-6 gap-4">
             <button
               type="submit"
-              className="bg-Primary hover:bg-Primary/90 text-[#3A331E] font-bold text-[14px] md:text-[15px] px-8 py-3.5 rounded-[12px] flex items-center justify-center gap-2 transition-colors w-full md:w-auto min-w-[200px]"
+              disabled={isPending}
+              className="bg-Primary hover:bg-Primary/90 text-[#3A331E] font-bold text-[14px] md:text-[15px] px-8 py-3.5 rounded-[12px] flex items-center justify-center gap-2 transition-colors w-full md:w-auto min-w-[200px] disabled:opacity-75 disabled:cursor-not-allowed"
             >
-              Submit Enrollment <ArrowUpRight size={18} strokeWidth={2.5} />
+              {isPending ? (
+                <>
+                  Submitting Enrollment... <Loader2 className="animate-spin text-[#3A331E]" size={18} />
+                </>
+              ) : (
+                <>
+                  Submit Enrollment <ArrowUpRight size={18} strokeWidth={2.5} />
+                </>
+              )}
             </button>
             <p className="text-gray-500 text-[12px] md:text-[13px]">
               This site is protected by reCAPTCHA and the Google{" "}

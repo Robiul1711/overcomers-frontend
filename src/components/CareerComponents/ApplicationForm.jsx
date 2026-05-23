@@ -1,17 +1,67 @@
 import React from "react";
 import { useForm } from "react-hook-form";
-import { Upload, ChevronDown, ArrowUpRight } from "lucide-react";
+import { Upload, ChevronDown, ArrowUpRight, Loader2 } from "lucide-react";
+import useMutationClient from "@/hooks/useMutationClient";
+import { toast } from "react-toastify";
+
 
 const ApplicationForm = () => {
   const {
     register,
     handleSubmit,
+    watch,
+    reset,
     formState: { errors },
   } = useForm();
 
+  const { mutate, isPending } = useMutationClient({
+    url: "/doctor-applications",
+  });
+
   const onSubmit = (data) => {
-    console.log("Application Submitted:", data);
+    const formData = new FormData();
+    formData.append("full_name", data.fullName);
+    formData.append("dob", data.dob);
+    formData.append("phone", data.phone);
+    formData.append("email", data.email);
+    formData.append("address", data.address);
+    formData.append("position", data.position);
+    formData.append("transportation", data.transportation);
+    formData.append("hourly_rate", data.hourlyRate);
+    formData.append("availability", data.availability);
+    formData.append("source", data.howDidYouHear || "");
+
+    if (data.resumeFile?.[0]) {
+      formData.append("resume", data.resumeFile[0]);
+    }
+    if (data.document?.[0]) {
+      formData.append("document", data.document[0]);
+    }
+
+    mutate(
+      { data: formData },
+      {
+        onSuccess: () => {
+          reset();
+        },
+      }
+    );
   };
+
+  const resumeFile = watch("resumeFile");
+  const documentFile = watch("document");
+
+  React.useEffect(() => {
+    if (resumeFile && resumeFile.length > 0) {
+      toast.success(`Resume: ${resumeFile[0].name} selected!`);
+    }
+  }, [resumeFile]);
+
+  React.useEffect(() => {
+    if (documentFile && documentFile.length > 0) {
+      toast.success(`Document: ${documentFile[0].name} selected!`);
+    }
+  }, [documentFile]);
 
   return (
     <div className="w-full section-padding-x pb-16 md:pb-24 pt-8 bg-[#FAF7F2] flex justify-center">
@@ -42,10 +92,9 @@ const ApplicationForm = () => {
                 Date of Birth <span className="text-[#3A331E]">*</span>
               </label>
               <input
-                type="text"
-                placeholder="dd/mm/yyyy"
+                type="date"
                 {...register("dob", { required: true })}
-                className="w-full bg-[#f4f4f4] text-gray-500 p-3.5 rounded-md outline-none focus:ring-1 focus:ring-Primary transition-all text-[14px]"
+                className="w-full bg-[#f4f4f4] text-[#3A331E] p-3.5 rounded-md outline-none focus:ring-1 focus:ring-Primary transition-all text-[14px]"
               />
             </div>
 
@@ -192,9 +241,7 @@ const ApplicationForm = () => {
                 {...register("howDidYouHear")}
                 className="w-full bg-[#f4f4f4] text-gray-500 p-3.5 rounded-md outline-none focus:ring-1 focus:ring-Primary transition-all text-[14px]"
               />
-            </div>
-
-            {/* Upload Resume */}
+            </div>            {/* Upload Resume */}
             <div className="flex flex-col gap-2 md:col-span-2 mt-4">
               <label className="text-[13px] md:text-[14px] font-bold text-[#3A331E]">
                 Upload Resume <span className="text-[#3A331E]">*</span>
@@ -209,14 +256,19 @@ const ApplicationForm = () => {
                   className="text-[#AD3946] w-6 h-6 mb-1"
                   strokeWidth={2}
                 />
-                <div className="text-[#AD3946] font-semibold text-[14px] md:text-[15px]">
-                  Click to upload or drag and drop
+                <div className="text-[#AD3946] font-semibold text-[14px] md:text-[15px] text-center">
+                  {resumeFile?.[0]?.name ? (
+                    <span className="text-green-600 font-bold">{resumeFile[0].name}</span>
+                  ) : (
+                    "Click to upload or drag and drop"
+                  )}
                 </div>
                 <div className="text-gray-500 text-[12px] md:text-[13px]">
                   Supported: JPG, PDF. Max size: 10MB
                 </div>
               </div>
             </div>
+
             {/* Text Document*/}
             <div className="flex flex-col gap-2 md:col-span-2 mt-4">
               <label className="text-[13px] md:text-[14px] font-bold text-[#3A331E]">
@@ -225,15 +277,19 @@ const ApplicationForm = () => {
               <div className="w-full border border-dashed border-Primary bg-[#FFFAF0] rounded-lg py-12 px-8 flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-[#fff7e5] transition-colors relative mt-1">
                 <input
                   type="file"
-                  {...register("textDocument", { required: true })}
+                  {...register("document", { required: true })}
                   className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                 />
                 <Upload
                   className="text-[#AD3946] w-6 h-6 mb-1"
                   strokeWidth={2}
                 />
-                <div className="text-[#AD3946] font-semibold text-[14px] md:text-[15px]">
-                  Click to upload or drag and drop
+                <div className="text-[#AD3946] font-semibold text-[14px] md:text-[15px] text-center">
+                  {documentFile?.[0]?.name ? (
+                    <span className="text-green-600 font-bold">{documentFile[0].name}</span>
+                  ) : (
+                    "Click to upload or drag and drop"
+                  )}
                 </div>
                 <div className="text-gray-500 text-[12px] md:text-[13px]">
                   Supported: JPG, PDF. Max size: 10MB
@@ -245,9 +301,18 @@ const ApplicationForm = () => {
           <div className="flex flex-col items-center justify-center mt-6 gap-4">
             <button
               type="submit"
-              className="bg-Primary hover:bg-Primary/90 text-[#3A331E] font-bold text-[14px] md:text-[15px] px-8 py-3.5 rounded-[12px] flex items-center justify-center gap-2 transition-colors w-full md:w-auto min-w-[200px]"
+              disabled={isPending}
+              className="bg-Primary hover:bg-Primary/90 text-[#3A331E] font-bold text-[14px] md:text-[15px] px-8 py-3.5 rounded-[12px] flex items-center justify-center gap-2 transition-colors w-full md:w-auto min-w-[200px] disabled:opacity-75 disabled:cursor-not-allowed"
             >
-              Submit Application <ArrowUpRight size={18} strokeWidth={2.5} />
+              {isPending ? (
+                <>
+                  Submitting Application... <Loader2 className="animate-spin text-[#3A331E]" size={18} />
+                </>
+              ) : (
+                <>
+                  Submit Application <ArrowUpRight size={18} strokeWidth={2.5} />
+                </>
+              )}
             </button>
             <p className="text-gray-500 text-[12px] md:text-[13px] text-center max-w-[500px]">
               This site is protected by reCAPTCHA and the Google{" "}

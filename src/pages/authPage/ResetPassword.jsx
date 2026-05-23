@@ -1,19 +1,49 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { ImageProvider } from '@/utils/ImageProvider';
-import { ArrowUpRight } from 'lucide-react';
+import { ArrowUpRight, Loader2 } from 'lucide-react';
+import useMutationClient from '@/hooks/useMutationClient';
+import { toast } from 'react-toastify';
 
 const ResetPassword = () => {
   const { register, handleSubmit, watch, formState: { errors } } = useForm();
   const navigate = useNavigate();
+  const location = useLocation();
   
-  const newPassword = watch("newPassword", "");
+  const email = location.state?.email;
+  const token = location.state?.token;
+
+  useEffect(() => {
+    if (!email || !token) {
+      toast.error("Session expired or invalid. Please start the password reset process again.");
+      navigate('/auth/forget-password');
+    }
+  }, [email, token, navigate]);
+
+  const { mutate, isPending } = useMutationClient({
+    url: "/auth/reset-password",
+  });
+  
+  const password = watch("password", "");
 
   const onSubmit = (data) => {
-    console.log('Reset Password Data:', data);
-    // Handle reset password logic here
-    // e.g., navigate('/auth/sign-in')
+    if (!email || !token) return;
+    mutate(
+      {
+        data: {
+          email,
+          token,
+          password: data.password,
+          password_confirmation: data.password_confirmation,
+        },
+      },
+      {
+        onSuccess: () => {
+          navigate('/auth/sign-in');
+        },
+      }
+    );
   };
 
   return (
@@ -42,7 +72,7 @@ const ResetPassword = () => {
           <input 
             type="password" 
             placeholder="Enter New Password"
-            {...register("newPassword", { 
+            {...register("password", { 
                 required: "New Password is required",
                 minLength: {
                     value: 8,
@@ -53,9 +83,9 @@ const ResetPassword = () => {
                     message: "Password must include at least one capital letter"
                 }
             })}
-            className={`w-full bg-[#e6e4e4] text-gray-800 rounded-xl px-4 py-3.5 outline-none focus:ring-2 transition ${errors.newPassword ? 'focus:ring-red-500 ring-1 ring-red-500' : 'focus:ring-Primary'}`}
+            className={`w-full bg-[#e6e4e4] text-gray-800 rounded-xl px-4 py-3.5 outline-none focus:ring-2 transition ${errors.password ? 'focus:ring-red-500 ring-1 ring-red-500' : 'focus:ring-Primary'}`}
           />
-          {errors.newPassword && <p className="text-red-500 text-xs mt-1.5 font-medium">{errors.newPassword.message}</p>}
+          {errors.password && <p className="text-red-500 text-xs mt-1.5 font-medium">{errors.password.message}</p>}
           <p className="text-gray-500 text-[13px] mt-2">
             Your password must be at least 8 characters long and must include at least one capital letter.
           </p>
@@ -68,21 +98,30 @@ const ResetPassword = () => {
           <input 
             type="password" 
             placeholder="Confirm Password"
-            {...register("confirmPassword", { 
+            {...register("password_confirmation", { 
                 required: "Please confirm your password",
-                validate: value => value === newPassword || "Passwords do not match"
+                validate: value => value === password || "Passwords do not match"
             })}
-            className={`w-full bg-[#e6e4e4] text-gray-800 rounded-xl px-4 py-3.5 outline-none focus:ring-2 transition ${errors.confirmPassword ? 'focus:ring-red-500 ring-1 ring-red-500' : 'focus:ring-Primary'}`}
+            className={`w-full bg-[#e6e4e4] text-gray-800 rounded-xl px-4 py-3.5 outline-none focus:ring-2 transition ${errors.password_confirmation ? 'focus:ring-red-500 ring-1 ring-red-500' : 'focus:ring-Primary'}`}
           />
-          {errors.confirmPassword && <p className="text-red-500 text-xs mt-1.5 font-medium">{errors.confirmPassword.message}</p>}
+          {errors.password_confirmation && <p className="text-red-500 text-xs mt-1.5 font-medium">{errors.password_confirmation.message}</p>}
         </div>
 
         <div className="pt-2 flex justify-center">
           <button 
             type="submit"
-            className="flex items-center justify-center gap-2 bg-Primary hover:bg-Primary/90 text-Secondary font-bold text-[16px] py-3.5 px-8 rounded-xl w-3/4 transition duration-300 shadow-md hover:shadow-lg"
+            disabled={isPending}
+            className="flex items-center justify-center gap-2 bg-Primary hover:bg-Primary/90 text-Secondary font-bold text-[16px] py-3.5 px-8 rounded-xl w-3/4 transition duration-300 shadow-md hover:shadow-lg disabled:opacity-70 disabled:cursor-not-allowed"
           >
-            Submit <ArrowUpRight size={20} strokeWidth={2.5} />
+            {isPending ? (
+              <>
+                Submitting... <Loader2 className="animate-spin text-Secondary" size={20} />
+              </>
+            ) : (
+              <>
+                Submit <ArrowUpRight size={20} strokeWidth={2.5} />
+              </>
+            )}
           </button>
         </div>
       </form>

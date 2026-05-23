@@ -1,17 +1,61 @@
 import React from "react";
 import { useForm } from "react-hook-form";
-import { Upload, ChevronDown, ArrowUpRight } from "lucide-react";
+import { Upload, ChevronDown, ArrowUpRight, Loader2 } from "lucide-react";
+import useMutationClient from "@/hooks/useMutationClient";
+import { toast } from "react-toastify";
 
 const ScholarshipForm = () => {
   const {
     register,
     handleSubmit,
+    watch,
+    reset,
     formState: { errors },
   } = useForm();
 
+  const { mutate, isPending } = useMutationClient({
+    url: "/employee-applications",
+  });
+
   const onSubmit = (data) => {
-    console.log("Scholarship Application Submitted:", data);
+    const formData = new FormData();
+    formData.append("full_name", data.fullName);
+    formData.append("dob", data.dob);
+    formData.append("phone", data.phone);
+    formData.append("email", data.email);
+    formData.append("address", data.address);
+    formData.append("education_program", data.school);
+    formData.append("field_of_study", data.fieldOfStudy);
+    formData.append("enrollment_status", data.enrollmentStatus);
+    formData.append("expected_graduation", data.graduationDate);
+    formData.append("align_goals", data.goals);
+    formData.append("challenge_overcome", data.challenge);
+    formData.append("give_back_plan", data.giveBack);
+    formData.append("source", data.howDidYouHear || "");
+
+    if (data.resumeFile?.[0]) {
+      formData.append("resume", data.resumeFile[0]);
+    }
+    if (data.proofFile?.[0]) {
+      formData.append("enrollment_proof", data.proofFile[0]);
+    }
+    if (data.recommendationFile?.[0]) {
+      formData.append("recommendation_letter", data.recommendationFile[0]);
+    }
+
+    mutate(
+      { data: formData },
+      {
+        onSuccess: () => {
+          reset();
+        },
+      }
+    );
   };
+
+  const resumeFile = watch("resumeFile");
+  const proofFile = watch("proofFile");
+  const recommendationFile = watch("recommendationFile");
 
   return (
     <div className="w-full section-padding-x py-16 bg-[#FAF7F2] flex justify-center">
@@ -40,17 +84,16 @@ const ScholarshipForm = () => {
                 />
               </div>
 
-              <div className="flex flex-col gap-2">
-                <label className="text-[13px] md:text-[14px] font-bold text-[#3A331E]">
-                  Date of Birth <span className="text-[#3A331E]">*</span>
-                </label>
-                <input
-                  type="text"
-                  placeholder="dd/mm/yyyy"
-                  {...register("dob", { required: true })}
-                  className="w-full bg-[#f4f4f4] text-gray-500 p-3.5 rounded-md outline-none focus:ring-1 focus:ring-Primary transition-all text-[14px]"
-                />
-              </div>
+            <div className="flex flex-col gap-2">
+              <label className="text-[13px] md:text-[14px] font-bold text-[#3A331E]">
+                Date of Birth <span className="text-[#3A331E]">*</span>
+              </label>
+              <input
+                type="date"
+                {...register("dob", { required: true })}
+                className="w-full bg-[#f4f4f4] text-[#3A331E] p-3.5 rounded-md outline-none focus:ring-1 focus:ring-Primary transition-all text-[14px]"
+              />
+            </div>
 
               <div className="flex flex-col gap-2">
                 <label className="text-[13px] md:text-[14px] font-bold text-[#3A331E]">
@@ -154,18 +197,17 @@ const ScholarshipForm = () => {
                 </div>
               </div>
 
-              <div className="flex flex-col gap-2">
-                <label className="text-[13px] md:text-[14px] font-bold text-[#3A331E]">
-                  Expected Graduation / Completion Date{" "}
-                  <span className="text-[#3A331E]">*</span>
-                </label>
-                <input
-                  type="text"
-                  placeholder="dd/mm/yyyy"
-                  {...register("graduationDate", { required: true })}
-                  className="w-full bg-[#f4f4f4] text-[#3A331E] p-3.5 rounded-md outline-none focus:ring-1 focus:ring-Primary transition-all text-[14px]"
-                />
-              </div>
+            <div className="flex flex-col gap-2">
+              <label className="text-[13px] md:text-[14px] font-bold text-[#3A331E]">
+                Expected Graduation / Completion Date{" "}
+                <span className="text-[#3A331E]">*</span>
+              </label>
+              <input
+                type="date"
+                {...register("graduationDate", { required: true })}
+                className="w-full bg-[#f4f4f4] text-[#3A331E] p-3.5 rounded-md outline-none focus:ring-1 focus:ring-Primary transition-all text-[14px]"
+              />
+            </div>
             </div>
           </div>
 
@@ -247,8 +289,12 @@ const ScholarshipForm = () => {
                     className="text-[#AD3946] w-6 h-6 mb-1"
                     strokeWidth={2}
                   />
-                  <div className="text-[#AD3946] font-semibold text-[14px] md:text-[15px]">
-                    Click to upload or drag and drop
+                  <div className="text-[#AD3946] font-semibold text-[14px] md:text-[15px] text-center">
+                    {resumeFile?.[0]?.name ? (
+                      <span className="text-green-600 font-bold">{resumeFile[0].name}</span>
+                    ) : (
+                      "Click to upload or drag and drop"
+                    )}
                   </div>
                   <div className="text-gray-500 text-[12px] md:text-[13px]">
                     Supported: PDF, DOC, DOCX. Max size: 10MB
@@ -273,8 +319,12 @@ const ScholarshipForm = () => {
                       className="text-[#AD3946] w-6 h-6 mb-1"
                       strokeWidth={2}
                     />
-                    <div className="text-[#AD3946] font-semibold text-[14px] md:text-[15px]">
-                      Click to upload or drag and drop
+                    <div className="text-[#AD3946] font-semibold text-[14px] md:text-[15px] text-center">
+                      {proofFile?.[0]?.name ? (
+                        <span className="text-green-600 font-bold">{proofFile[0].name}</span>
+                      ) : (
+                        "Click to upload or drag and drop"
+                      )}
                     </div>
                     <div className="text-gray-500 text-[12px] md:text-[13px]">
                       Supported: JPG, PDF. Max size: 10MB
@@ -296,8 +346,12 @@ const ScholarshipForm = () => {
                       className="text-[#AD3946] w-6 h-6 mb-1"
                       strokeWidth={2}
                     />
-                    <div className="text-[#AD3946] font-semibold text-[14px] md:text-[15px]">
-                      Click to upload or drag and drop
+                    <div className="text-[#AD3946] font-semibold text-[14px] md:text-[15px] text-center">
+                      {recommendationFile?.[0]?.name ? (
+                        <span className="text-green-600 font-bold">{recommendationFile[0].name}</span>
+                      ) : (
+                        "Click to upload or drag and drop"
+                      )}
                     </div>
                     <div className="text-gray-500 text-[12px] md:text-[13px]">
                       Supported: JPG, PDF. Max size: 10MB
@@ -311,9 +365,18 @@ const ScholarshipForm = () => {
           <div className="flex flex-col items-center justify-center mt-6 gap-4">
             <button
               type="submit"
-              className="bg-Primary hover:bg-Primary/90 text-[#3A331E] font-bold text-[14px] md:text-[15px] px-8 py-3.5 rounded-[12px] flex items-center justify-center gap-2 transition-colors w-full md:w-auto min-w-[200px]"
+              disabled={isPending}
+              className="bg-Primary hover:bg-Primary/90 text-[#3A331E] font-bold text-[14px] md:text-[15px] px-8 py-3.5 rounded-[12px] flex items-center justify-center gap-2 transition-colors w-full md:w-auto min-w-[200px] disabled:opacity-75 disabled:cursor-not-allowed"
             >
-              Submit Application <ArrowUpRight size={18} strokeWidth={2.5} />
+              {isPending ? (
+                <>
+                  Submitting Application... <Loader2 className="animate-spin text-[#3A331E]" size={18} />
+                </>
+              ) : (
+                <>
+                  Submit Application <ArrowUpRight size={18} strokeWidth={2.5} />
+                </>
+              )}
             </button>
             <p className="text-gray-500 text-[12px] md:text-[13px]">
               This site is protected by reCAPTCHA and the Google{" "}

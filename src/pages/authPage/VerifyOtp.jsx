@@ -1,18 +1,61 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { ImageProvider } from '@/utils/ImageProvider';
-import { ArrowUpRight } from 'lucide-react';
+import { ArrowUpRight, Loader2 } from 'lucide-react';
 import OTPInput from 'otp-input-react';
+import useMutationClient from '@/hooks/useMutationClient';
+import { toast } from 'react-toastify';
 
 const VerifyOtp = () => {
   const { control, handleSubmit, formState: { errors } } = useForm();
   const navigate = useNavigate();
+  const location = useLocation();
+  const email = location.state?.email;
+
+  useEffect(() => {
+    if (!email) {
+      toast.error("Session expired. Please enter your email again.");
+      navigate('/auth/forget-password');
+    }
+  }, [email, navigate]);
+
+  const { mutate, isPending } = useMutationClient({
+    url: "/auth/verify-otp",
+  });
+
+  const { mutate: resendMutate, isPending: isResending } = useMutationClient({
+    url: "/auth/forgot-password",
+    successMessage: "OTP resent successfully!",
+  });
 
   const onSubmit = (data) => {
-    console.log('Verify OTP Data:', data);
-    // Handle OTP verification logic here
-    // e.g., navigate('/dashboard') or navigate('/auth/reset-password')
+    if (!email) return;
+    mutate(
+      {
+        data: {
+          email,
+          otp: data.otp,
+        },
+      },
+      {
+        onSuccess: (res) => {
+          const resData = res?.data || res;
+          const token = resData?.access_token;
+          navigate('/auth/reset-password', {
+            state: {
+              email,
+              token,
+            },
+          });
+        },
+      }
+    );
+  };
+
+  const handleResend = () => {
+    if (!email) return;
+    resendMutate({ data: { email } });
   };
 
   return (
@@ -29,7 +72,7 @@ const VerifyOtp = () => {
           Verify OTP
         </h2>
         <p className="text-gray-500 text-[15px] mt-2 text-center">
-          Enter the 4-digit code sent to your email.
+          Enter the 4-digit code sent to <span className="font-semibold text-Third">{email}</span>.
         </p>
       </div>
 
@@ -52,7 +95,7 @@ const VerifyOtp = () => {
                 autoFocus
                 OTPLength={4}
                 otpType="number"
-                disabled={false}
+                disabled={isPending}
                 inputClassName="hover:ring-2 focus:ring-2 ring-Primary focus:outline-none transition-all duration-300"
                 inputStyles={{
                   width: "3.5rem",
@@ -76,15 +119,32 @@ const VerifyOtp = () => {
         <div className="pt-2 flex justify-center">
           <button 
             type="submit"
-            className="flex items-center justify-center gap-2 bg-Primary hover:bg-Primary/90 text-Secondary font-bold text-[16px] py-3.5 px-8 rounded-xl w-3/4 transition duration-300 shadow-md hover:shadow-lg"
+            disabled={isPending}
+            className="flex items-center justify-center gap-2 bg-Primary hover:bg-Primary/90 text-Secondary font-bold text-[16px] py-3.5 px-8 rounded-xl w-3/4 transition duration-300 shadow-md hover:shadow-lg disabled:opacity-70 disabled:cursor-not-allowed"
           >
-            Verify <ArrowUpRight size={20} strokeWidth={2.5} />
+            {isPending ? (
+              <>
+                Verifying... <Loader2 className="animate-spin text-Secondary" size={20} />
+              </>
+            ) : (
+              <>
+                Verify <ArrowUpRight size={20} strokeWidth={2.5} />
+              </>
+            )}
           </button>
         </div>
       </form>
 
-      <div className="mt-8 text-center text-[15px] text-gray-500">
-        Didn't receive code? <button type="button" className="text-Secondary font-bold underline hover:text-Secondary/80 ml-1">Resend</button>
+      <div className="mt-4 text-center text-[15px] text-gray-500">
+        Didn't receive code?{" "}
+        <button 
+          type="button" 
+          onClick={handleResend}
+          disabled={isResending}
+          className="text-Secondary font-bold underline hover:text-Secondary/80 ml-1 disabled:opacity-50"
+        >
+          {isResending ? "Resending..." : "Resend"}
+        </button>
       </div>
       <div className="mt-4 text-center text-[15px] text-gray-500">
         Remember the password, back to <Link to="/auth/sign-in" className="text-Secondary font-bold underline hover:text-Secondary/80">Log In</Link>

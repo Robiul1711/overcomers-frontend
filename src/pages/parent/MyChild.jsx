@@ -15,6 +15,7 @@ import {
   Camera,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
+import useClient from "@/hooks/useClient";
 
 const EditChildProfileModal = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
@@ -165,7 +166,12 @@ const MyChild = () => {
   const [selectedMember, setSelectedMember] = useState(null);
   const [isTeamModalOpen, setIsTeamModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-
+  const { data:MyChildData, isLoading, isError } = useClient({
+    queryKey: ["parentMyChild" ],
+    url: "/parent/my-child",
+  });
+  console.log(MyChildData?.data?.header);
+  const header=MyChildData?.data?.header
   const childInfo = [
     { label: "Full Name", value: "Cody Fisher" },
     { label: "Date of Birth", value: "June 14, 2018" },
@@ -232,16 +238,18 @@ const MyChild = () => {
         <div className="flex flex-col md:flex-row items-center justify-between gap-8 relative z-10">
           <div className="flex flex-col md:flex-row items-center gap-6">
             <div className="w-24 h-24 bg-[#3A331E] rounded-full flex items-center justify-center text-white text-3xl font-bold border-4 border-white/20">
-              CF
+              {header?.name.slice(0, 2).toUpperCase()}
             </div>
             <div className="text-center md:text-left">
               <h2 className="text-4xl font-bold mb-1 font-poppins">
-                Cody Fisher
+              {header?.name}
               </h2>
               <p className="text-white/80 font-medium mb-4">
-                Active Care Plan · ABA Therapy Services
+                {header?.active_care_plan && `Active Care Plan`} · {header?.service_name}
               </p>
-              <div className="flex flex-wrap justify-center md:justify-start gap-2">
+              {
+                header?.tags?.map((tag,i)=>(
+              <div key={i} className="flex flex-wrap justify-center md:justify-start gap-2">
                 <span className="bg-[#8B232F] px-4 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 border border-white/10 shadow-sm">
                   <Calendar size={12} className="text-[#FFBB03]" /> Age 7
                 </span>
@@ -257,6 +265,8 @@ const MyChild = () => {
                   <MapPin size={12} className="text-[#FFBB03]" /> Home Services
                 </span>
               </div>
+             ))
+              }
             </div>
           </div>
 

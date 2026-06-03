@@ -18,6 +18,7 @@ import {
   X,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import useClient from "@/hooks/useClient";
 
 const EditChildProfileModal = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
@@ -31,8 +32,8 @@ const EditChildProfileModal = ({ isOpen, onClose }) => {
       ></div>
 
       {/* Modal Content */}
-      <div className="bg-white rounded-[2.5rem] w-full max-w-[min(95vw,512px)] relative z-10 shadow-2xl animate-in zoom-in-95 duration-300 overflow-hidden max-h-[90vh] flex flex-col border border-gray-100">
-        <div className="p-6 md:p-10 overflow-y-auto custom-scrollbar flex-1">
+      <div className="bg-white rounded-xl w-full max-w-[min(95vw,512px)] relative z-10 shadow-2xl animate-in zoom-in-95 duration-300 overflow-hidden max-h-[90vh] flex flex-col border border-gray-100">
+        <div className="p-4 md:p-6 overflow-y-auto custom-scrollbar flex-1">
           <div className="relative mb-6">
             <h3 className="text-2xl md:text-3xl font-black text-Third tracking-tight leading-tight">
               Edit Clinical Profile
@@ -43,14 +44,14 @@ const EditChildProfileModal = ({ isOpen, onClose }) => {
             <div className="absolute -bottom-3 left-0 w-24 h-1 bg-Primary rounded-full"></div>
           </div>
 
-          <div className="mt-12 mb-10 flex justify-start">
+          <div className="mt-4 mb-4 flex justify-start">
             <div className="relative group cursor-pointer">
-              <div className="w-20 h-20 md:w-24 md:h-24 bg-Secondary rounded-[2rem] flex items-center justify-center text-Primary text-3xl font-black border-4 border-[#FFFBEE] shadow-xl group-hover:rotate-3 transition-transform">
+              <div className="w-16 h-16  bg-Secondary rounded-[1rem] flex items-center justify-center text-Primary text-2xl font-black border-4 border-[#FFFBEE] shadow-xl group-hover:rotate-3 transition-transform">
                 CF
               </div>
-              <div className="absolute -bottom-1 -right-1 p-2 bg-white rounded-full border-2 border-gray-50 text-Secondary shadow-lg">
+              {/* <div className="absolute -bottom-1 -right-1 p-2 bg-white rounded-full border-2 border-gray-50 text-Secondary shadow-lg">
                 <Camera size={16} strokeWidth={3} />
-              </div>
+              </div> */}
             </div>
           </div>
 
@@ -63,14 +64,14 @@ const EditChildProfileModal = ({ isOpen, onClose }) => {
               { label: "School Location", placeholder: "Austin, TX 78704" },
               { label: "Main Service Node", placeholder: "Home" },
             ].map((field, i) => (
-              <div key={i} className="flex flex-col gap-2">
-                <label className="block text-[11px] md:text-xs font-black text-Third uppercase tracking-[0.2em] pl-1">
+              <div key={i} className="flex flex-col gap-1">
+                <label className="block text-[11px] md:text-xs font-black text-Third  tracking-[0.1em] pl-1">
                   {field.label} *
                 </label>
                 <input
                   type="text"
                   placeholder={field.placeholder}
-                  className="w-full bg-gray-50 border-2 border-gray-100 rounded-xl md:rounded-2xl px-5 py-3.5 md:py-4 focus:border-Primary/50 focus:ring-4 focus:ring-Primary/5 outline-none transition-all text-[14px] md:text-sm font-bold shadow-sm"
+                  className="w-full bg-gray-50 border-2 border-gray-100 rounded-lg px-3 py-2.5 md:py-3 focus:border-Primary/50 focus:ring-4 focus:ring-Primary/5 outline-none transition-all text-[14px] md:text-sm f shadow-sm"
                 />
               </div>
             ))}
@@ -80,11 +81,11 @@ const EditChildProfileModal = ({ isOpen, onClose }) => {
         <div className="p-6 md:p-8 bg-gray-50/50 flex flex-col sm:flex-row gap-3 md:gap-4 border-t border-gray-100">
           <button
             onClick={onClose}
-            className="flex-1 bg-Primary text-Secondary py-4 rounded-xl md:rounded-2xl font-black text-[14px] uppercase tracking-widest hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-Primary/10 order-2 sm:order-1"
+            className="flex-1 bg-Primary text-Secondary py-3 rounded-lg font-black text-[14px] uppercase tracking-widest hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-Primary/10 order-2 sm:order-1"
           >
             Cancel
           </button>
-          <button className="flex-1 bg-Secondary text-white py-4 rounded-xl md:rounded-2xl font-black text-[14px] uppercase tracking-widest hover:bg-Secondary/90 active:scale-95 transition-all shadow-xl shadow-Secondary/10 order-1 sm:order-2">
+          <button className="flex-1 bg-Secondary text-white py-3 rounded-lg  font-black text-[14px] uppercase tracking-widest hover:bg-Secondary/90 active:scale-95 transition-all shadow-xl shadow-Secondary/10 order-1 sm:order-2">
             Update Case
           </button>
         </div>
@@ -96,9 +97,16 @@ const EditChildProfileModal = ({ isOpen, onClose }) => {
 const ParentDashboard = () => {
   const navigate = useNavigate();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-
+  const { data, isLoading, isError } = useClient({
+    queryKey: ["parentDashboard" ],
+    url: "/parent/dashboard",
+  });
+const StatsData=data?.data?.stats
+const ChildData=data?.data?.child
+const CareTeam=data?.data?.care_team
+const NextSessonData=data?.data?.next_session
   return (
-    <div className="space-y-8 animate-in fade-in duration-700">
+    <div className="space-y-4 md:space-y-6 animate-in fade-in duration-700">
       {/* Modal */}
       <EditChildProfileModal
         isOpen={isEditModalOpen}
@@ -110,32 +118,32 @@ const ParentDashboard = () => {
         {[
           {
             label: "Active Programs",
-            count: "4",
+            count: StatsData?.active_programs || 0,
             icon: <Calendar className="text-Secondary" />,
             bgColor: "bg-white",
           },
           {
             label: "New Notes",
-            count: "3",
+            count: StatsData?.new_notes || 0,
             icon: <ClipboardList className="text-Secondary" />,
             bgColor: "bg-white",
           },
           {
             label: "Progress Updates",
-            count: "2",
+            count: StatsData?.progress_updates || 0,
             icon: <FileText className="text-Secondary" />,
             bgColor: "bg-white",
           },
           {
             label: "New Notification",
-            count: "1",
+            count: StatsData?.new_notifications || 0,
             icon: <Bell className="text-Secondary" />,
             bgColor: "bg-white",
           },
         ].map((stat, i) => (
           <div
             key={i}
-            className="bg-white p-5 md:p-6 rounded-2xl shadow-sm flex items-center gap-4 hover:shadow-md transition-shadow cursor-pointer border border-[#F3F4F6]"
+            className="bg-white p-3 md:p-4 rounded-xl shadow-sm flex items-center gap-4 hover:shadow-md transition-shadow cursor-pointer border border-[#F3F4F6]"
           >
             <div className="p-2.5 md:p-3 bg-Secondary/5 rounded-xl">
               {React.cloneElement(stat.icon, { size: 20 })}
@@ -153,9 +161,9 @@ const ParentDashboard = () => {
       </div>
 
       {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* My Child Card */}
-        <div className="bg-white p-6 md:p-8 rounded-[32px] shadow-sm border border-[#F3F4F6] flex flex-col h-full">
+        <div className="bg-white p-3 md:p-4  rounded-xl shadow-sm border border-[#F3F4F6] flex flex-col h-full">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 md:mb-8">
             <div>
               <h2 className="text-xl md:text-2xl font-black text-Third">
@@ -173,60 +181,56 @@ const ParentDashboard = () => {
             </button>
           </div>
 
-          <div className="bg-gray-50/50 p-5 md:p-6 rounded-[24px] mb-4 border border-gray-100/50">
+          <div className="bg-gray-50/50 p-5 rounded-xl mb-4 border border-gray-100/50">
             <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5 mb-4 text-center sm:text-left">
               <div className="w-16 h-16 bg-Secondary rounded-xl flex items-center justify-center text-Primary text-2xl md:text-3xl font-black shadow-xl shadow-Secondary/20 shrink-0">
-                CF
+                {ChildData?.name?.charAt(0)}
               </div>
               <div className="flex-1 w-full">
                 <h3 className="text-xl md:text-2xl font-black text-Third">
-                  Cody Fisher
+                 {ChildData?.name}
                 </h3>
                 <p className="text-gray-400 font-bold text-[13px] ">
-                  Age 7 · Autism Spectrum Disorder
+                 {ChildData?.age} · {ChildData?.diagnosis}
                 </p>
                 <div className="flex flex-wrap justify-center sm:justify-start gap-2 mt-3">
-                  <span className="bg-white px-3 py-1.5 rounded-full text-[11px] font-black uppercase tracking-widest text-[#10B981] border border-[#10B981]/20 flex items-center gap-1.5 shadow-sm">
-                    <span className="w-1.5 h-1.5 bg-[#10B981] rounded-full animate-pulse"></span>{" "}
-                    Active Care Plan
-                  </span>
+                  {ChildData?.active_care_plan && (
+                    <span className="bg-white px-3 py-1.5 rounded-full text-[11px] font-black uppercase tracking-widest text-[#10B981] border border-[#10B981]/20 flex items-center gap-1.5 shadow-sm">
+                      <span className="w-1.5 h-1.5 bg-[#10B981] rounded-full animate-pulse"></span>{" "}
+                      Active Care Plan
+                    </span>
+                  )}
                   <span className="bg-white px-3 py-1.5 rounded-full text-[11px] font-black uppercase tracking-widest text-gray-500 border border-gray-100 flex items-center gap-1.5 shadow-sm">
-                    <Calendar size={12} className="text-Secondary" /> ABA
-                    Therapy
+                    <Calendar size={12} className="text-Secondary" /> {ChildData?.therapy_type}
                   </span>
                 </div>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-gray-200/50 pt-5">
-              <div className="p-3 bg-white rounded-xl border border-gray-100 flex flex-col items-center sm:items-start text-center sm:text-left">
-                <p className="text-[10px] md:text-[11px] text-gray-400 font-black uppercase tracking-widest mb-1">
-                  RBT Therapist
-                </p>
-                <p className="text-[14px] md:text-[15px] font-black text-Secondary">
-                  Eleanor Pena
-                </p>
-                <button className="text-[11px] font-bold text-gray-400 flex items-center gap-1 mt-1 hover:text-Secondary transition-colors uppercase tracking-wider">
-                  Connect ↗
-                </button>
-              </div>
-              <div className="p-3 bg-white rounded-xl border border-gray-100 flex flex-col items-center sm:items-start text-center sm:text-left">
-                <p className="text-[10px] md:text-[11px] text-gray-400 font-black uppercase tracking-widest mb-1">
-                  Supervising BCBA
-                </p>
-                <p className="text-[14px] md:text-[15px] font-black text-Secondary">
-                  Dr. Devon Lane
-                </p>
-                <button className="text-[11px] font-bold text-gray-400 flex items-center gap-1 mt-1 hover:text-Secondary transition-colors uppercase tracking-wider">
-                  Connect ↗
-                </button>
-              </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 border-t border-gray-200/50 pt-3">
+            {
+              CareTeam?.map((member,i)=>(
+                <div key={i} className="p-3 bg-white rounded-xl border border-gray-100 flex flex-col items-center sm:items-start text-center sm:text-left">
+                  <p className="text-[10px] md:text-[11px] text-gray-400 font-black uppercase tracking-widest mb-1">
+                    {member?.role}
+                  </p>
+                  <p className="text-[14px] md:text-[15px] font-black text-Secondary">
+                    {member?.name}
+                  </p>
+                  <button className="text-[11px] font-bold text-gray-400 flex items-center gap-1 mt-1 hover:text-Secondary transition-colors uppercase tracking-wider">
+                    Connect ↗
+                  </button>
+                </div>
+             
+
+              ))
+            }
             </div>
           </div>
         </div>
 
         {/* New Notes Card */}
-        <div className="bg-white p-6 md:p-8 rounded-[32px] shadow-sm border border-[#F3F4F6] flex flex-col h-full">
+        <div className="bg-white p-3 md:p-4  rounded-xl  shadow-sm border border-[#F3F4F6] flex flex-col h-full">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 md:mb-8">
             <div>
               <h2 className="text-xl md:text-2xl font-black text-Third">
@@ -276,7 +280,7 @@ const ParentDashboard = () => {
       </div>
 
       {/* Upcoming Session Banner */}
-      <div className="bg-Secondary rounded-2xl md:rounded-[32px] p-4 md:p-6 text-white flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 relative overflow-hidden group shadow-xl shadow-Secondary/10">
+      <div className="bg-Secondary rounded-xl p-3 md:p-4 text-white flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 relative overflow-hidden group shadow-xl shadow-Secondary/10">
         {/* Decorative blur element - scaled down */}
         <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -translate-y-16 translate-x-16 blur-2xl group-hover:scale-125 transition-transform duration-700"></div>
 
@@ -291,19 +295,19 @@ const ParentDashboard = () => {
 
           {/* Heading - Reduced size and margin */}
           <h3 className="text-lg md:text-xl lg:text-2xl font-bold mb-4 tracking-tight leading-snug">
-            Dr. Devon Lane - Comm. Protocol
+           {NextSessonData?.employee} - {NextSessonData?.service}
           </h3>
 
           {/* Info Tags - More compact padding and smaller text */}
           <div className="flex flex-wrap gap-2">
             <div className="flex items-center gap-2 bg-white/10 backdrop-blur-md px-3 py-1.5 rounded-xl text-[11px] md:text-[13px] font-semibold border border-white/10">
-              <Calendar size={14} className="text-Primary" /> Mar 31, 2026
+              <Calendar size={14} className="text-Primary" /> {NextSessonData?.day}
             </div>
             <div className="flex items-center gap-2 bg-white/10 backdrop-blur-md px-3 py-1.5 rounded-xl text-[11px] md:text-[13px] font-semibold border border-white/10">
-              <Clock size={14} className="text-Primary" /> 9:00 – 11:00 AM
+              <Clock size={14} className="text-Primary" />{NextSessonData?.start_time} - {NextSessonData?.end_time}
             </div>
             <div className="flex items-center gap-2 bg-white/10 backdrop-blur-md px-3 py-1.5 rounded-xl text-[11px] md:text-[13px] font-semibold border border-white/10">
-              <MapPin size={14} className="text-Primary" /> Residential
+              <MapPin size={14} className="text-Primary" /> {NextSessonData?.location}
             </div>
           </div>
         </div>

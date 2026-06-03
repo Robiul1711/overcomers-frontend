@@ -3,7 +3,9 @@ import SideBar from "@/pages/admin/SideBar";
 import TopTabs from "@/components/common/TopTabs";
 
 import React, { useEffect, useState } from "react";
-import { Outlet, ScrollRestoration, useLocation } from "react-router-dom";
+import { Outlet, ScrollRestoration, useLocation, Navigate } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { selectCurrentToken } from "@/redux/slices/authSlice";
 import {
   LayoutDashboard,
   Briefcase,
@@ -16,8 +18,14 @@ import {
 } from "lucide-react";
 
 const AdminLayout = () => {
+  const token = useSelector(selectCurrentToken);
   const [Open, setOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
+
+  if (!token) {
+    return <Navigate to="/auth/sign-in" replace />;
+  }
+
 
   const sideBar = [
     {

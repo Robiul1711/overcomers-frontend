@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import useAxiosPublic from "./useAxiosPublic";
 import useAxiosSecure from "./useAxiosSecure";
 import { toast } from "react-toastify";
+import { useSelector } from "react-redux";
+import { selectCurrentToken } from "@/redux/slices/authSlice";
 
 const useMutationClient = ({
   url,
@@ -14,12 +16,24 @@ const useMutationClient = ({
 }) => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const client = isPrivate ? useAxiosSecure() : useAxiosPublic();
+  const token = useSelector(selectCurrentToken);
+  const client = (isPrivate || token) ? useAxiosSecure() : useAxiosPublic();
 
   return useMutation({
-    mutationFn: async ({ data, config } = {}) => {
-      if (method === "delete") return await client.delete(url, config);
-      return await client[method](url, data, config);
+    mutationFn: async (variables = {}) => {
+      let data = variables?.data;
+      let config = variables?.config;
+      let id = variables?.id;
+
+      if (variables !== null && typeof variables !== "object") {
+        id = variables;
+      } else if (variables && !("data" in variables) && !("config" in variables) && !("id" in variables)) {
+        data = variables;
+      }
+
+      const finalUrl = typeof url === "function" ? url(id) : url;
+      if (method === "delete") return await client.delete(finalUrl, config);
+      return await client[method](finalUrl, data, config);
     },
 
     onSuccess: (res) => {

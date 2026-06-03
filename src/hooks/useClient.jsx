@@ -2,6 +2,8 @@
 import { useQuery } from "@tanstack/react-query";
 import useAxiosPublic from "./useAxiosPublic";
 import useAxiosSecure from "./useAxiosSecure";
+import { useSelector } from "react-redux";
+import { selectCurrentToken } from "@/redux/slices/authSlice";
 
 const useClient = ({
   queryKey,
@@ -11,7 +13,8 @@ const useClient = ({
   enabled = true,
   initialData,
 }) => {
-  const client = isPrivate ? useAxiosSecure() : useAxiosPublic();
+  const token = useSelector(selectCurrentToken);
+  const client = (isPrivate || token) ? useAxiosSecure() : useAxiosPublic();
 
   const query = useQuery({
     // include params so refetch happens automatically on change

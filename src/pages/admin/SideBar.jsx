@@ -1,10 +1,21 @@
 import React from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { LogOut, ChevronLeft, ChevronRight } from "lucide-react";
 import { ImageProvider } from "@/utils/ImageProvider";
+import { useDispatch } from "react-redux";
+import { clearAuth } from "@/redux/slices/authSlice";
+import { toast } from "react-toastify";
 
 const SideBar = ({ sidebar, open, setOpen, isCollapsed, setIsCollapsed }) => {
   const location = useLocation();
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    dispatch(clearAuth());
+    toast.success("Logged out successfully");
+    navigate("/auth/sign-in");
+  };
 
   const isActive = (paths) => {
     if (!paths) return false;
@@ -88,6 +99,7 @@ const SideBar = ({ sidebar, open, setOpen, isCollapsed, setIsCollapsed }) => {
         {/* Logout */}
         <div className="mt-auto mb-4 px-4 overflow-x-hidden">
           <div 
+            onClick={handleLogout}
             className={`flex items-center gap-4 py-3 cursor-pointer text-gray-500 hover:bg-gray-50 hover:text-black rounded-xl transition-colors duration-200 ${
                isCollapsed ? "justify-center px-0" : "px-5"
             }`}

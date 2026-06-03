@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { Link, useLocation, Outlet, ScrollRestoration, useNavigate } from "react-router-dom";
+import { Link, useLocation, Outlet, ScrollRestoration, useNavigate, Navigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { selectCurrentToken, clearAuth } from "@/redux/slices/authSlice";
+import { toast } from "react-toastify";
 import { 
   LayoutDashboard, 
   User, 
@@ -32,6 +35,14 @@ const sidebarItems = [
 
 const ParentSidebar = ({ open, setOpen, isCollapsed, setIsCollapsed }) => {
   const location = useLocation();
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    dispatch(clearAuth());
+    toast.success("Logged out successfully");
+    navigate("/auth/sign-in");
+  };
 
   const isActive = (path) => {
     if (path === "/parent-dashboard") {
@@ -103,6 +114,7 @@ const ParentSidebar = ({ open, setOpen, isCollapsed, setIsCollapsed }) => {
 
         <div className="mt-auto px-4">
           <div 
+            onClick={handleLogout}
             className={`flex items-center gap-4 py-3 cursor-pointer text-[#6B7280] hover:bg-[#FEF2F2] hover:text-[#B91C1C] rounded-xl transition-colors duration-200 ${
               isCollapsed ? "justify-center px-0" : "px-5"
             }`}
@@ -217,6 +229,7 @@ const ParentNavbar = ({ setOpen }) => {
 };
 
 const ParentLayout = () => {
+  const token = useSelector(selectCurrentToken);
   const [open, setOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const location = useLocation();
@@ -224,6 +237,10 @@ const ParentLayout = () => {
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [location]);
+
+  if (!token) {
+    return <Navigate to="/auth/sign-in" replace />;
+  }
 
   return (
     <>

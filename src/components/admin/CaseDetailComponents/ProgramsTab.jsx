@@ -1,13 +1,11 @@
 import React, { useState } from "react";
 import { ArrowLeft } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 
-const ProgramsTab = ({ programsDataset, onAddNote }) => {
+const ProgramsTab = ({ programsDataset, isLoading, onAddNote }) => {
   const [view, setView] = useState("list"); // 'list' or 'details'
   const [selectedProgram, setSelectedProgram] = useState(null);
-
-  // Demo statuses for the list view
-  const statuses = ["Active", "Pending", "Completed"];
+  // console.log(programsDataset)
 
   const handleViewDetails = (program) => {
     setSelectedProgram(program);
@@ -75,7 +73,7 @@ const ProgramsTab = ({ programsDataset, onAddNote }) => {
                 Task List
               </h3>
               <button
-                onClick={onAddNote}
+                onClick={() => onAddNote(selectedProgram.id)}
                 className="bg-[#76121F] hover:bg-[#600000] text-white font-bold text-[14px] px-8 py-2.5 rounded-xl transition-all shadow-md active:scale-95"
               >
                 Add Note
@@ -83,40 +81,12 @@ const ProgramsTab = ({ programsDataset, onAddNote }) => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {[
-                {
-                  id: 1,
-                  title: "Task 1 - Responds To Name Within 3 Seconds",
-                  trials: 5,
-                  correct: 3,
-                  incorrect: 2,
-                },
-                {
-                  id: 2,
-                  title: "Task 2 - Labels 5+ Common Objects Verbally",
-                  trials: 5,
-                  correct: 5,
-                  incorrect: 0,
-                },
-                {
-                  id: 3,
-                  title: "Task 3 - Initiates Conversation With Peer",
-                  trials: 5,
-                  correct: 5,
-                  incorrect: 0,
-                },
-                {
-                  id: 4,
-                  title: "Task 4 - Labels 5+ Common Objects Verbally",
-                  trials: 0,
-                  correct: 0,
-                  incorrect: 0,
-                },
-              ].map((task) => (
+              {selectedProgram?.tasks?.map((task) => (
                 <div
                   key={task.id}
                   className="bg-white border border-gray-100 rounded-[24px] p-6 shadow-sm hover:shadow-md transition-all"
                 >
+                  {console.log(task)}
                   <h5 className="text-[16px] font-bold text-[#3A331E] mb-6">
                     {task.title}
                   </h5>
@@ -126,50 +96,44 @@ const ProgramsTab = ({ programsDataset, onAddNote }) => {
                       <label className="text-[12px] font-bold text-[#3A331E] ml-1">
                         Trials
                       </label>
-                      <input
+                      <div
                        
                         className="bg-[#F4F4F4] rounded-xl py-3 px-2   text-center text-[#3A331E] font-bold text-[16px]"
-                        value={task.trials}
-                        onChange={(e) =>
-                          handleTaskChange(task.id, "trials", e.target.value)
-                        }
-                      />
+                        value={task?.trials || 0}
+                       
+                      >{task?.trials}</div>
                     </div>
                     <div className="flex flex-col gap-1.5">
                       <label className="text-[12px] font-bold text-[#3A331E] ml-1">
                         Correct
                       </label>
-                      <input
+                      <div
                        
                         className="bg-[#E5F9ED] rounded-xl py-3 px-2 text-center text-[#3A331E] font-bold text-[16px] border border-[#10B981]/10"
-                        value={task.correct}
-                        onChange={(e) =>
-                          handleTaskChange(task.id, "correct", e.target.value)
-                        }
-                      />
+                        
+                        
+                      >{task?.correct}</div>
                     </div>
                     <div className="flex flex-col gap-1.5">
                       <label className="text-[12px] font-bold text-[#3A331E] ml-1">
                         Incorrect
                       </label>
-                      <input
+                      <div
                        
                         className="bg-[#FAF6F7] rounded-xl py-3 px-2 text-center text-[#3A331E] font-bold text-[16px] border border-[#76121F]/10"
-                        value={task.incorrect}
-                        onChange={(e) =>
-                          handleTaskChange(task.id, "incorrect", e.target.value)
-                        }
-                      />
+                       
+                       
+                      >{task?.incorrect}</div>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-3">
-                    <button className="flex-1 bg-[#10B981] text-white py-2.5 rounded-xl text-[14px] font-bold shadow-sm hover:bg-[#0E9F6E] transition-all flex items-center justify-center gap-2 active:scale-95">
+                    <div className="flex-1 bg-[#10B981] text-white py-2.5 rounded-xl text-[14px] font-bold shadow-sm hover:bg-[#0E9F6E] transition-all flex items-center justify-center gap-2 active:scale-95">
                       <span className="text-[16px]">✓</span> Yes
-                    </button>
-                    <button className="flex-1 border-2 border-[#FF5C5C] text-[#FF5C5C] py-2.5 rounded-xl text-[14px] font-bold hover:bg-[#FF5C5C] hover:text-white transition-all flex items-center justify-center gap-2 active:scale-95">
+                    </div>
+                    <div className="flex-1 border-2 border-[#FF5C5C] text-[#FF5C5C] py-2.5 rounded-xl text-[14px] font-bold hover:bg-[#FF5C5C] hover:text-white transition-all flex items-center justify-center gap-2 active:scale-95">
                       <span className="text-[16px]">✕</span> No
-                    </button>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -201,17 +165,11 @@ const ProgramsTab = ({ programsDataset, onAddNote }) => {
 
       {/* Grid of Programs */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {programsDataset.map((program, index) => {
-          const status = statuses[index % statuses.length];
-          const statusColors = {
-            Active: "bg-[#76121F] text-white",
-            Pending: "bg-[#FFBB03] text-white",
-            Completed: "bg-[#10B981] text-white",
-          };
+        {programsDataset?.map((program, index) => {
 
           return (
             <div
-              key={program.id}
+              key={index}
               className="bg-white border border-gray-100 rounded-[28px] p-7 shadow-sm flex flex-col hover:shadow-md transition-all duration-300"
             >
               <div className="flex flex-col gap-1 mb-4">
@@ -243,9 +201,9 @@ const ProgramsTab = ({ programsDataset, onAddNote }) => {
                   View Details
                 </button>
                 <div
-                  className={`flex-1 py-3 ${statusColors[status]} font-bold text-[13px] rounded-xl text-center shadow-sm select-none`}
+                  className={ `capitalize flex-1 py-3 ${program?.status === "active" ? "bg-[#10B981] text-white" : program?.status === "pending" ? "bg-[#FFBB03] text-white" : "bg-[#76121F] text-white"} font-bold text-[13px] rounded-xl text-center shadow-sm select-none`}
                 >
-                  {status}
+                  {program?.status}
                 </div>
               </div>
             </div>

@@ -7,6 +7,7 @@ import WeeklyCalendar from "./ScheduleComponents/WeeklyCalendar";
 import ClockInModal from "./ScheduleComponents/ClockInModal";
 import ClockOutModal from "./ScheduleComponents/ClockOutModal";
 import ScheduleSessionModal from "./ScheduleComponents/ScheduleSessionModal";
+import useClient from "@/hooks/useClient";
 
 const MySchedule = () => {
   const [showClockInModal, setShowClockInModal] = useState(false);
@@ -205,29 +206,6 @@ const MySchedule = () => {
     },
   ]);
 
-  const stats = [
-    {
-      label: "Today's Hours",
-      value: "6.5",
-      unit: "hrs",
-      icon: <Clock size={22} className="text-blue-500" />,
-      bgColor: "bg-blue-50",
-    },
-    {
-      label: "Weekly Hours",
-      value: "28.5",
-      unit: "hrs",
-      icon: <CheckCircle2 size={22} className="text-green-500" />,
-      bgColor: "bg-green-50",
-    },
-    {
-      label: "Total Hours Logged",
-      value: "142",
-      unit: "hrs",
-      icon: <ShieldCheck size={22} className="text-purple-500" />,
-      bgColor: "bg-purple-50",
-    },
-  ];
 
   const [actualStartTime, setActualStartTime] = useState("10:26 AM");
   const [actualEndTime, setActualEndTime] = useState("11:30 AM");
@@ -275,10 +253,41 @@ const MySchedule = () => {
     );
   };
 
+
+
+      const { data, isLoading, isError } = useClient({
+    queryKey: ["employee/schedules/overview" ],
+    url: "/employee/schedules/overview",
+  });
+
+  const stats = [
+    {
+      label: "Today's Hours",
+      value: data?.data?.todays_hours,
+      unit: "hrs",
+      icon: <Clock size={22} className="text-blue-500" />,
+      bgColor: "bg-blue-50",
+    },
+    {
+      label: "Weekly Hours",
+      value: data?.data?.weekly_hours,
+      unit: "hrs",
+      icon: <CheckCircle2 size={22} className="text-green-500" />,
+      bgColor: "bg-green-50",
+    },
+    {
+      label: "Total Hours Logged",
+      value: data?.data?.total_hours_logged,
+      unit: "hrs",
+      icon: <ShieldCheck size={22} className="text-purple-500" />,
+      bgColor: "bg-purple-50",
+    },
+  ];
+
   return (
     <div className="flex flex-col gap-6 md:gap-8 font-poppins pb-10 px-1 md:px-0">
       {/* Top Stats Cards */}
-      <StatsCards stats={stats} />
+      <StatsCards stats={stats}  isLoading={isLoading}/>
 
       {/* Main Calendar Card */}
       <WeeklyCalendar 

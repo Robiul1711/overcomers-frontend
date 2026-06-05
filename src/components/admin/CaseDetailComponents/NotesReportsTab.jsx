@@ -36,7 +36,8 @@ const tableData = [
   { program: "Com. Skills Dev.", trials: "10 times", yes: "7 times", no: "3 times" },
 ];
 
-const NotesReportsTab = ({ onAddNote, onAddReport }) => {
+const NotesReportsTab = ({ onAddNote, onAddReport,notesData,notesLoading,notesIsError }) => {
+  // console.log(notesData)
   const taskResults = useSelector(state => state.programs?.taskResults || []);
   const [selectedProgramTitle, setSelectedProgramTitle] = useState("Communication Skills Development");
   const [timeframe, setTimeframe] = useState("All time");
@@ -80,28 +81,6 @@ const NotesReportsTab = ({ onAddNote, onAddReport }) => {
   });
 
   const finalTableData = dynamicTableData.length > 0 ? dynamicTableData : tableData;
-
-  const notes = [
-    {
-      author: "Eleanor Pena",
-      role: "RBT",
-      date: "March 5, 2026",
-      content: "Client showing improvement in communication and social interaction during recent sessions. Successfully completed 3 of 4 targeted goals this week."
-    },
-    {
-      author: "Dr. Devon Lane",
-      role: "BCBA",
-      date: "February 28, 2026",
-      content: "Client showing improvement in communication and social interaction during recent sessions. Successfully completed 3 of 4 targeted goals this week."
-    },
-    {
-      author: "Eleanor Pena",
-      role: "RBT",
-      date: "March 1, 2026",
-      subAuthor: "Sarah Martinez (RBT)",
-      content: "Initial session completed. Client was responsive and comfortable in home setting. Baseline data collected for all target behaviors."
-    }
-  ];
 
   const reports = [
     { title: "ABA Referral", type: "PDF", date: "Feb 15, 2026" },
@@ -241,12 +220,12 @@ const NotesReportsTab = ({ onAddNote, onAddReport }) => {
         <div className="w-full h-[2px] bg-[#FFBB03] rounded-full mb-8"></div>
 
         <div className="flex flex-col gap-5">
-          {notes.map((note, i) => (
+          {notesData?.map((note, i) => (
             <div key={i} className="bg-[#FFFBEE] border-l-4 border-[#76121F] rounded-2xl p-6 shadow-sm flex flex-col gap-3">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="text-[#76121F] font-bold text-[16px]">{note.author} ({note.role})</span>
-                <span className="text-gray-400 font-bold text-[13px]">{note.date}</span>
-                {note.subAuthor && <span className="text-gray-400 font-bold text-[12px] ml-auto">{note.subAuthor}</span>}
+                <span className="text-[#76121F] font-bold text-[16px]">{note.employee_name} ({note.role})</span>
+                <span className="text-gray-400 font-bold text-[13px]">{note.date_formatted}</span>
+                {/* {note.subAuthor && <span className="text-gray-400 font-bold text-[12px] ml-auto">{note.subAuthor}</span>} */}
               </div>
               <p className="text-[#3A331E]/80 text-[14px] leading-relaxed font-medium">
                 {note.content}

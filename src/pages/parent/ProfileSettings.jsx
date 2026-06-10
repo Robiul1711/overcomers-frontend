@@ -19,13 +19,13 @@ const ResetPasswordModal = ({ isOpen, onClose }) => {
         className="absolute inset-0 bg-black/20  backdrop-blur-md animate-in fade-in duration-500"
         onClick={onClose}
       ></div>
-      <div className="bg-white rounded-[32px] md:rounded-[48px] w-full max-w-[560px] relative z-10 shadow-2xl animate-in zoom-in-95 duration-300 overflow-hidden border border-white/20">
-        <div className="p-6 sm:p-10">
+      <div className="bg-white rounded-xl md:rounded-2xl w-full max-w-[560px] relative z-10 shadow-2xl animate-in zoom-in-95 duration-300 overflow-hidden border border-white/20">
+        <div className="p-4 sm:p-6">
           <div className="relative mb-10">
-            <h3 className="text-2xl sm:text-3xl font-black text-Third tracking-tight leading-tight">
+            <h3 className="text-xl md:text-2xl font-black text-Third tracking-tight leading-tight">
               Security Update
             </h3>
-            <p className="text-[12px] sm:text-sm font-bold text-gray-400 mt-1 uppercase tracking-wider">
+            <p className="text-[10px] md:text-sm font-bold text-gray-400 mt-1 uppercase tracking-wider">
               Credential Synchronization
             </p>
             <div className="absolute -bottom-3 left-0 w-24 h-1 bg-Primary rounded-full"></div>
@@ -44,7 +44,7 @@ const ResetPasswordModal = ({ isOpen, onClose }) => {
                 <input
                   type="password"
                   placeholder={field.placeholder}
-                  className="w-full bg-gray-50 border-2 border-transparent rounded-[20px] px-6 py-4 focus:ring-0 focus:border-Primary transition-all text-[15px] font-bold text-Third placeholder:text-gray-300"
+                  className="w-full bg-gray-50 border-2 border-transparent rounded-[20px] px-6 py-2 focus:ring-0 focus:border-Primary transition-all text-[15px] font-bold text-Third placeholder:text-gray-300"
                 />
                 {i === 1 && (
                   <p className="text-[10px] text-gray-400 mt-2.5 font-bold uppercase tracking-wider leading-relaxed ml-1 italic">
@@ -54,7 +54,7 @@ const ResetPasswordModal = ({ isOpen, onClose }) => {
               </div>
             ))}
 
-            <div className="bg-Secondary/5 p-5 rounded-[24px] border border-Secondary/10 flex items-start gap-4">
+            <div className="bg-Secondary/5 p-3 rounded-xl  border border-Secondary/10 flex items-start gap-4">
               <AlertCircle className="text-Secondary shrink-0 mt-0.5" size={20} />
               <p className="text-Secondary text-[12px] font-bold leading-relaxed uppercase tracking-tight">
                 Global synchronization will logout all active sessions post-update.
@@ -65,11 +65,11 @@ const ResetPasswordModal = ({ isOpen, onClose }) => {
           <div className="flex flex-col sm:flex-row gap-4 mt-10">
             <button
               onClick={onClose}
-              className="flex-1 bg-gray-100 text-gray-500 py-4 rounded-[20px] font-black text-[14px] uppercase tracking-widest hover:bg-gray-200 transition-all active:scale-95"
+              className="flex-1 bg-gray-100 text-gray-500 py-3 rounded-xl font-black text-[14px] uppercase tracking-widest hover:bg-gray-200 transition-all active:scale-95"
             >
               Cancel
             </button>
-            <button className="flex-[2] bg-Secondary text-white py-4 rounded-[20px] font-black text-[14px] uppercase tracking-widest hover:bg-Secondary/90 transition-all active:scale-95 shadow-[0_20px_40px_rgba(118,18,31,0.2)]">
+            <button className="flex-[2] bg-Secondary text-white py-3 rounded-xl font-black text-[14px] uppercase tracking-widest hover:bg-Secondary/90 transition-all active:scale-95 shadow-[0_20px_40px_rgba(118,18,31,0.2)]">
               Update Password
             </button>
           </div>
@@ -88,9 +88,9 @@ const EditProfileModal = ({ isOpen, onClose, data }) => {
         className="absolute inset-0 bg-black/20 backdrop-blur-md animate-in fade-in duration-500"
         onClick={onClose}
       ></div>
-      <div className="bg-white rounded-[32px] md:rounded-[48px] w-full max-w-[560px] relative z-10 shadow-2xl animate-in zoom-in-95 duration-300 overflow-hidden max-h-[90vh] flex flex-col border border-white/20">
+      <div className="bg-white rounded-xl md:rounded-2xl w-full max-w-[560px] relative z-10 shadow-2xl animate-in zoom-in-95 duration-300 overflow-hidden max-h-[90vh] flex flex-col border border-white/20">
         {/* Header section with accent */}
-        <div className="p-6 sm:p-10 pb-4 relative">
+        <div className="p-4 sm:p-6 pb-4 relative">
           <div className="flex justify-between items-start">
             <div className="relative">
               <h3 className="text-2xl sm:text-3xl font-black text-Third tracking-tight leading-tight">
@@ -110,7 +110,7 @@ const EditProfileModal = ({ isOpen, onClose, data }) => {
           </div>
         </div>
 
-        <div className="px-6 sm:px-10 py-4 overflow-y-auto custom-scrollbar flex-1">
+        <div className="px-6  py-4 overflow-y-auto custom-scrollbar flex-1">
           <div className="mb-8 flex justify-center sm:justify-start">
             <div className="relative group cursor-pointer">
               <div className="w-24 h-24 sm:w-28 sm:h-28 bg-Secondary rounded-[28px] sm:rounded-[32px] flex items-center justify-center text-white text-3xl font-black border-4 border-Primary/10 shadow-[0_20px_40px_rgba(118,18,31,0.2)] group-hover:scale-105 transition-all duration-300 relative overflow-hidden">
@@ -140,7 +140,7 @@ const EditProfileModal = ({ isOpen, onClose, data }) => {
                   <input
                     type="text"
                     placeholder={field.placeholder}
-                    className="w-full bg-gray-50 border-2 border-transparent rounded-[20px] px-6 py-4 focus:ring-0 focus:border-Primary transition-all text-[15px] font-bold text-Third placeholder:text-gray-300"
+                    className="w-full bg-gray-50 border-2 border-transparent rounded-[20px] px-6 py-3 focus:ring-0 focus:border-Primary transition-all text-[15px] font-bold text-Third placeholder:text-gray-300"
                   />
                 </div>
               </div>

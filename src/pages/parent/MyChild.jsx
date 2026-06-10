@@ -90,11 +90,16 @@ const EditChildProfileModal = ({ isOpen, onClose }) => {
   );
 };
 
-const TeamMemberModal = ({ isOpen, onClose, member }) => {
-  if (!isOpen || !member) return null;
+const SkeletonBox = ({ className = "" }) => (
+  <div className={`animate-pulse bg-gray-200 rounded-lg ${className}`} />
+);
+
+const TeamMemberModal = ({ isOpen, onClose, member, isLoading = false }) => {
+  if (!isOpen) return null;
+  if (!isLoading && !member) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+    <div className="fixed h-screen inset-0 z-[100] flex items-center justify-center p-4">
       {/* Overlay */}
       <div
         className="absolute inset-0 bg-black/40 backdrop-blur-sm animate-in fade-in duration-300"
@@ -102,14 +107,23 @@ const TeamMemberModal = ({ isOpen, onClose, member }) => {
       ></div>
 
       {/* Modal Content */}
-      <div className="bg-white rounded-[2rem] w-full max-w-lg relative z-10 shadow-2xl animate-in zoom-in-95 duration-300 overflow-hidden text-left">
-        <div className="p-8">
+      <div className="bg-white rounded-xl w-full  max-w-lg relative z-10 shadow-2xl animate-in zoom-in-95 duration-300 overflow-hidden text-left">
+        <div className="p-6">
           <div className="flex justify-between items-start mb-6">
             <div className="relative">
-              <h3 className="text-3xl font-bold text-[#3A331E]">
-                {member.name}
-              </h3>
-              <div className="absolute -bottom-2 left-0 w-full h-1 bg-[#FFBB03] rounded-full"></div>
+              {isLoading ? (
+                <>
+                  <SkeletonBox className="h-7 md:h-8 w-48 mb-2" />
+                  <div className="absolute -bottom-2 left-0 w-full h-1 bg-gray-200 rounded-full"></div>
+                </>
+              ) : (
+                <>
+                  <h3 className="text-2xl md:text-3xl font-bold text-[#3A331E]">
+                    {member.name}
+                  </h3>
+                  <div className="absolute -bottom-2 left-0 w-full h-1 bg-[#FFBB03] rounded-full"></div>
+                </>
+              )}
             </div>
             <button
               onClick={onClose}
@@ -119,40 +133,51 @@ const TeamMemberModal = ({ isOpen, onClose, member }) => {
             </button>
           </div>
 
-          <div className="bg-[#FFFBEE] border border-[#FFF3D6] rounded-3xl p-6 mt-8">
+          <div className="bg-[#FFFBEE] border border-[#FFF3D6] rounded-xl p-4 mt-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-white p-5 rounded-2xl shadow-sm border border-[#F3F4F6]">
-                <p className="text-xs text-[#B45309] font-bold uppercase tracking-wider mb-1 opacity-70">
-                  Full Name
-                </p>
-                <p className="text-lg font-bold text-[#76121F]">
-                  {member.name}
-                </p>
-              </div>
-              <div className="bg-white p-5 rounded-2xl shadow-sm border border-[#F3F4F6]">
-                <p className="text-xs text-[#B45309] font-bold uppercase tracking-wider mb-1 opacity-70">
-                  Role
-                </p>
-                <p className="text-lg font-bold text-[#76121F]">
-                  {member.detailsRole || "Therapist / BCBA"}
-                </p>
-              </div>
-              <div className="bg-white p-5 rounded-2xl shadow-sm border border-[#F3F4F6]">
-                <p className="text-xs text-[#B45309] font-bold uppercase tracking-wider mb-1 opacity-70">
-                  Phone Number
-                </p>
-                <p className="text-lg font-bold text-[#76121F]">
-                  {member.phone || "(000) 000-0000"}
-                </p>
-              </div>
-              <div className="bg-white p-5 rounded-2xl shadow-sm border border-[#F3F4F6]">
-                <p className="text-xs text-[#B45309] font-bold uppercase tracking-wider mb-1 opacity-70">
-                  Email Address
-                </p>
-                <p className="text-lg font-bold text-[#76121F] break-all">
-                  {member.email || "example@company.com"}
-                </p>
-              </div>
+              {isLoading
+                ? Array.from({ length: 4 }).map((_, i) => (
+                    <div key={i} className="bg-white p-4 rounded-xl shadow-sm border border-[#F3F4F6] flex flex-col gap-2">
+                      <SkeletonBox className="h-3 w-16" />
+                      <SkeletonBox className="h-5 w-32" />
+                    </div>
+                  ))
+                : (
+                  <>
+                    <div className="bg-white p-4 rounded-xl shadow-sm border border-[#F3F4F6]">
+                      <p className="text-xs text-[#B45309] font-bold uppercase tracking-wider mb-1 opacity-70">
+                        Full Name
+                      </p>
+                      <p className=" font-bold text-[#76121F]">
+                        {member.name}
+                      </p>
+                    </div>
+                    <div className="bg-white p-4 rounded-xl shadow-sm border border-[#F3F4F6]">
+                      <p className="text-xs text-[#B45309] font-bold uppercase tracking-wider mb-1 opacity-70">
+                        Role
+                      </p>
+                      <p className=" font-bold text-[#76121F]">
+                        {member.role || "Therapist / BCBA"}
+                      </p>
+                    </div>
+                    <div className="bg-white p-4 rounded-xl shadow-sm border border-[#F3F4F6]">
+                      <p className="text-xs text-[#B45309] font-bold uppercase tracking-wider mb-1 opacity-70">
+                        Phone Number
+                      </p>
+                      <p className=" font-bold text-[#76121F]">
+                        {member.phone || "(000) 000-0000"}
+                      </p>
+                    </div>
+                    <div className="bg-white p-4 rounded-xl shadow-sm border border-[#F3F4F6]">
+                      <p className="text-xs text-[#B45309] font-bold uppercase tracking-wider mb-1 opacity-70">
+                        Email Address
+                      </p>
+                      <p className=" font-bold text-[#76121F] break-all">
+                        {member.email || "example@company.com"}
+                      </p>
+                    </div>
+                  </>
+                )}
             </div>
           </div>
         </div>
@@ -170,47 +195,27 @@ const MyChild = () => {
     queryKey: ["parentMyChild" ],
     url: "/parent/my-child",
   });
-  console.log(MyChildData?.data?.header);
   const header=MyChildData?.data?.header
+  const Summary = MyChildData?.data?.summary
+  const carePlan = MyChildData?.data?.care_plan
+  const ChildInformation = MyChildData?.data?.child_information
+  const careTeamData = MyChildData?.data?.care_team
+  console.log(careTeamData);
   const childInfo = [
-    { label: "Full Name", value: "Cody Fisher" },
-    { label: "Date of Birth", value: "June 14, 2018" },
-    { label: "Age", value: "7 years old" },
-    { label: "Primary Diagnosis", value: "Autism Spectrum Disorder" },
-    { label: "Insurance Provider", value: "Aetna" },
-    { label: "Service Type", value: "ABA Therapy" },
-    { label: "Service Location", value: "Home" },
+    { label: "Full Name", value: ChildInformation?.full_name },
+    { label: "Date of Birth", value: ChildInformation?.date_of_birth },
+    { label: "Age", value: ChildInformation?.age },
+    { label: "Primary Diagnosis", value: ChildInformation?.primary_diagnosis },
+    { label: "Insurance Provider", value: ChildInformation?.insurance_provider },
+    { label: "Service Type", value: ChildInformation?.school_name },
+    { label: "Service Location", value: ChildInformation?.school_location },
   ];
 
   const carePlanDetails = [
-    { label: "Care Plan Start", value: "March 1, 2026" },
-    { label: "Session Frequency", value: "3× per week" },
-    { label: "Session Duration", value: "2 hours" },
-    { label: "Next Review Date", value: "June 1, 2026" },
-  ];
-
-  const careTeam = [
-    {
-      initials: "DL",
-      name: "Dr. Devon Lane",
-      role: "Supervising BCBA",
-      description:
-        "Board Certified Behavior Analyst (BCBA) · Behavior Services",
-      badge: "Supervising BCBA",
-      phone: "(555) 123-4567",
-      email: "devon.lane@overcomers.com",
-      detailsRole: "Supervising BCBA",
-    },
-    {
-      initials: "EP",
-      name: "Eleanor Pena",
-      role: "ABA Therapy - Technician",
-      description: "Registered Behavior Technician (RBT) · Behavior Services",
-      badge: "Primary Therapist",
-      phone: "(555) 987-6543",
-      email: "eleanor.pena@overcomers.com",
-      detailsRole: "Therapist / BCBA",
-    },
+    { label: "Care Plan Start", value: carePlan?.care_plan_start },
+    { label: "Session Frequency", value: carePlan?.session_frequency },
+    { label: "Session Duration", value: carePlan?.session_duration },
+    { label: "Case Number", value: carePlan?.case_number },
   ];
 
   const handleOpenTeamModal = (member) => {
@@ -232,7 +237,7 @@ const MyChild = () => {
       />
 
       {/* Profile Hero Section */}
-      <div className="bg-[#76121F] rounded-3xl p-8 text-white relative overflow-hidden group">
+      <div className="bg-[#76121F] rounded-xl p-4 md:p-6 text-white relative overflow-hidden group">
         <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-32 translate-x-32 blur-3xl group-hover:bg-white/10 transition-colors"></div>
 
         <div className="flex flex-col md:flex-row items-center justify-between gap-8 relative z-10">
@@ -247,26 +252,24 @@ const MyChild = () => {
               <p className="text-white/80 font-medium mb-4">
                 {header?.active_care_plan && `Active Care Plan`} · {header?.service_name}
               </p>
-              {
-                header?.tags?.map((tag,i)=>(
-              <div key={i} className="flex flex-wrap justify-center md:justify-start gap-2">
+          
+              <div  className="flex flex-wrap justify-center md:justify-start gap-2">
                 <span className="bg-[#8B232F] px-4 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 border border-white/10 shadow-sm">
-                  <Calendar size={12} className="text-[#FFBB03]" /> Age 7
+                  <Calendar size={12} className="text-[#FFBB03]" /> Age {Summary?.age}
                 </span>
                 <span className="bg-[#8B232F] px-4 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 border border-white/10 shadow-sm">
-                  <Activity size={12} className="text-[#FFBB03]" /> Autism
-                  Spectrum Disorder
+                  <Activity size={12} className="text-[#FFBB03]" /> {Summary?.diagnosis}
                 </span>
                 <span className="bg-[#8B232F] px-4 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 border border-white/10 shadow-sm">
-                  <ShieldCheck size={12} className="text-[#FFBB03]" /> Aetna
+                  <ShieldCheck size={12} className="text-[#FFBB03]" /> {Summary?.insurance_provider}
                   Insurance
                 </span>
                 <span className="bg-[#8B232F] px-4 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 border border-white/10 shadow-sm">
-                  <MapPin size={12} className="text-[#FFBB03]" /> Home Services
+                  <MapPin size={12} className="text-[#FFBB03]" /> {Summary?.service_location}
+                  
                 </span>
               </div>
-             ))
-              }
+   
             </div>
           </div>
 
@@ -280,9 +283,9 @@ const MyChild = () => {
       </div>
 
       {/* Information Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Child Information */}
-        <div className="sm:bg-white sm:p-8 sm:rounded-3xl sm:shadow-sm sm:border bsm:order-[#F3F4F6]">
+        <div className="sm:bg-white sm:p-4 md:p-8 sm:rounded-xl sm:shadow-sm sm:border bsm:order-[#F3F4F6]">
           <div className="mb-6 relative">
             <h3 className="text-2xl font-bold text-[#2D2D2D]">
               Child Information
@@ -352,24 +355,24 @@ const MyChild = () => {
           <div className="absolute -bottom-2 left-0 w-full h-1 bg-[#FFBB03] rounded-full"></div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
-          {careTeam.map((member, i) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mt-8">
+          {careTeamData?.map((member, i) => (
             <div
               key={i}
               onClick={() => handleOpenTeamModal(member)}
-              className="bg-white p-6 rounded-3xl shadow-sm border border-[#F3F4F6] hover:shadow-md transition-all group cursor-pointer text-left"
+              className="bg-white p-4 md:p-6 rounded-xl shadow-sm border border-[#F3F4F6] hover:shadow-md transition-all group cursor-pointer text-left"
             >
               <div className="flex justify-between items-start mb-6">
                 <div className="flex items-center gap-4">
                   <div className="w-14 h-14 bg-[#800000] rounded-2xl flex items-center justify-center text-white text-xl font-bold transform group-hover:rotate-6 transition-transform">
-                    {member.initials}
+                    {member.name?.split(" ")[0].charAt(0) + member.name?.split(" ")[1].charAt(0)}
                   </div>
                   <div>
                     <h4 className="text-xl font-bold text-[#2D2D2D] group-hover:text-[#800000] transition-colors">
                       {member.name}
                     </h4>
                     <p className="text-[#800000] font-bold text-sm tracking-wide uppercase">
-                      {member.role}
+                      {member.type}
                     </p>
                   </div>
                 </div>
@@ -379,11 +382,11 @@ const MyChild = () => {
               </div>
 
               <p className="text-sm text-[#6B7280] mb-6 leading-relaxed">
-                {member.description}
+                {member.role}
               </p>
 
               <span className="bg-[#FAF6F7] text-[#800000] px-4 py-1.5 rounded-full text-xs font-bold border border-[#FEE2E2]">
-                {member.badge}
+                {member.type}
               </span>
             </div>
           ))}

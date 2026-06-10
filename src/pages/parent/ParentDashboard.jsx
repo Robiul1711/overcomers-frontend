@@ -102,9 +102,12 @@ const ParentDashboard = () => {
     url: "/parent/dashboard",
   });
 const StatsData=data?.data?.stats
+
 const ChildData=data?.data?.child
 const CareTeam=data?.data?.care_team
+const NewNotes=data?.data?.new_notes
 const NextSessonData=data?.data?.next_session
+console.log("New",NewNotes)
   return (
     <div className="space-y-4 md:space-y-6 animate-in fade-in duration-700">
       {/* Modal */}
@@ -246,32 +249,21 @@ const NextSessonData=data?.data?.next_session
           </div>
 
           <div className="space-y-4">
-            {[
-              {
-                name: "Eleanor Pena (RBT)",
-                date: "March 5, 2026",
-                text: "Client showing improvement in communication and social interaction during recent sessions. Successfully completed 3 of 4 targeted goals this week.",
-              },
-              {
-                name: "Dr. Devon Lane (BCBA)",
-                date: "Feb 28, 2026",
-                text: "Client showing significant reduction in maladaptive behaviors during transitions. Caregiver participation in today's debrief was excellent.",
-              },
-            ].map((note, i) => (
+            {NewNotes?.map((note, i) => (
               <div
                 key={i}
                 className="bg-gray-50/50 p-5 md:p-6 rounded-[24px] border-l-[4px] border-Secondary shadow-sm"
               >
                 <div className="flex flex-col sm:flex-row justify-between items-start gap-1 mb-2">
                   <h4 className="font-black text-Secondary text-[15px]">
-                    {note.name}
+                    {note?.employee_name} - {note?.service_name}
                   </h4>
                   <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">
-                    {note.date}
+                    {note?.date}
                   </span>
                 </div>
                 <p className="text-[13px] md:text-[14px] text-Third font-medium leading-relaxed line-clamp-3">
-                  {note.text}
+                  {note?.content}
                 </p>
               </div>
             ))}

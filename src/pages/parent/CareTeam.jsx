@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { ArrowLeft, Bell, ExternalLink, ChevronRight, X } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
+import useClient from "@/hooks/useClient";
 
 const TeamMemberModal = ({ isOpen, onClose, member }) => {
   if (!isOpen || !member) return null;
@@ -14,7 +15,7 @@ const TeamMemberModal = ({ isOpen, onClose, member }) => {
       ></div>
 
       {/* Modal Content */}
-      <div className="bg-white rounded-[2rem] w-full max-w-xl relative z-10 shadow-2xl animate-in zoom-in-95 duration-300 overflow-hidden">
+      <div className="bg-white rounded-xl w-full  max-w-xl relative z-10 shadow-2xl animate-in zoom-in-95 duration-300 overflow-hidden">
         <div className="sm:p-6 p-4">
           <div className="flex justify-between items-start mb-6">
             <div className="relative">
@@ -31,7 +32,7 @@ const TeamMemberModal = ({ isOpen, onClose, member }) => {
             </button>
           </div>
 
-          <div className="bg-[#FFFBEE] border border-[#FFF3D6] rounded-3xl p-4 mt-8">
+          <div className="bg-[#FFFBEE] border border-[#FFF3D6] rounded-xl p-4 mt-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="bg-white p-4 rounded-2xl shadow-sm border border-[#F3F4F6]">
                 <p className="text-xs text-[#B45309] font-bold uppercase tracking-wider mb-1 opacity-70">
@@ -77,40 +78,12 @@ const CareTeam = () => {
   const navigate = useNavigate();
   const [selectedMember, setSelectedMember] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+    const { data:careTeamData, isLoading, isError } = useClient({
+    queryKey: ["parentCareTeam" ],
+    url: "/parent/care-team",
+  });
+  console.log(careTeamData?.data)
 
-  const careTeam = [
-    {
-      initials: "DL",
-      name: "Dr. Devon Lane",
-      role: "Supervising BCBA",
-      description:
-        "Board Certified Behavior Analyst (BCBA) · Behavior Services",
-      badge: "Supervising BCBA",
-      phone: "(555) 123-4567",
-      email: "devon.lane@overcomers.com",
-      detailsRole: "Supervising BCBA",
-    },
-    {
-      initials: "EP",
-      name: "Eleanor Pena",
-      role: "ABA Therapy - Technician",
-      description: "Registered Behavior Technician (RBT) · Behavior Services",
-      badge: "Primary Therapist",
-      phone: "(555) 987-6543",
-      email: "eleanor.pena@overcomers.com",
-      detailsRole: "Therapist / BCBA",
-    },
-    {
-      initials: "JK",
-      name: "James Kim",
-      role: "Program Coordinator - Administration",
-      description: "",
-      badge: "Coordinator",
-      phone: "(555) 555-1212",
-      email: "james.kim@overcomers.com",
-      detailsRole: "Administrator",
-    },
-  ];
 
   const handleOpenModal = (member) => {
     setSelectedMember(member);
@@ -136,7 +109,7 @@ const CareTeam = () => {
         </div>
 
         <div className="space-y-4">
-          {careTeam.map((member, i) => (
+          {careTeamData?.data?.map((member, i) => (
             <div
               key={i}
               className="bg-white p-6 rounded-2xl border border-gray-100 hover:border-[#76121F]/30 hover:shadow-md transition-all group flex flex-col md:flex-row items-center justify-between gap-6 cursor-pointer"
@@ -144,7 +117,7 @@ const CareTeam = () => {
             >
               <div className="flex sm:flex-row flex-col items-center gap-6 w-full">
                 <div className="w-16 h-16 bg-[#800000] rounded-2xl flex items-center justify-center text-white text-2xl font-bold transform group-hover:rotate-6 transition-transform">
-                  {member.initials}
+                  {member?.name?.charAt(0) + member?.name?.charAt(1)}
                 </div>
                 <div className="flex-1">
                   <h4 className="text-2xl font-bold text-[#76121F] group-hover:text-[#800000] transition-colors leading-tight">
@@ -154,11 +127,11 @@ const CareTeam = () => {
                     {member.role}
                   </p>
                   <p className="text-[#6B7280] text-sm font-medium">
-                    {member.description}
+                    {member.label}
                   </p>
                   <div className="mt-4">
                     <span className="bg-[#FAF6F7] text-[#800000] px-4 py-1 rounded-full text-xs font-bold border border-[#FEE2E2]">
-                      {member.badge}
+                      {member.position}
                     </span>
                   </div>
                 </div>

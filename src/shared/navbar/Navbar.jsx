@@ -1,8 +1,11 @@
-import React, { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import React, { useState, useEffect, useRef } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ImageProvider } from "@/utils/ImageProvider";
-import { ArrowUpRight, Menu, X } from "lucide-react";
+import { ArrowUpRight, Menu, X, ChevronDown, LogOut, LayoutDashboard } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
+import { useSelector, useDispatch } from "react-redux";
+import { selectIsAuthenticated, selectUserType, clearAuth } from "@/redux/slices/authSlice";
+import { toast } from "react-toastify";
 
 const navLinks = [
   { name: "Home", path: "/" },
@@ -16,8 +19,34 @@ const navLinks = [
 
 const Navbar = () => {
   const { pathname } = useLocation();
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const isAuthenticated = useSelector(selectIsAuthenticated);
+  const userType = useSelector(selectUserType);
+  console.log(userType)
+  const dashboardPath = userType === "employee" ? "/dashboard" : "/parent-dashboard";
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const userMenuRef = useRef(null);
+
+  const handleLogout = () => {
+    dispatch(clearAuth());
+    toast.success("Logged out successfully");
+    navigate("/");
+    setIsUserMenuOpen(false);
+  };
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target)) {
+        setIsUserMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -92,11 +121,62 @@ const Navbar = () => {
             </div>
 
           </div>
-            <Link to="/auth/sign-in" className="hidden lg:block">
-              <button className="bg-Secondary hover:bg-Secondary/90 text-white font-bold text-[13px] px-6 py-2.5 rounded-[10px] flex items-center justify-center gap-2 transition-colors whitespace-nowrap">
-                Login <ArrowUpRight size={16} strokeWidth={2.5}/>
-              </button>
-            </Link>
+            {isAuthenticated ? (
+              /* User Dropdown when logged in */
+              <div className="relative hidden lg:block" ref={userMenuRef}>
+                <button
+                  onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                  className={`flex items-center gap-2 rounded-lg px-3 py-1 transition-all group ${
+                    isScrolled
+                      ? "bg-gray-100 hover:bg-gray-200 border border-gray-200"
+                      : "bg-white/10 hover:bg-white/20 border border-white/20"
+                  }`}
+                >
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
+                    isScrolled
+                      ? "bg-[#800000] text-white"
+                      : "bg-white/20 text-white"
+                  }`}>
+                    U
+                  </div>
+                  <ChevronDown
+                    size={14}
+                    className={`transition-transform duration-200 ${
+                      isScrolled ? "text-gray-500" : "text-white/70"
+                    } ${isUserMenuOpen ? "rotate-180" : ""}`}
+                  />
+                </button>
+
+                {isUserMenuOpen && (
+                  <div className="absolute right-0 top-full mt-2 w-52 bg-white rounded-xl shadow-lg border border-gray-100 py-2 animate-in fade-in zoom-in-95 duration-200 origin-top-right">
+                    <Link
+                      to={dashboardPath}
+                      onClick={() => setIsUserMenuOpen(false)}
+                      className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#6B7280] hover:bg-[#FAF6F7] hover:text-[#2D2D2D] transition-colors"
+                    >
+                      <LayoutDashboard size={16} />
+                      Dashboard
+                    </Link>
+
+                    <div className="border-t border-gray-100 my-1"></div>
+
+                    <button
+                      onClick={handleLogout}
+                      className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#B91C1C] hover:bg-[#FEF2F2] transition-colors w-full text-left"
+                    >
+                      <LogOut size={16} />
+                      Logout
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <Link to="/auth/sign-in" className="hidden lg:block">
+                <button className="bg-Secondary hover:bg-Secondary/90 text-white font-bold text-[13px] px-6 py-2.5 rounded-[10px] flex items-center justify-center gap-2 transition-colors whitespace-nowrap">
+                  Login <ArrowUpRight size={16} strokeWidth={2.5}/>
+                </button>
+              </Link>
+            )}
 
           {/* Mobile Hamburger Icon */}
           <div className="flex items-center gap-4 lg:hidden z-50">
@@ -155,11 +235,27 @@ const Navbar = () => {
                 transition={{ delay: 0.1 + navLinks.length * 0.05 + 0.1, duration: 0.4 }}
                 className="w-full mt-6 flex flex-col items-center gap-4 sm:hidden border-t border-gray-100 pt-8"
               >
-                <Link to="/auth/sign-in" className="w-full max-w-[250px]">
-                  <button className="bg-Secondary text-white font-bold text-[16px] px-6 py-4 rounded-[12px] flex items-center justify-center gap-2 transition-colors w-full">
-                   Login <ArrowUpRight size={18} strokeWidth={2.5}/>
-                  </button>
-                </Link>
+                {isAuthenticated ? (
+                  <>
+                    <Link to={dashboardPath} className="w-full max-w-[250px]" onClick={() => setIsMobileMenuOpen(false)}>
+                      <button className="bg-Secondary text-white font-bold text-[16px] px-6 py-4 rounded-[12px] flex items-center justify-center gap-2 transition-colors w-full">
+                        Dashboard <LayoutDashboard size={18} />
+                      </button>
+                    </Link>
+                    <button
+                      onClick={() => { handleLogout(); setIsMobileMenuOpen(false); }}
+                      className="w-full max-w-[250px] bg-red-50 text-red-600 font-bold text-[16px] px-6 py-4 rounded-[12px] flex items-center justify-center gap-2 transition-colors border border-red-100"
+                    >
+                      Logout <LogOut size={18} />
+                    </button>
+                  </>
+                ) : (
+                  <Link to="/auth/sign-in" className="w-full max-w-[250px]">
+                    <button className="bg-Secondary text-white font-bold text-[16px] px-6 py-4 rounded-[12px] flex items-center justify-center gap-2 transition-colors w-full">
+                     Login <ArrowUpRight size={18} strokeWidth={2.5}/>
+                    </button>
+                  </Link>
+                )}
               </motion.div>
 
             </div>

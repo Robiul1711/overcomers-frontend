@@ -74,6 +74,10 @@ const TeamMemberModal = ({ isOpen, onClose, member }) => {
   );
 };
 
+const SkeletonBox = ({ className = "" }) => (
+  <div className={`animate-pulse bg-gray-200 rounded-lg ${className}`} />
+);
+
 const CareTeam = () => {
   const navigate = useNavigate();
   const [selectedMember, setSelectedMember] = useState(null);
@@ -89,6 +93,38 @@ const CareTeam = () => {
     setSelectedMember(member);
     setIsModalOpen(true);
   };
+
+  if (isLoading) {
+    return (
+      <div className="space-y-8 animate-in fade-in duration-700">
+        <div className="bg-white p-8 rounded-3xl shadow-sm border border-[#F3F4F6]">
+          <div className="mb-8 relative w-fit">
+            <SkeletonBox className="h-8 w-56" />
+            <SkeletonBox className="h-1 w-full bg-[#FFBB03]/30 rounded-full mt-2" />
+          </div>
+          <div className="space-y-4">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div
+                key={i}
+                className="bg-white p-6 rounded-2xl border border-gray-100 flex flex-col md:flex-row items-center justify-between gap-6"
+              >
+                <div className="flex sm:flex-row flex-col items-center gap-6 w-full">
+                  <SkeletonBox className="w-16 h-16 rounded-2xl shrink-0" />
+                  <div className="flex-1 w-full text-center sm:text-left space-y-2">
+                    <SkeletonBox className="h-7 w-44 mx-auto sm:mx-0" />
+                    <SkeletonBox className="h-4 w-32 mx-auto sm:mx-0" />
+                    <SkeletonBox className="h-4 w-56 mx-auto sm:mx-0" />
+                    <SkeletonBox className="h-5 w-20 rounded-full mx-auto sm:mx-0" />
+                  </div>
+                </div>
+                <SkeletonBox className="h-11 w-32 rounded-xl shrink-0" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">

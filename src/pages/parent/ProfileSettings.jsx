@@ -1,16 +1,50 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
-  ArrowLeft,
-  Bell,
-  ExternalLink,
   ChevronRight,
   X,
   AlertCircle,
   Camera,
+  User,
+  Heart,
+  Phone,
+  Mail,
+  MapPin,
 } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import useClient from "@/hooks/useClient";
+import useMutationClient from "@/hooks/useMutationClient";
 
 const ResetPasswordModal = ({ isOpen, onClose }) => {
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
+  const { mutate, isPending } = useMutationClient({
+    url: "/parent/profile/password",
+    method: "post",
+    successMessage: "Password updated successfully!",
+  });
+
+  const handleSubmit = () => {
+    mutate(
+      {
+        data: {
+          current_password: currentPassword,
+          new_password: newPassword,
+          new_password_confirmation: confirmPassword,
+        },
+      },
+      {
+        onSuccess: () => {
+          setCurrentPassword("");
+          setNewPassword("");
+          setConfirmPassword("");
+          onClose();
+        },
+      }
+    );
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -32,45 +66,78 @@ const ResetPasswordModal = ({ isOpen, onClose }) => {
           </div>
 
           <div className="space-y-6">
-            {[
-              { label: "Current Security Key", placeholder: "••••••••" },
-              { label: "Vault New Key", placeholder: "Enter New Password" },
-              { label: "Verify New Key", placeholder: "Re-enter New Password" },
-            ].map((field, i) => (
-              <div key={i} className="group/field">
-                <label className="block text-[11px] font-black text-Third/60 mb-2.5 uppercase tracking-[0.1em] ml-1">
-                  {field.label} <span className="text-Secondary">*</span>
-                </label>
-                <input
-                  type="password"
-                  placeholder={field.placeholder}
-                  className="w-full bg-gray-50 border-2 border-transparent rounded-[20px] px-6 py-2 focus:ring-0 focus:border-Primary transition-all text-[15px] font-bold text-Third placeholder:text-gray-300"
-                />
-                {i === 1 && (
-                  <p className="text-[10px] text-gray-400 mt-2.5 font-bold uppercase tracking-wider leading-relaxed ml-1 italic">
-                    Min. 8 characters • 1 capital letter • 1 special character
-                  </p>
-                )}
-              </div>
-            ))}
+            <div className="group/field">
+              <label className="block text-[11px] font-black text-Third/60 mb-2.5 uppercase tracking-[0.1em] ml-1">
+                Current Password <span className="text-Secondary">*</span>
+              </label>
+              <input
+                type="password"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                placeholder="••••••••"
+                className="w-full bg-gray-200 border-2 border-transparent rounded-[20px] px-4 py-2 focus:ring-0 focus:border-Primary transition-all text-[15px] font-bold text-Third placeholder:text-gray-300"
+              />
+            </div>
+            <div className="group/field">
+              <label className="block text-[11px] font-black text-Third/60 mb-2.5 uppercase tracking-[0.1em] ml-1">
+                New Password <span className="text-Secondary">*</span>
+              </label>
+              <input
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="Enter New Password"
+                className="w-full bg-gray-200 border-2 border-transparent rounded-[20px] px-4 py-2 focus:ring-0 focus:border-Primary transition-all text-[15px] font-bold text-Third placeholder:text-gray-300"
+              />
+              <p className="text-[10px] text-gray-400 mt-2.5 font-bold uppercase tracking-wider leading-relaxed ml-1 italic">
+                Min. 8 characters • 1 capital letter • 1 special character
+              </p>
+            </div>
+            <div className="group/field">
+              <label className="block text-[11px] font-black text-Third/60 mb-2.5 uppercase tracking-[0.1em] ml-1">
+                Verify New Password <span className="text-Secondary">*</span>
+              </label>
+              <input
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Re-enter New Password"
+                className="w-full bg-gray-200 border-2 border-transparent rounded-[20px] px-4 py-2 focus:ring-0 focus:border-Primary transition-all text-[15px] font-bold text-Third placeholder:text-gray-300"
+              />
+            </div>
 
-            <div className="bg-Secondary/5 p-3 rounded-xl  border border-Secondary/10 flex items-start gap-4">
+            {/* <div className="bg-Secondary/5 p-3 rounded-xl  border border-Secondary/10 flex items-start gap-4">
               <AlertCircle className="text-Secondary shrink-0 mt-0.5" size={20} />
               <p className="text-Secondary text-[12px] font-bold leading-relaxed uppercase tracking-tight">
                 Global synchronization will logout all active sessions post-update.
               </p>
-            </div>
+            </div> */}
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4 mt-10">
             <button
               onClick={onClose}
-              className="flex-1 bg-gray-100 text-gray-500 py-3 rounded-xl font-black text-[14px] uppercase tracking-widest hover:bg-gray-200 transition-all active:scale-95"
+              disabled={isPending}
+              className="flex-1 bg-gray-100 text-gray-500 py-3 rounded-xl font-black text-[14px] uppercase tracking-widest hover:bg-gray-200 transition-all active:scale-95 disabled:opacity-50"
             >
               Cancel
             </button>
-            <button className="flex-[2] bg-Secondary text-white py-3 rounded-xl font-black text-[14px] uppercase tracking-widest hover:bg-Secondary/90 transition-all active:scale-95 shadow-[0_20px_40px_rgba(118,18,31,0.2)]">
-              Update Password
+            <button
+              onClick={handleSubmit}
+              disabled={isPending}
+              className="flex-[2] bg-Secondary text-white py-3 rounded-xl font-black text-[14px] uppercase tracking-widest hover:bg-Secondary/90 transition-all active:scale-95 shadow-[0_20px_40px_rgba(118,18,31,0.2)] disabled:opacity-50 flex items-center justify-center gap-2"
+            >
+              {isPending ? (
+                <>
+                  <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                  Updating...
+                </>
+              ) : (
+                "Update Password"
+              )}
             </button>
           </div>
         </div>
@@ -79,8 +146,81 @@ const ResetPasswordModal = ({ isOpen, onClose }) => {
   );
 };
 
-const EditProfileModal = ({ isOpen, onClose, data }) => {
+const EditProfileModal = ({ isOpen, onClose, profileData }) => {
+  const [formData, setFormData] = useState({
+    name: profileData?.name || "",
+    relationship: profileData?.relationship || "",
+    phone: profileData?.phone || "",
+    address: profileData?.address || "",
+  });
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(null);
+  const fileInputRef = useRef(null);
+
+  const { mutate, isPending } = useMutationClient({
+    url: "/parent/profile/update",
+    method: "post",
+    invalidateKeys: [["parentProfile"]],
+    successMessage: "Profile updated successfully!",
+  });
+
+  useEffect(() => {
+    if (profileData) {
+      setFormData({
+        name: profileData?.name || "",
+        relationship: profileData?.relationship || "",
+        phone: profileData?.phone || "",
+        address: profileData?.address || "",
+      });
+    }
+  }, [profileData]);
+
+  useEffect(() => {
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+    };
+  }, [previewUrl]);
+
+  const handleChange = (field) => (e) => {
+    setFormData((prev) => ({ ...prev, [field]: e.target.value }));
+  };
+
+  const handleFileSelect = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+      setSelectedFile(file);
+      setPreviewUrl(URL.createObjectURL(file));
+    }
+  };
+
+  const handleSubmit = () => {
+    const fd = new FormData();
+    fd.append("name", formData.name);
+    fd.append("relationship", formData.relationship);
+    fd.append("phone", formData.phone);
+    fd.append("address", formData.address);
+    if (selectedFile) {
+      fd.append("profile_picture", selectedFile);
+    }
+
+    mutate(
+      { data: fd },
+      {
+        onSuccess: () => {
+          setSelectedFile(null);
+          setPreviewUrl(null);
+          onClose();
+        },
+      }
+    );
+  };
+
   if (!isOpen) return null;
+
+  const initials = formData.name
+    ? formData.name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()
+    : "JS";
 
   return (
     <div className="fixed h-screen inset-0 z-[100] flex items-center justify-center p-4">
@@ -110,41 +250,89 @@ const EditProfileModal = ({ isOpen, onClose, data }) => {
           </div>
         </div>
 
-        <div className="px-6  py-4 overflow-y-auto custom-scrollbar flex-1">
+        <div className="px-6 py-4 overflow-y-auto custom-scrollbar flex-1">
+          {/* Profile Picture Upload */}
           <div className="mb-8 flex justify-center sm:justify-start">
-            <div className="relative group cursor-pointer">
-              <div className="w-24 h-24 sm:w-28 sm:h-28 bg-Secondary rounded-[28px] sm:rounded-[32px] flex items-center justify-center text-white text-3xl font-black border-4 border-Primary/10 shadow-[0_20px_40px_rgba(118,18,31,0.2)] group-hover:scale-105 transition-all duration-300 relative overflow-hidden">
-                <span className="relative z-10">JS</span>
-                <div className="absolute inset-0 bg-gradient-to-tr from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-              </div>
+            <div
+              className="relative group cursor-pointer"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              {previewUrl || profileData?.profile_picture ? (
+                <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-[28px] sm:rounded-[32px] overflow-hidden border-4 border-Primary/10 shadow-[0_20px_40px_rgba(118,18,31,0.2)] group-hover:scale-105 transition-all duration-300">
+                  <img
+                    src={previewUrl || profileData?.profile_picture}
+                    alt="Profile"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              ) : (
+                <div className="w-24 h-24 sm:w-28 sm:h-28 bg-Secondary rounded-[28px] sm:rounded-[32px] flex items-center justify-center text-white text-3xl font-black border-4 border-Primary/10 shadow-[0_20px_40px_rgba(118,18,31,0.2)] group-hover:scale-105 transition-all duration-300 relative overflow-hidden">
+                  <span className="relative z-10">{initials}</span>
+                  <div className="absolute inset-0 bg-gradient-to-tr from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                </div>
+              )}
               <div className="absolute -bottom-2 -right-2 p-2.5 bg-Primary text-Secondary rounded-2xl border-4 border-white shadow-lg group-hover:rotate-12 transition-transform">
                 <Camera size={18} strokeWidth={2.5} />
               </div>
             </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleFileSelect}
+            />
           </div>
 
           <div className="space-y-5 sm:space-y-6">
-            {[
-              { label: "Full Name", placeholder: "John Smith" },
-              { label: "Relationship to Child", placeholder: "Father" },
-              { label: "Email Address", placeholder: "your@email.com" },
-              { label: "Phone Connection", placeholder: "(908) 000 - 0000" },
-              { label: "Home Address", placeholder: "Union County, NJ" },
-              { label: "Jurisdiction Details", placeholder: "Austin, TX 78704" },
-            ].map((field, i) => (
-              <div key={i} className="group/field">
-                <label className="block text-[11px] font-black text-Third/60 mb-2.5 uppercase tracking-[0.1em] ml-1">
-                  {field.label} <span className="text-Secondary">*</span>
-                </label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    placeholder={field.placeholder}
-                    className="w-full bg-gray-50 border-2 border-transparent rounded-[20px] px-6 py-3 focus:ring-0 focus:border-Primary transition-all text-[15px] font-bold text-Third placeholder:text-gray-300"
-                  />
-                </div>
-              </div>
-            ))}
+            <div className="group/field">
+              <label className="block text-[11px] font-black text-Third/60 mb-2.5 uppercase tracking-[0.1em] ml-1">
+                Full Name <span className="text-Secondary">*</span>
+              </label>
+              <input
+                type="text"
+                value={formData.name}
+                onChange={handleChange("name")}
+                placeholder="John Smith"
+                className="w-full bg-gray-50 border-2 border-transparent rounded-[20px] px-6 py-3 focus:ring-0 focus:border-Primary transition-all text-[15px] font-bold text-Third placeholder:text-gray-300"
+              />
+            </div>
+            <div className="group/field">
+              <label className="block text-[11px] font-black text-Third/60 mb-2.5 uppercase tracking-[0.1em] ml-1">
+                Relationship to Child <span className="text-Secondary">*</span>
+              </label>
+              <input
+                type="text"
+                value={formData.relationship}
+                onChange={handleChange("relationship")}
+                placeholder="Father"
+                className="w-full bg-gray-50 border-2 border-transparent rounded-[20px] px-6 py-3 focus:ring-0 focus:border-Primary transition-all text-[15px] font-bold text-Third placeholder:text-gray-300"
+              />
+            </div>
+            <div className="group/field">
+              <label className="block text-[11px] font-black text-Third/60 mb-2.5 uppercase tracking-[0.1em] ml-1">
+                Phone Connection <span className="text-Secondary">*</span>
+              </label>
+              <input
+                type="text"
+                value={formData.phone}
+                onChange={handleChange("phone")}
+                placeholder="(908) 000 - 0000"
+                className="w-full bg-gray-50 border-2 border-transparent rounded-[20px] px-6 py-3 focus:ring-0 focus:border-Primary transition-all text-[15px] font-bold text-Third placeholder:text-gray-300"
+              />
+            </div>
+            <div className="group/field">
+              <label className="block text-[11px] font-black text-Third/60 mb-2.5 uppercase tracking-[0.1em] ml-1">
+                Home Address <span className="text-Secondary">*</span>
+              </label>
+              <input
+                type="text"
+                value={formData.address}
+                onChange={handleChange("address")}
+                placeholder="Union County, NJ"
+                className="w-full bg-gray-50 border-2 border-transparent rounded-[20px] px-6 py-3 focus:ring-0 focus:border-Primary transition-all text-[15px] font-bold text-Third placeholder:text-gray-300"
+              />
+            </div>
           </div>
         </div>
 
@@ -152,12 +340,27 @@ const EditProfileModal = ({ isOpen, onClose, data }) => {
           <div className="flex flex-col sm:flex-row gap-4">
             <button
               onClick={onClose}
-              className="flex-1 bg-gray-100 text-gray-500 py-4 rounded-[20px] font-black text-[14px] uppercase tracking-widest hover:bg-gray-200 transition-all active:scale-95"
+              disabled={isPending}
+              className="flex-1 bg-gray-100 text-gray-500 py-4 rounded-[20px] font-black text-[14px] uppercase tracking-widest hover:bg-gray-200 transition-all active:scale-95 disabled:opacity-50"
             >
               Cancel
             </button>
-            <button className="flex-[2] bg-Secondary text-white py-4 rounded-[20px] font-black text-[14px] uppercase tracking-widest hover:bg-Secondary/90 transition-all active:scale-95 shadow-[0_20px_40px_rgba(118,18,31,0.2)]">
-             Update Profile
+            <button
+              onClick={handleSubmit}
+              disabled={isPending}
+              className="flex-[2] bg-Secondary text-white py-4 rounded-[20px] font-black text-[14px] uppercase tracking-widest hover:bg-Secondary/90 transition-all active:scale-95 shadow-[0_20px_40px_rgba(118,18,31,0.2)] disabled:opacity-50 flex items-center justify-center gap-2"
+            >
+              {isPending ? (
+                <>
+                  <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                  Saving...
+                </>
+              ) : (
+                "Update Profile"
+              )}
             </button>
           </div>
         </div>
@@ -165,6 +368,41 @@ const EditProfileModal = ({ isOpen, onClose, data }) => {
     </div>
   );
 };
+
+const SkeletonHero = () => (
+  <div className="bg-Secondary rounded-2xl md:rounded-3xl p-4 md:p-6 text-white relative overflow-hidden shadow-2xl shadow-Secondary/20 border border-white/5">
+    <div className="flex flex-col md:flex-row items-center justify-between gap-8 md:gap-10 relative z-10 animate-pulse">
+      <div className="flex flex-col md:flex-row items-center md:items-start gap-6 md:gap-8 text-center md:text-left">
+        <div className="w-24 h-24 md:w-28 md:h-28 bg-white/10 rounded-[32px]" />
+        <div className="pt-2 space-y-3">
+          <div className="h-9 w-48 bg-white/10 rounded-full" />
+          <div className="h-4 w-32 bg-white/10 rounded-full" />
+        </div>
+      </div>
+      <div className="flex gap-4 w-full xl:w-auto">
+        <div className="h-14 flex-1 bg-white/10 rounded-xl" />
+        <div className="h-14 flex-1 bg-white/10 rounded-xl" />
+      </div>
+    </div>
+  </div>
+);
+
+const SkeletonInfoCard = () => (
+  <div className="bg-white p-6 sm:p-10 rounded-[32px] md:rounded-[48px] shadow-sm border border-[#F3F4F6] animate-pulse">
+    <div className="mb-10">
+      <div className="h-8 w-48 bg-gray-200 rounded-full mb-2" />
+      <div className="h-4 w-36 bg-gray-100 rounded-full" />
+    </div>
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      {Array.from({ length: 6 }).map((_, i) => (
+        <div key={i} className="bg-gray-50/50 p-6 rounded-[24px]">
+          <div className="h-3 w-20 bg-gray-200 rounded-full mb-3" />
+          <div className="h-5 w-32 bg-gray-100 rounded-full" />
+        </div>
+      ))}
+    </div>
+  </div>
+);
 
 const ProfileSettings = () => {
   const navigate = useNavigate();
@@ -176,18 +414,28 @@ const ProfileSettings = () => {
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
+  const { data, isLoading } = useClient({
+    queryKey: ["parentProfile"],
+    url: "/parent/profile",
+  });
+
+  const profile = data?.data;
+
   const personalInfo = [
-    { label: "Caregiver Name", value: "John Smith" },
-    { label: "Care Relationship", value: "Father" },
-    { label: "Emergency Line", value: "(555) 482-7391" },
-    { label: "Digital Mail", value: "example@company.com" },
-    { label: "Authorized Site", value: "245 Maplewood Drive" },
-    { label: "City / State / ZIP", value: "Austin, TX 78704" },
+    { label: "Caregiver Name", value: profile?.name, icon: User },
+    { label: "Care Relationship", value: profile?.relationship, icon: Heart },
+    { label: "Emergency Line", value: profile?.phone, icon: Phone },
+    { label: "Digital Mail", value: profile?.email, icon: Mail },
+    { label: "Authorized Site", value: profile?.address, icon: MapPin },
   ];
 
   const togglePreference = (key) => {
     setPreferences((prev) => ({ ...prev, [key]: !prev[key] }));
   };
+
+  const profileInitials = profile?.name
+    ? profile.name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()
+    : "JS";
 
   return (
     <div className="space-y-6 md:space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-10">
@@ -199,145 +447,166 @@ const ProfileSettings = () => {
       <EditProfileModal
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
+        profileData={profile}
       />
 
-      {/* Profile Hero Banner */}
-      <div className="bg-Secondary rounded-[32px] md:rounded-[48px] p-6 sm:p-10 md:p-12 text-white relative overflow-hidden group shadow-2xl shadow-Secondary/20 border border-white/5">
-        <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-50"></div>
-        <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full -translate-y-48 translate-x-48 blur-3xl group-hover:bg-white/15 transition-all duration-700"></div>
-        
-        <div className="flex flex-col xl:flex-row items-center justify-between gap-8 sm:gap-10 relative z-10">
-          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 sm:gap-8 text-center sm:text-left">
-            <div className="relative">
-              <div className="w-24 h-24 sm:w-28 sm:h-28 bg-Third rounded-[32px] flex items-center justify-center text-white text-3xl sm:text-4xl font-black border-4 border-white/20 shadow-2xl relative overflow-hidden group-hover:scale-105 transition-transform duration-500">
-                <span className="relative z-10">JS</span>
-                <div className="absolute inset-0 bg-gradient-to-tr from-black/40 to-transparent"></div>
-              </div>
-              <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-Primary text-Secondary rounded-2xl flex items-center justify-center border-4 border-Secondary shadow-lg">
-                <Camera size={16} strokeWidth={3} />
-              </div>
-            </div>
-            <div className="pt-2">
-              <h2 className="text-3xl sm:text-5xl font-black mb-2 tracking-tight">John Smith</h2>
-              <div className="flex items-center justify-center sm:justify-start gap-3">
-                <span className="px-3 py-1 bg-white/15 rounded-full text-[12px] font-black uppercase tracking-widest border border-white/20">Lead Caregiver</span>
-                <span className="w-1.5 h-1.5 rounded-full bg-Primary animate-pulse"></span>
-                <p className="text-white/60 font-bold text-sm uppercase tracking-wider">Active Portfolio</p>
-              </div>
-            </div>
+      {isLoading ? (
+        <>
+          <SkeletonHero />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-10">
+            <SkeletonInfoCard />
           </div>
-
-          <div className="flex flex-col sm:flex-row items-stretch gap-4 w-full xl:w-auto">
-            <button
-              onClick={() => setIsPasswordModalOpen(true)}
-              className="group/btn flex items-center justify-center gap-3 bg-Primary text-Secondary px-8 py-4 rounded-[20px] font-black text-[13px] sm:text-[14px] uppercase tracking-widest hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-Primary/10"
-            >
-            Change Password <ChevronRight size={18} className="group-hover/btn:translate-x-1 transition-transform" />
-            </button>
-            <button
-              onClick={() => setIsEditModalOpen(true)}
-              className="group/btn flex items-center justify-center gap-3 bg-white/5 border-2 border-white/10 text-white px-8 py-4 rounded-[20px] font-black text-[13px] sm:text-[14px] uppercase tracking-widest hover:bg-white/10 active:scale-95 transition-all"
-            >
-              Edit Profile <ChevronRight size={18} className="group-hover/btn:translate-x-1 transition-transform" />
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-10">
-        {/* Personal Information */}
-        <div className="bg-white p-6 sm:p-10 rounded-[32px] md:rounded-[48px] shadow-sm border border-[#F3F4F6]">
-          <div className="mb-10 relative">
-            <h3 className="text-2xl sm:text-3xl font-black text-Third tracking-tight leading-tight">
-              Caregiver Dossier
-            </h3>
-            <p className="text-[12px] sm:text-sm font-bold text-gray-400 mt-1 uppercase tracking-wider">
-              Validated Clinical Metadata
-            </p>
-            <div className="absolute -bottom-3 left-0 w-24 h-1 bg-Primary rounded-full"></div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {personalInfo.map((info, i) => (
-              <div
-                key={i}
-                className="bg-gray-50/50 p-6 rounded-[24px] border border-gray-100 hover:border-Primary/30 transition-all group"
-              >
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-Secondary opacity-30 group-hover:opacity-100 transition-opacity"></div>
-                  <p className="text-[10px] text-gray-400 font-black uppercase tracking-[0.2em] opacity-80 leading-none">
-                    {info.label}
-                  </p>
+        </>
+      ) : (
+        <>
+          {/* Profile Hero Banner */}
+          <div className="bg-Secondary rounded-2xl md:rounded-3xl p-4 md:p-6 text-white relative overflow-hidden group shadow-2xl shadow-Secondary/20 border border-white/5">
+            <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-50"></div>
+            <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full -translate-y-48 translate-x-48 blur-3xl group-hover:bg-white/15 transition-all duration-700"></div>
+            
+            <div className="flex flex-col md:flex-row items-center justify-between gap-8 md:gap-10 relative z-10">
+              <div className="flex flex-col md:flex-row items-center md:items-start gap-6 md:gap-8 text-center md:text-left">
+                <div className="relative">
+                  {profile?.profile_picture ? (
+                    <div className="w-24 h-24 md:w-28 md:h-28 rounded-[32px] overflow-hidden border-4 border-white/20 shadow-2xl group-hover:scale-105 transition-transform duration-500">
+                      <img src={profile.profile_picture} alt={profile.name} className="w-full h-full object-cover" />
+                    </div>
+                  ) : (
+                    <div className="w-24 h-24 md:w-28 md:h-28 bg-Third rounded-[32px] flex items-center justify-center text-white text-3xl md:text-4xl font-black border-4 border-white/20 shadow-2xl relative overflow-hidden group-hover:scale-105 transition-transform duration-500">
+                      <span className="relative z-10">{profileInitials}</span>
+                      <div className="absolute inset-0 bg-gradient-to-tr from-black/40 to-transparent"></div>
+                    </div>
+                  )}
+      
                 </div>
-                <p className="text-[17px] font-black text-Third tracking-tight">{info.value}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Notification Preferences */}
-        <div className="bg-white p-6 sm:p-10 rounded-[32px] md:rounded-[48px] shadow-sm border border-[#F3F4F6]">
-          <div className="mb-10 relative">
-            <h3 className="text-2xl sm:text-3xl font-black text-Third tracking-tight leading-tight">
-              Protocol Alerts
-            </h3>
-            <p className="text-[12px] sm:text-sm font-bold text-gray-400 mt-1 uppercase tracking-wider">
-              Communication Preferences
-            </p>
-            <div className="absolute -bottom-3 left-0 w-24 h-1 bg-Primary rounded-full"></div>
-          </div>
-
-          <div className="space-y-4">
-            {[
-              {
-                key: "reminders",
-                title: "Pulse Reminders",
-                desc: "Real-time session alerts",
-              },
-              {
-                key: "alerts",
-                title: "Snapshot Reports",
-                desc: "Clinical documentation updates",
-              },
-              {
-                key: "email",
-                title: "Secure Digital Mail",
-                desc: "Encrypted correspondence",
-              },
-            ].map((pref) => (
-              <div
-                key={pref.key}
-                onClick={() => togglePreference(pref.key)}
-                className="flex items-center justify-between p-6 rounded-[24px] border-2 border-gray-50 hover:border-Secondary/10 hover:bg-gray-50/30 transition-all group cursor-pointer"
-              >
-                <div className="flex-1">
-                  <h4 className="text-[16px] sm:text-[18px] font-black text-Third mb-1 group-hover:text-Secondary transition-colors tracking-tight">
-                    {pref.title}
-                  </h4>
-                  <p className="text-[12px] sm:text-[13px] text-gray-400 font-bold uppercase tracking-wider opacity-80">
-                    {pref.desc}
-                  </p>
-                </div>
-
-                <div
-                  className={`relative w-14 h-7 rounded-full transition-all duration-300 shadow-inner ${
-                    preferences[pref.key] ? "bg-Secondary shadow-Secondary/20" : "bg-gray-200"
-                  }`}
-                >
-                  <div
-                    className={`absolute top-1 left-1 w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-300 flex items-center justify-center ${
-                      preferences[pref.key] ? "translate-x-7" : "translate-x-0"
-                    }`}
-                  >
-                    {preferences[pref.key] && <div className="w-1.5 h-1.5 rounded-full bg-Secondary"></div>}
+                <div className="pt-2">
+                  <h2 className="text-3xl sm:text-4xl font-black mb-2 tracking-tight">{profile?.name || "Parent"}</h2>
+                  <div className="flex items-center justify-center sm:justify-start gap-3">
+                    <span className="px-3 py-1 bg-white/15 rounded-full text-[12px] font-bold uppercase tracking-widest border border-white/20">
+                      {profile?.relationship || "Caregiver"}
+                    </span>
+                    <span className="w-1.5 h-1.5 rounded-full bg-Primary animate-pulse"></span>
+                    <p className="text-white/60 font-bold text-xs uppercase tracking-wider">Active Portfolio</p>
                   </div>
                 </div>
               </div>
-            ))}
+
+              <div className="flex flex-col sm:flex-row items-stretch gap-4 w-full xl:w-auto">
+                <button
+                  onClick={() => setIsPasswordModalOpen(true)}
+                  className="group/btn flex items-center justify-center gap-3 bg-Primary text-Secondary px-8 py-4 rounded-xl md:rounded-2xl font-black text-[13px] sm:text-[14px] uppercase tracking-widest hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-Primary/10"
+                >
+                  Change Password <ChevronRight size={18} className="group-hover/btn:translate-x-1 transition-transform" />
+                </button>
+                <button
+                  onClick={() => setIsEditModalOpen(true)}
+                  className="group/btn flex items-center justify-center gap-3 bg-white/5 border-2 border-white/10 text-white px-8 py-4 rounded-xl md:rounded-2xl font-black text-[13px] sm:text-[14px] uppercase tracking-widest hover:bg-white/10 active:scale-95 transition-all"
+                >
+                  Edit Profile <ChevronRight size={18} className="group-hover/btn:translate-x-1 transition-transform" />
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
+
+          {/* Content Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-10">
+            {/* Personal Information */}
+            <div className="bg-white p-6 sm:p-10 rounded-[32px] md:rounded-[48px] shadow-sm border border-[#F3F4F6]">
+              <div className="mb-10 relative">
+                <h3 className="text-2xl sm:text-3xl font-black text-Third tracking-tight leading-tight">
+                  Caregiver Dossier
+                </h3>
+                <p className="text-[12px] sm:text-sm font-bold text-gray-400 mt-1 uppercase tracking-wider">
+                  Validated Clinical Metadata
+                </p>
+                <div className="absolute -bottom-3 left-0 w-24 h-1 bg-Primary rounded-full"></div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {personalInfo.map((info, i) => {
+                  const Icon = info.icon;
+                  return (
+                    <div
+                      key={i}
+                      className="bg-gray-50/50 p-6 rounded-[24px] border border-gray-100 hover:border-Primary/30 transition-all group"
+                    >
+                      <div className="flex items-center gap-3 mb-2">
+                        <Icon size={14} className="text-Secondary/50 group-hover:text-Secondary transition-colors" />
+                        <p className="text-[10px] text-gray-400 font-black uppercase tracking-[0.2em] opacity-80 leading-none">
+                          {info.label}
+                        </p>
+                      </div>
+                      <p className="text-[17px] font-black text-Third tracking-tight">{info.value || "—"}</p>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Notification Preferences */}
+            <div className="bg-white p-6 sm:p-10 rounded-[32px] md:rounded-[48px] shadow-sm border border-[#F3F4F6]">
+              <div className="mb-10 relative">
+                <h3 className="text-2xl sm:text-3xl font-black text-Third tracking-tight leading-tight">
+                  Protocol Alerts
+                </h3>
+                <p className="text-[12px] sm:text-sm font-bold text-gray-400 mt-1 uppercase tracking-wider">
+                  Communication Preferences
+                </p>
+                <div className="absolute -bottom-3 left-0 w-24 h-1 bg-Primary rounded-full"></div>
+              </div>
+
+              <div className="space-y-4">
+                {[
+                  {
+                    key: "reminders",
+                    title: "Pulse Reminders",
+                    desc: "Real-time session alerts",
+                  },
+                  {
+                    key: "alerts",
+                    title: "Snapshot Reports",
+                    desc: "Clinical documentation updates",
+                  },
+                  {
+                    key: "email",
+                    title: "Secure Digital Mail",
+                    desc: "Encrypted correspondence",
+                  },
+                ].map((pref) => (
+                  <div
+                    key={pref.key}
+                    onClick={() => togglePreference(pref.key)}
+                    className="flex items-center justify-between p-6 rounded-[24px] border-2 border-gray-50 hover:border-Secondary/10 hover:bg-gray-50/30 transition-all group cursor-pointer"
+                  >
+                    <div className="flex-1">
+                      <h4 className="text-[16px] sm:text-[18px] font-black text-Third mb-1 group-hover:text-Secondary transition-colors tracking-tight">
+                        {pref.title}
+                      </h4>
+                      <p className="text-[12px] sm:text-[13px] text-gray-400 font-bold uppercase tracking-wider opacity-80">
+                        {pref.desc}
+                      </p>
+                    </div>
+
+                    <div
+                      className={`relative w-14 h-7 rounded-full transition-all duration-300 shadow-inner ${
+                        preferences[pref.key] ? "bg-Secondary shadow-Secondary/20" : "bg-gray-200"
+                      }`}
+                    >
+                      <div
+                        className={`absolute top-1 left-1 w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-300 flex items-center justify-center ${
+                          preferences[pref.key] ? "translate-x-7" : "translate-x-0"
+                        }`}
+                      >
+                        {preferences[pref.key] && <div className="w-1.5 h-1.5 rounded-full bg-Secondary"></div>}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 };

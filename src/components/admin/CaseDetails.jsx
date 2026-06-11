@@ -45,7 +45,14 @@ const CaseDetails = () => {
     queryKey: ["employeeCasePrograms"],
     url: `/employee/cases/${id}/programs`,
   })
-// console.log(programsData)
+  console.log(programsData)
+
+
+  const { data: reportData, isLoading: reportLoading, isError: reportIsError } = useClient({
+    queryKey: ["employeeCaseReports"],
+    url: `/employee/cases/${id}/reports`,
+  })
+console.log(reportData)
 
 
 
@@ -141,7 +148,7 @@ const CaseDetails = () => {
       <HeroSection dataCasted={dataCasted} isLoading={isLoading} />
 
       <div className="mt-4" ref={sectionRef}>
-        <div className="flex items-center border-b border-gray-100 mb-8 px-4 md:px-8 overflow-x-auto custom-scrollbar no-scrollbar scroll-smooth">
+        <div className="flex items-center border-b border-gray-100 mb-4  overflow-x-auto custom-scrollbar no-scrollbar scroll-smooth">
           <div className="flex items-center min-w-max gap-2">
             {[
               { id: "Profile", label: "Profile", icon: <User size={18} /> },
@@ -208,6 +215,9 @@ const CaseDetails = () => {
                 setIsNoteModalOpen(true);
               }}
               notesData={notesData?.data}
+              reportData={reportData?.data}
+              reportLoading={reportLoading}
+              reportIsError={reportIsError}
               notesLoading={notesLoading}
               notesIsError={notesIsError}
               onAddReport={() => setIsReportModalOpen(true)}

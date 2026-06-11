@@ -27,6 +27,7 @@ import ParentNotifications from "@/pages/parent/Notifications";
 import ParentProfileSettings from "@/pages/parent/ProfileSettings";
 
 import { createBrowserRouter } from "react-router-dom";
+import PrivateRoute from "@/components/common/PrivateRoute";
 import Home from "@/pages/Pages/Home";
 import Services from "@/pages/Pages/Services";
 import Enrollment from "@/pages/Pages/Enrollment";
@@ -106,7 +107,7 @@ const router = createBrowserRouter([
   // Admin routes
   {
     path: "/dashboard",
-    element: <AdminLayout />,
+    element: <PrivateRoute><AdminLayout /></PrivateRoute>,
     children: [
       {
         path: "/dashboard",
@@ -153,7 +154,7 @@ const router = createBrowserRouter([
   // Parent routes
   {
     path: "/parent-dashboard",
-    element: <ParentLayout />,
+    element: <PrivateRoute><ParentLayout /></PrivateRoute>,
     children: [
       {
         path: "/parent-dashboard",

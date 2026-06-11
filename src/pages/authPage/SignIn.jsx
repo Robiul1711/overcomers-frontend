@@ -8,6 +8,7 @@ import { useDispatch } from 'react-redux';
 import { setToken } from '@/redux/slices/authSlice';
 import useMutationClient from '@/hooks/useMutationClient';
 
+
 const SignIn = () => {
   // 'employee' or 'parent'
   const [activeTab, setActiveTab] = useState('parent'); 
@@ -27,15 +28,16 @@ const SignIn = () => {
 
   const onSubmit = (data) => {
     mutate(
-      { data },
+      { data: { ...data, user_type: activeTab } },
       {
         onSuccess: (res) => {
           const resData = res?.data || res;
           const token = resData?.access_token;
           const userType = resData?.data?.user_type;
+          console.log(userType)
           console.log(token)
           if (token) {
-            dispatch(setToken({ token }));
+            dispatch(setToken({ token, userType: userType }));
           }
           
           // Redirect based on the authenticated user's type

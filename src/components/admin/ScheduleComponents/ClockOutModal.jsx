@@ -55,7 +55,7 @@ const ClockOutModal = ({
         </div>
 
         <div className="flex flex-col gap-6 mb-10">
-          <div className="flex flex-col gap-2">
+          {/* <div className="flex flex-col gap-2">
             <label className="text-[13px] font-extrabold text-Third uppercase tracking-wider ml-1">
               Ending Time
             </label>
@@ -71,7 +71,7 @@ const ClockOutModal = ({
                 className="w-full bg-[#FAF9F6] border border-gray-100 px-12 py-5 rounded-2xl text-Third font-extrabold text-[16px] focus:outline-none focus:border-Secondary transition-all shadow-sm"
               />
             </div>
-          </div>
+          </div> */}
           <div className="flex flex-col gap-2">
             <label className="text-[13px] font-extrabold text-Third uppercase tracking-wider ml-1">
              Add session notes *

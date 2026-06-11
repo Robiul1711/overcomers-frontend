@@ -3,6 +3,7 @@ import { Upload, Download, UploadCloud } from 'lucide-react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import useClient from '@/hooks/useClient';
 import useMutationClient from '@/hooks/useMutationClient';
+import TableSkeleton from '@/components/common/TableSkeleton';
 
 const Documents = () => {
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
@@ -57,50 +58,20 @@ const Documents = () => {
     setSelectedFile(null);
   };
 
-  const SkeletonBox = ({ className = "" }) => (
-    <div className={`animate-pulse bg-gray-200 rounded-lg ${className}`} />
-  );
-
   if (isLoading) {
     return (
       <div className='flex flex-col gap-6 h-full pb-10'>
         <div className="bg-white rounded-[24px] md:rounded-3xl shadow-sm p-4 md:p-8 flex flex-col min-h-full border border-gray-50">
-          {/* Header Skeleton */}
           <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-8">
-            <div className="flex flex-col gap-2">
-              <SkeletonBox className="h-7 w-52" />
-              <SkeletonBox className="h-4 w-36" />
+            <div>
+              <div className="h-6 w-48 bg-gray-200 rounded-full animate-pulse" />
+              <div className="h-4 w-36 bg-gray-100 rounded-full animate-pulse mt-2" />
             </div>
-            <SkeletonBox className="h-11 w-40 rounded-xl" />
+            <div className="h-11 w-40 bg-gray-200 rounded-xl animate-pulse" />
           </div>
-
-          {/* Table Skeleton */}
-          <div className="overflow-x-auto custom-scrollbar">
-            <table className="w-full text-left border-collapse min-w-[850px]">
-              <thead>
-                <tr className="bg-gray-50/80">
-                  {["Document Name", "File Type", "Upload Date", "Expiration Date", "Status", "Action"].map((h, i) => (
-                    <th key={i} className="py-4 px-6 font-bold text-Third text-[13px] uppercase tracking-wider">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50">
-                {Array.from({ length: 5 }).map((_, idx) => (
-                  <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
-                    <td className="py-5 px-6"><SkeletonBox className="h-4 w-40" /></td>
-                    <td className="py-5 px-6"><SkeletonBox className="h-4 w-20" /></td>
-                    <td className="py-5 px-6"><SkeletonBox className="h-4 w-28" /></td>
-                    <td className="py-5 px-6"><SkeletonBox className="h-4 w-28" /></td>
-                    <td className="py-5 px-6 flex justify-center"><SkeletonBox className="h-7 w-20 rounded-full" /></td>
-                    <td className="py-5 px-6 flex justify-center"><SkeletonBox className="h-9 w-32 rounded-xl" /></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
+          <TableSkeleton rows={6} columns={7} />
           <div className="md:hidden mt-4 py-3 px-4 bg-gray-50/50 rounded-xl text-center">
-            <p className="text-[11px] text-gray-400 italic">Scroll horizontally to view complete records</p>
+            <p className="text-[11px] text-gray-400 italic">Loading records...</p>
           </div>
         </div>
       </div>

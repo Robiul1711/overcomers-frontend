@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { PenTool, RotateCcw } from "lucide-react";
 
-const SignaturePad = ({ label, id }) => {
+const SignaturePad = React.forwardRef(({ label, id }, ref) => {
   const canvasRef = React.useRef(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [isEmpty, setIsEmpty] = useState(true);
@@ -69,6 +69,14 @@ const SignaturePad = ({ label, id }) => {
     }
   }, []);
 
+  React.useImperativeHandle(ref, () => ({
+    getSignatureData: () => {
+      const canvas = canvasRef.current;
+      return canvas ? canvas.toDataURL('image/png') : null;
+    },
+    isCanvasEmpty: () => isEmpty,
+  }));
+
   return (
     <div className="flex flex-col gap-2.5">
       <div className="flex justify-between items-center px-1">
@@ -109,6 +117,6 @@ const SignaturePad = ({ label, id }) => {
       </div>
     </div>
   );
-};
+});
 
 export default SignaturePad;

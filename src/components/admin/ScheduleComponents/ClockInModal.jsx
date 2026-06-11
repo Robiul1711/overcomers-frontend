@@ -7,7 +7,8 @@ const ClockInModal = ({
   selectedSession, 
   actualStartTime, 
   setActualStartTime, 
-  confirmClockIn 
+  confirmClockIn,
+  isProcessing = false,
 }) => {
   if (!isOpen || !selectedSession) return null;
 
@@ -86,9 +87,10 @@ const ClockInModal = ({
           </button>
           <button
             onClick={confirmClockIn}
-            className="w-full sm:flex-1 py-4.5 bg-Secondary text-white font-extrabold rounded-2xl shadow-xl shadow-Secondary/20 hover:scale-[1.02] active:scale-95 transition-all text-[15px] uppercase tracking-wider"
+            disabled={isProcessing}
+            className={`w-full sm:flex-1 py-4.5 bg-Secondary text-white font-extrabold rounded-2xl shadow-xl shadow-Secondary/20 hover:scale-[1.02] active:scale-95 transition-all text-[15px] uppercase tracking-wider ${isProcessing ? "opacity-50 cursor-not-allowed grayscale-[0.4]" : ""}`}
           >
-            Confirm Start
+            {isProcessing ? "Starting..." : "Confirm Start"}
           </button>
         </div>
       </div>

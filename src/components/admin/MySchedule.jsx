@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useMemo, useRef } from "react";
 import { Clock, CheckCircle2, ShieldCheck } from "lucide-react";
+import { toast } from "react-toastify";
 
 // Sub-components
 import StatsCards from "./ScheduleComponents/StatsCards";
@@ -8,317 +9,273 @@ import ClockInModal from "./ScheduleComponents/ClockInModal";
 import ClockOutModal from "./ScheduleComponents/ClockOutModal";
 import ScheduleSessionModal from "./ScheduleComponents/ScheduleSessionModal";
 import useClient from "@/hooks/useClient";
+import useMutationClient from "@/hooks/useMutationClient";
+
+const DAY_NAMES = [
+  "Sunday",
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+];
+const DAY_ABBR = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const MONTH_NAMES = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+];
+
+const generateWeekDays = () => {
+  const today = new Date();
+  const days = [];
+  for (let i = 0; i < 7; i++) {
+    const date = new Date(today);
+    date.setDate(today.getDate() + i);
+    const dayIdx = date.getDay();
+    days.push({
+      day: DAY_ABBR[dayIdx],
+      dayFull: DAY_NAMES[dayIdx],
+      date: date.getDate(),
+      dateObj: date,
+      month: MONTH_NAMES[date.getMonth()],
+      year: date.getFullYear(),
+      isToday: i === 0,
+      sessions: [],
+    });
+  }
+  return days;
+};
+
+const mapSessionsToDays = (scheduleData, sessionStatuses) => {
+  const weekDays = generateWeekDays();
+  if (!scheduleData) return weekDays;
+
+  scheduleData.forEach((item) => {
+    const matchingDay = weekDays.find(
+      (d) => d.dayFull === item.day_of_week,
+    );
+    if (matchingDay) {
+      const status = sessionStatuses[item.id] || "Upcoming";
+      matchingDay.sessions.push({
+        id: item.id,
+        clinical_case_id: item.clinical_case_id,
+        client: item.client_name,
+        time: item.time,
+        start_time_raw: item.start_time_raw,
+        end_time_raw: item.end_time_raw,
+        type: item.session_type,
+        room: item.location,
+        status,
+      });
+    }
+  });
+
+  return weekDays;
+};
+
+const formatTimeForApi = (date) => {
+  let hours = date.getHours();
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  const ampm = hours >= 12 ? "pm" : "am";
+  hours = hours % 12;
+  if (hours === 0) hours = 12;
+  return `${hours}:${minutes} ${ampm}`;
+};
+
+const getWeekLabel = (weekDays) => {
+  if (!weekDays || weekDays.length === 0) return "";
+  const first = weekDays[0];
+  const last = weekDays[weekDays.length - 1];
+  if (first.month === last.month) {
+    return `${first.month} ${first.year}`;
+  }
+  return `${first.month} - ${last.month} ${first.year}`;
+};
 
 const MySchedule = () => {
   const [showClockInModal, setShowClockInModal] = useState(false);
   const [showClockOutModal, setShowClockOutModal] = useState(false);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [selectedSession, setSelectedSession] = useState(null);
+  const [actualStartTime, setActualStartTime] = useState("");
   const [sessionNotes, setSessionNotes] = useState("");
+  const [sessionStatuses, setSessionStatuses] = useState({});
 
-  // Weekly Data structure
-  const [weeklySessions, setWeeklySessions] = useState([
-    {
-      day: "Sun",
-      date: "22",
-      sessions: [
-        {
-          id: 1,
-          client: "John Smith",
-          time: "09:00 - 10:00",
-          type: "One-to-One",
-          room: "In-Home",
-          status: "Upcoming",
-        },
-        {
-          id: 2,
-          client: "Sarah Johnson",
-          time: "10:30 - 11:30",
-          type: "Group",
-          room: "Daycare",
-          status: "Upcoming",
-        },
-        {
-          id: 3,
-          client: "Mike Wilson",
-          time: "12:00 - 01:00",
-          type: "One-to-One",
-          room: "Clinic",
-          status: "Upcoming",
-        },
-      ],
-    },
-    {
-      day: "Mon",
-      date: "23",
-      sessions: [
-        {
-          id: 4,
-          client: "Sarah Johnson",
-          time: "09:00 - 10:00",
-          type: "One-to-One",
-          room: "In-Home",
-          status: "Upcoming",
-        },
-        {
-          id: 5,
-          client: "Lisa Davis",
-          time: "12:00 - 01:00",
-          type: "One-to-One",
-          room: "Clinic",
-          status: "Upcoming",
-        },
-      ],
-    },
-    {
-      day: "Tue",
-      date: "24",
-      sessions: [
-        {
-          id: 6,
-          client: "Mike Wilson",
-          time: "09:00 - 10:00",
-          type: "One-to-One",
-          room: "In-Home",
-          status: "Upcoming",
-        },
-        {
-          id: 7,
-          client: "Sarah Johnson",
-          time: "10:30 - 11:30",
-          type: "One-to-One",
-          room: "Daycare",
-          status: "Upcoming",
-        },
-      ],
-    },
-    {
-      day: "Wed",
-      date: "25",
-      sessions: [
-        {
-          id: 8,
-          client: "Robert Fox",
-          time: "09:00 - 10:00",
-          type: "Group",
-          room: "Daycare",
-          status: "Upcoming",
-        },
-        {
-          id: 9,
-          client: "Lisa Davis",
-          time: "10:30 - 11:30",
-          type: "One-to-One",
-          room: "In-Home",
-          status: "Upcoming",
-        },
-        {
-          id: 10,
-          client: "Sarah Johnson",
-          time: "12:00 - 01:00",
-          type: "One-to-One",
-          room: "Clinic",
-          status: "Upcoming",
-        },
-      ],
-    },
-    {
-      day: "Thu",
-      date: "26",
-      sessions: [
-        {
-          id: 11,
-          client: "Lisa Davis",
-          time: "09:00 - 10:00",
-          type: "One-to-One",
-          room: "In-Home",
-          status: "Upcoming",
-        },
-        {
-          id: 12,
-          client: "Sarah Johnson",
-          time: "10:30 - 11:30",
-          type: "One-to-One",
-          room: "Clinic",
-          status: "Upcoming",
-        },
-      ],
-    },
-    {
-      day: "Fri",
-      date: "27",
-      sessions: [
-        {
-          id: 13,
-          client: "John Smith",
-          time: "09:00 - 10:00",
-          type: "Group",
-          room: "Daycare",
-          status: "Upcoming",
-        },
-        {
-          id: 14,
-          client: "Robert Fox",
-          time: "10:30 - 11:30",
-          type: "One-to-One",
-          room: "In-Home",
-          status: "Upcoming",
-        },
-        {
-          id: 15,
-          client: "Sarah Johnson",
-          time: "12:00 - 01:00",
-          type: "Group",
-          room: "Daycare",
-          status: "Upcoming",
-        },
-      ],
-    },
-    {
-      day: "Sat",
-      date: "28",
-      sessions: [
-        {
-          id: 16,
-          client: "Mike Wilson",
-          time: "09:00 - 10:00",
-          type: "One-to-One",
-          room: "Clinic",
-          status: "Upcoming",
-        },
-        {
-          id: 17,
-          client: "John Smith",
-          time: "10:30 - 11:30",
-          type: "One-to-One",
-          room: "Clinic",
-          status: "Upcoming",
-        },
-        {
-          id: 18,
-          client: "Robert Fox",
-          time: "12:00 - 11:00",
-          type: "One-to-One",
-          room: "In-Home",
-          status: "Upcoming",
-        },
-      ],
-    },
-  ]);
+  const parentSignatureRef = useRef(null);
+  const employeeSignatureRef = useRef(null);
 
-
-  const [actualStartTime, setActualStartTime] = useState("10:26 AM");
-  const [actualEndTime, setActualEndTime] = useState("11:30 AM");
-
-  const handleClockAction = (session) => {
-    setSelectedSession(session);
-    if (session.status === "Upcoming") {
-      setActualStartTime(
-        new Date().toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
-      );
-      setShowClockInModal(true);
-    } else if (session.status === "In Progress") {
-      setActualEndTime(
-        new Date().toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
-      );
-      setShowClockOutModal(true);
-    }
-  };
-
-  const confirmClockIn = () => {
-    updateSessionStatus(selectedSession.id, "In Progress");
-    setShowClockInModal(false);
-  };
-
-  const confirmClockOut = () => {
-    updateSessionStatus(selectedSession.id, "Completed");
-    setShowClockOutModal(false);
-    setSessionNotes(""); // Reset notes after clocking out
-  };
-
-  const updateSessionStatus = (sessionId, newStatus) => {
-    setWeeklySessions((prev) =>
-      prev.map((dayObj) => ({
-        ...dayObj,
-        sessions: dayObj.sessions.map((s) =>
-          s.id === sessionId ? { ...s, status: newStatus } : s,
-        ),
-      })),
-    );
-  };
-
-
-
-      const { data, isLoading, isError } = useClient({
-    queryKey: ["employee/schedules/overview" ],
+  // Fetch schedule overview stats
+  const { data: statsData, isLoading: statsLoading } = useClient({
+    queryKey: ["employee/schedules/overview"],
     url: "/employee/schedules/overview",
+  });
+
+  // Fetch weekly schedule
+  const { data: schedulesData, isLoading: schedulesLoading } = useClient({
+    queryKey: ["employee/schedules"],
+    url: "/employee/schedules",
+  });
+
+  // Generate 7-day week and map sessions
+  const weeklySessions = useMemo(
+    () => mapSessionsToDays(schedulesData?.data, sessionStatuses),
+    [schedulesData, sessionStatuses],
+  );
+
+  const weekLabel = useMemo(() => getWeekLabel(weeklySessions), [weeklySessions]);
+
+  // Session start mutation
+  const { mutate: startSession, isPending: isStarting } = useMutationClient({
+    url: "/employee/schedules/start",
+    method: "post",
+    isPrivate: true,
+    invalidateKeys: [["employee/schedules"]],
+    successMessage: "Session started successfully",
+  });
+
+  // Session end mutation
+  const { mutate: endSession, isPending: isEnding } = useMutationClient({
+    url: (id) => `/employee/schedules/${id}/end`,
+    method: "post",
+    isPrivate: true,
+    invalidateKeys: [["employee/schedules"]],
+    successMessage: "Session ended successfully",
   });
 
   const stats = [
     {
       label: "Today's Hours",
-      value: data?.data?.todays_hours,
+      value: statsData?.data?.todays_hours,
       unit: "hrs",
       icon: <Clock size={22} className="text-blue-500" />,
       bgColor: "bg-blue-50",
     },
     {
       label: "Weekly Hours",
-      value: data?.data?.weekly_hours,
+      value: statsData?.data?.weekly_hours,
       unit: "hrs",
       icon: <CheckCircle2 size={22} className="text-green-500" />,
       bgColor: "bg-green-50",
     },
     {
       label: "Total Hours Logged",
-      value: data?.data?.total_hours_logged,
+      value: statsData?.data?.total_hours_logged,
       unit: "hrs",
       icon: <ShieldCheck size={22} className="text-purple-500" />,
       bgColor: "bg-purple-50",
     },
   ];
 
+  const handleClockAction = (session) => {
+    setSelectedSession(session);
+    if (session.status === "Upcoming") {
+      setActualStartTime(formatTimeForApi(new Date()));
+      setShowClockInModal(true);
+    } else if (session.status === "In Progress") {
+      setSessionNotes("");
+      setShowClockOutModal(true);
+    }
+  };
+
+  const confirmClockIn = () => {
+    const formData = new FormData();
+    formData.append("clinical_case_schedule_id", selectedSession.id);
+    formData.append("time", actualStartTime);
+
+    startSession(
+      { data: formData },
+      {
+        onSuccess: () => {
+          setSessionStatuses((prev) => ({
+            ...prev,
+            [selectedSession.id]: "In Progress",
+          }));
+          setShowClockInModal(false);
+        },
+      },
+    );
+  };
+
+  const confirmClockOut = () => {
+    const parentSig = parentSignatureRef.current?.getSignatureData?.();
+    const employeeSig = employeeSignatureRef.current?.getSignatureData?.();
+    const parentEmpty = parentSignatureRef.current?.isCanvasEmpty?.();
+    const employeeEmpty = employeeSignatureRef.current?.isCanvasEmpty?.();
+
+    if (!sessionNotes.trim()) {
+      toast.error("Please add session notes");
+      return;
+    }
+    if (parentEmpty !== false) {
+      toast.error("Please provide parent signature");
+      return;
+    }
+    if (employeeEmpty !== false) {
+      toast.error("Please provide employee signature");
+      return;
+    }
+
+    endSession(
+      {
+        id: selectedSession.id,
+        data: {
+          session_notes: sessionNotes,
+          parent_signature: parentSig,
+          employee_signature: employeeSig,
+        },
+      },
+      {
+        onSuccess: () => {
+          setSessionStatuses((prev) => ({
+            ...prev,
+            [selectedSession.id]: "Completed",
+          }));
+          setShowClockOutModal(false);
+          setSessionNotes("");
+        },
+      },
+    );
+  };
+
   return (
     <div className="flex flex-col gap-6 md:gap-8 font-poppins pb-10 px-1 md:px-0">
       {/* Top Stats Cards */}
-      <StatsCards stats={stats}  isLoading={isLoading}/>
+      <StatsCards stats={stats} isLoading={statsLoading} />
 
       {/* Main Calendar Card */}
-      <WeeklyCalendar 
+      <WeeklyCalendar
         weeklySessions={weeklySessions}
+        weekLabel={weekLabel}
+        isLoading={schedulesLoading}
         setShowScheduleModal={setShowScheduleModal}
         handleClockAction={handleClockAction}
       />
 
       {/* Modals */}
-      <ClockInModal 
+      <ClockInModal
         isOpen={showClockInModal}
         onClose={() => setShowClockInModal(false)}
         selectedSession={selectedSession}
         actualStartTime={actualStartTime}
         setActualStartTime={setActualStartTime}
         confirmClockIn={confirmClockIn}
+        isProcessing={isStarting}
       />
 
-      <ClockOutModal 
+      <ClockOutModal
         isOpen={showClockOutModal}
         onClose={() => setShowClockOutModal(false)}
         selectedSession={selectedSession}
-        actualStartTime={actualStartTime}
-        actualEndTime={actualEndTime}
-        setActualEndTime={setActualEndTime}
         sessionNotes={sessionNotes}
         setSessionNotes={setSessionNotes}
         confirmClockOut={confirmClockOut}
+        isProcessing={isEnding}
+        parentSignatureRef={parentSignatureRef}
+        employeeSignatureRef={employeeSignatureRef}
       />
 
-      <ScheduleSessionModal 
+      <ScheduleSessionModal
         isOpen={showScheduleModal}
         onClose={() => setShowScheduleModal(false)}
       />

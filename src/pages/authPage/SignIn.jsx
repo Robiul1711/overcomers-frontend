@@ -34,8 +34,6 @@ const SignIn = () => {
           const resData = res?.data || res;
           const token = resData?.access_token;
           const userType = resData?.data?.user_type;
-          console.log(userType)
-          console.log(token)
           if (token) {
             dispatch(setToken({ token, userType: userType }));
           }

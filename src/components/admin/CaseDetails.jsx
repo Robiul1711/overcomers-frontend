@@ -36,7 +36,7 @@ const CaseDetails = () => {
     queryKey: ["employeeCaseNotes", id],
     url: `/employee/cases/${id}/notes`,
   });
-  console.log(notesData?.data)
+  // console.log(notesData?.data)
 
   const dataCasted = data?.data;
 
@@ -45,14 +45,18 @@ const CaseDetails = () => {
     queryKey: ["employeeCasePrograms"],
     url: `/employee/cases/${id}/programs`,
   })
-  console.log(programsData)
+  // console.log(programsData)
 
 
   const { data: reportData, isLoading: reportLoading, isError: reportIsError } = useClient({
     queryKey: ["employeeCaseReports"],
     url: `/employee/cases/${id}/reports`,
   })
-console.log(reportData)
+  const { data: taskPerformanceData, isLoading: taskPerformanceLoading, isError: taskPerformanceIsError } = useClient({
+    queryKey: ["employeeCaseTaskPerformance"],
+    url: `/employee/cases/${id}/task-performance`,
+  })
+// console.log(reportData)
 
 
 
@@ -216,6 +220,9 @@ console.log(reportData)
               }}
               notesData={notesData?.data}
               reportData={reportData?.data}
+              taskPerformanceData={taskPerformanceData?.data}
+              taskPerformanceLoading={taskPerformanceLoading}
+              taskPerformanceIsError={taskPerformanceIsError}
               reportLoading={reportLoading}
               reportIsError={reportIsError}
               notesLoading={notesLoading}
@@ -252,6 +259,7 @@ console.log(reportData)
       <AddReportModal
         isOpen={isReportModalOpen}
         onClose={() => setIsReportModalOpen(false)}
+        caseId={id}
       />
 
       <TeamMemberModal

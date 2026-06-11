@@ -3,6 +3,8 @@ import { ChevronLeft, ChevronRight, Clock, MapPin, Calendar, Plus } from "lucide
 
 const WeeklyCalendar = ({ 
   weeklySessions, 
+  weekLabel,
+  isLoading = false,
   setShowScheduleModal, 
   handleClockAction 
 }) => {
@@ -16,7 +18,7 @@ const WeeklyCalendar = ({
               <ChevronLeft size={20} strokeWidth={2.5} />
             </button>
             <div className="px-4 md:px-6 py-2 bg-transparent font-extrabold text-Secondary text-[14px] md:text-[16px] uppercase tracking-wider">
-              March 2026
+              {weekLabel || "Loading..."}
             </div>
             <button className="p-2 md:p-2.5 hover:bg-white hover:shadow-sm rounded-xl transition-all text-Secondary active:scale-90">
               <ChevronRight size={20} strokeWidth={2.5} />
@@ -24,9 +26,9 @@ const WeeklyCalendar = ({
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <button className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-[#FAF6F4] text-Secondary font-bold text-[13px] md:text-[14px] rounded-xl hover:bg-[#F2ECE8] transition-colors shadow-sm">
+          <div className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-[#FAF6F4] text-Secondary font-bold text-[13px] md:text-[14px] rounded-xl hover:bg-[#F2ECE8] transition-colors shadow-sm">
             Weekly View
-          </button>
+          </div>
 
           <button
             onClick={() => setShowScheduleModal(true)}
@@ -47,15 +49,15 @@ const WeeklyCalendar = ({
             >
               {/* Day Header */}
               <div
-                className={`rounded-2xl p-4 text-center border-2 transition-colors ${dayData.day === "Sun" ? "bg-Primary/10 border-Primary" : "bg-gray-50 border-transparent"}`}
+                className={`rounded-2xl p-4 text-center border-2 transition-colors ${dayData.isToday ? "bg-Primary/10 border-Primary" : "bg-gray-50 border-transparent"}`}
               >
                 <p
-                  className={`text-[12px] font-bold uppercase tracking-widest leading-none mb-1.5 ${dayData.day === "Sun" ? "text-Secondary" : "text-gray-400"}`}
+                  className={`text-[12px] font-bold uppercase tracking-widest leading-none mb-1.5 ${dayData.isToday ? "text-Secondary" : "text-gray-400"}`}
                 >
                   {dayData.day}
                 </p>
                 <p
-                  className={`text-[26px] md:text-3xl font-extrabold leading-none ${dayData.day === "Sun" ? "text-Secondary" : "text-Secondary/90"}`}
+                  className={`text-[26px] md:text-3xl font-extrabold leading-none ${dayData.isToday ? "text-Secondary" : "text-Secondary/90"}`}
                 >
                   {dayData.date}
                 </p>

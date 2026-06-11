@@ -6,12 +6,12 @@ const ClockOutModal = ({
   isOpen, 
   onClose, 
   selectedSession, 
-  actualStartTime, 
-  actualEndTime, 
-  setActualEndTime, 
   sessionNotes, 
   setSessionNotes, 
-  confirmClockOut 
+  confirmClockOut,
+  isProcessing = false,
+  parentSignatureRef,
+  employeeSignatureRef,
 }) => {
   if (!isOpen || !selectedSession) return null;
 
@@ -45,17 +45,14 @@ const ClockOutModal = ({
           </p>
           <div className="flex items-center gap-2 mt-3 text-Secondary/50 font-bold text-[13px]">
             <CheckCircle2 size={14} className="text-green-500" />
-            <span>
-              Started at:{" "}
-              <span className="text-Secondary/80 font-extrabold">
-                {actualStartTime}
-              </span>
+            <span className="text-Secondary/80 font-extrabold">
+              {selectedSession.time}
             </span>
           </div>
         </div>
 
         <div className="flex flex-col gap-6 mb-10">
-          <div className="flex flex-col gap-2">
+          {/* <div className="flex flex-col gap-2">
             <label className="text-[13px] font-extrabold text-Third uppercase tracking-wider ml-1">
               Ending Time
             </label>
@@ -71,7 +68,7 @@ const ClockOutModal = ({
                 className="w-full bg-[#FAF9F6] border border-gray-100 px-12 py-5 rounded-2xl text-Third font-extrabold text-[16px] focus:outline-none focus:border-Secondary transition-all shadow-sm"
               />
             </div>
-          </div>
+          </div> */}
           <div className="flex flex-col gap-2">
             <label className="text-[13px] font-extrabold text-Third uppercase tracking-wider ml-1">
              Add session notes *
@@ -86,8 +83,8 @@ const ClockOutModal = ({
 
           {/* Signature Section */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-4 border-t border-gray-50">
-            <SignaturePad label="Parent Signature *" id="parent-signature" />
-            <SignaturePad label="Employee Signature *" id="employee-signature" />
+            <SignaturePad ref={parentSignatureRef} label="Parent Signature *" id="parent-signature" />
+            <SignaturePad ref={employeeSignatureRef} label="Employee Signature *" id="employee-signature" />
           </div>
         </div>
 
@@ -100,10 +97,10 @@ const ClockOutModal = ({
           </button>
           <button
             onClick={confirmClockOut}
-            disabled={!sessionNotes.trim()}
-            className={`w-full sm:flex-1 py-4.5 bg-Secondary text-white font-extrabold rounded-2xl shadow-xl shadow-Secondary/20 hover:scale-[1.02] active:scale-95 transition-all text-[15px] uppercase tracking-wider ${!sessionNotes.trim() ? "opacity-40 cursor-not-allowed grayscale-[0.5]" : ""}`}
+            disabled={isProcessing || !sessionNotes.trim()}
+            className={`w-full sm:flex-1 py-4.5 bg-Secondary text-white font-extrabold rounded-2xl shadow-xl shadow-Secondary/20 hover:scale-[1.02] active:scale-95 transition-all text-[15px] uppercase tracking-wider ${(isProcessing || !sessionNotes.trim()) ? "opacity-40 cursor-not-allowed grayscale-[0.5]" : ""}`}
           >
-          Submit & Clock Out
+            {isProcessing ? "Submitting..." : "Submit & Clock Out"}
           </button>
         </div>
       </div>

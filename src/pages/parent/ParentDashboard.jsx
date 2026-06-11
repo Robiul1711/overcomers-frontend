@@ -1,102 +1,21 @@
 import React, { useState } from "react";
 import {
-  User,
   ClipboardList,
-  TrendingUp,
-  Users,
-  ShieldCheck,
   Bell,
-  Settings,
-  LogOut,
-  LayoutDashboard,
   Calendar,
   MapPin,
   Clock,
-  ChevronRight,
   FileText,
-  Camera,
-  X,
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import useClient from "@/hooks/useClient";
 
-const EditChildProfileModal = ({ isOpen, onClose }) => {
-  if (!isOpen) return null;
 
-  return (
-    <div className="fixed h-screen inset-0 z-[100] flex items-center justify-center p-4">
-      {/* Overlay */}
-      <div
-        className="absolute inset-0 bg-black/20 backdrop-blur-md animate-in fade-in duration-300"
-        onClick={onClose}
-      ></div>
-
-      {/* Modal Content */}
-      <div className="bg-white rounded-xl w-full max-w-[min(95vw,512px)] relative z-10 shadow-2xl animate-in zoom-in-95 duration-300 overflow-hidden max-h-[90vh] flex flex-col border border-gray-100">
-        <div className="p-4 md:p-6 overflow-y-auto custom-scrollbar flex-1">
-          <div className="relative mb-6">
-            <h3 className="text-2xl md:text-3xl font-black text-Third tracking-tight leading-tight">
-              Edit Clinical Profile
-            </h3>
-            <p className="text-[12px] md:text-sm font-bold text-gray-400 mt-1 uppercase tracking-wider">
-              Update patient demographics
-            </p>
-            <div className="absolute -bottom-3 left-0 w-24 h-1 bg-Primary rounded-full"></div>
-          </div>
-
-          <div className="mt-4 mb-4 flex justify-start">
-            <div className="relative group cursor-pointer">
-              <div className="w-16 h-16  bg-Secondary rounded-[1rem] flex items-center justify-center text-Primary text-2xl font-black border-4 border-[#FFFBEE] shadow-xl group-hover:rotate-3 transition-transform">
-                CF
-              </div>
-              {/* <div className="absolute -bottom-1 -right-1 p-2 bg-white rounded-full border-2 border-gray-50 text-Secondary shadow-lg">
-                <Camera size={16} strokeWidth={3} />
-              </div> */}
-            </div>
-          </div>
-
-          <div className="space-y-6">
-            {[
-              { label: "Patient Full Name", placeholder: "Cody Fisher" },
-              { label: "Date of Birth", placeholder: "June 14, 2018" },
-              { label: "Current Age", placeholder: "7 years old" },
-              { label: "Enrolled School", placeholder: "Greenwood School" },
-              { label: "School Location", placeholder: "Austin, TX 78704" },
-              { label: "Main Service Node", placeholder: "Home" },
-            ].map((field, i) => (
-              <div key={i} className="flex flex-col gap-1">
-                <label className="block text-[11px] md:text-xs font-black text-Third  tracking-[0.1em] pl-1">
-                  {field.label} *
-                </label>
-                <input
-                  type="text"
-                  placeholder={field.placeholder}
-                  className="w-full bg-gray-50 border-2 border-gray-100 rounded-lg px-3 py-2.5 md:py-3 focus:border-Primary/50 focus:ring-4 focus:ring-Primary/5 outline-none transition-all text-[14px] md:text-sm f shadow-sm"
-                />
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="p-6 md:p-8 bg-gray-50/50 flex flex-col sm:flex-row gap-3 md:gap-4 border-t border-gray-100">
-          <button
-            onClick={onClose}
-            className="flex-1 bg-Primary text-Secondary py-3 rounded-lg font-black text-[14px] uppercase tracking-widest hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-Primary/10 order-2 sm:order-1"
-          >
-            Cancel
-          </button>
-          <button className="flex-1 bg-Secondary text-white py-3 rounded-lg  font-black text-[14px] uppercase tracking-widest hover:bg-Secondary/90 active:scale-95 transition-all shadow-xl shadow-Secondary/10 order-1 sm:order-2">
-            Update Case
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
+const SkeletonBox = ({ className = "" }) => (
+  <div className={`animate-pulse bg-gray-200 rounded-lg ${className}`} />
+);
 
 const ParentDashboard = () => {
-  const navigate = useNavigate();
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const { data, isLoading, isError } = useClient({
     queryKey: ["parentDashboard" ],
     url: "/parent/dashboard",
@@ -107,14 +26,102 @@ const ChildData=data?.data?.child
 const CareTeam=data?.data?.care_team
 const NewNotes=data?.data?.new_notes
 const NextSessonData=data?.data?.next_session
-console.log("New",NewNotes)
+// console.log("New",NewNotes)
+  if (isLoading) {
+    return (
+      <div className="space-y-4 md:space-y-6 animate-in fade-in duration-700">
+        {/* Stats Cards Skeleton */}
+        <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-4 gap-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="bg-white p-3 md:p-4 rounded-xl shadow-sm border border-[#F3F4F6] flex items-center gap-4">
+              <SkeletonBox className="w-12 h-12 rounded-xl" />
+              <div className="space-y-2">
+                <SkeletonBox className="h-7 w-14" />
+                <SkeletonBox className="h-4 w-24" />
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Main Content Grid Skeleton */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {/* My Child Card Skeleton */}
+          <div className="bg-white p-3 md:p-4 rounded-xl shadow-sm border border-[#F3F4F6] flex flex-col h-full">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 md:mb-8">
+              <div className="space-y-2">
+                <SkeletonBox className="h-7 w-28" />
+                <SkeletonBox className="h-4 w-44" />
+              </div>
+              <SkeletonBox className="h-10 w-28 rounded-xl" />
+            </div>
+            <div className="bg-gray-50/50 p-5 rounded-xl mb-4 border border-gray-100/50">
+              <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5 mb-4">
+                <SkeletonBox className="w-16 h-16 rounded-xl shrink-0" />
+                <div className="flex-1 w-full space-y-2 text-center sm:text-left">
+                  <SkeletonBox className="h-6 w-36 mx-auto sm:mx-0" />
+                  <SkeletonBox className="h-4 w-48 mx-auto sm:mx-0" />
+                  <div className="flex flex-wrap justify-center sm:justify-start gap-2">
+                    <SkeletonBox className="h-6 w-32 rounded-full" />
+                    <SkeletonBox className="h-6 w-24 rounded-full" />
+                  </div>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 border-t border-gray-200/50 pt-3">
+                {Array.from({ length: 2 }).map((_, i) => (
+                  <div key={i} className="p-3 bg-white rounded-xl border border-gray-100 flex flex-col items-center sm:items-start gap-1">
+                    <SkeletonBox className="h-3 w-16" />
+                    <SkeletonBox className="h-4 w-28" />
+                    <SkeletonBox className="h-3 w-20" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* New Clinical Notes Skeleton */}
+          <div className="bg-white p-3 md:p-4 rounded-xl shadow-sm border border-[#F3F4F6] flex flex-col h-full">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 md:mb-8">
+              <div className="space-y-2">
+                <SkeletonBox className="h-7 w-36" />
+                <SkeletonBox className="h-4 w-48" />
+              </div>
+            </div>
+            <div className="space-y-4">
+              {Array.from({ length: 2 }).map((_, i) => (
+                <div key={i} className="bg-gray-50/50 p-5 md:p-6 rounded-[24px] border-l-[4px] border-gray-200 shadow-sm">
+                  <div className="flex flex-col sm:flex-row justify-between items-start gap-1 mb-2">
+                    <SkeletonBox className="h-5 w-44" />
+                    <SkeletonBox className="h-4 w-24" />
+                  </div>
+                  <div className="space-y-2">
+                    <SkeletonBox className="h-4 w-full" />
+                    <SkeletonBox className="h-4 w-3/4" />
+                    <SkeletonBox className="h-4 w-1/2" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Upcoming Session Banner Skeleton */}
+        <div className="bg-gray-300 rounded-xl p-3 md:p-4 flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4">
+          <div className="w-full xl:w-auto space-y-3">
+            <SkeletonBox className="h-4 w-24 bg-white/30" />
+            <SkeletonBox className="h-6 w-64 bg-white/30" />
+            <div className="flex flex-wrap gap-2">
+              <SkeletonBox className="h-8 w-32 rounded-xl bg-white/30" />
+              <SkeletonBox className="h-8 w-40 rounded-xl bg-white/30" />
+              <SkeletonBox className="h-8 w-36 rounded-xl bg-white/30" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4 md:space-y-6 animate-in fade-in duration-700">
-      {/* Modal */}
-      <EditChildProfileModal
-        isOpen={isEditModalOpen}
-        onClose={() => setIsEditModalOpen(false)}
-      />
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -176,12 +183,11 @@ console.log("New",NewNotes)
                 Cody's clinical summary
               </p>
             </div>
-            <button
-              onClick={() => setIsEditModalOpen(true)}
+            <Link to="/parent-dashboard/my-child"
               className="w-full sm:w-auto bg-Secondary text-white hover:bg-Secondary/90 px-6 py-2.5 rounded-xl text-[13px] font-black uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-Secondary/10"
             >
               View Profile
-            </button>
+            </Link>
           </div>
 
           <div className="bg-gray-50/50 p-5 rounded-xl mb-4 border border-gray-100/50">
@@ -243,9 +249,9 @@ console.log("New",NewNotes)
                 Latest updates from the team
               </p>
             </div>
-            <button className="w-full sm:w-auto bg-Secondary text-white hover:bg-Secondary/90 px-6 py-2.5 rounded-xl text-[13px] font-black uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-Secondary/10">
+            {/* <button className="w-full sm:w-auto bg-Secondary text-white hover:bg-Secondary/90 px-6 py-2.5 rounded-xl text-[13px] font-black uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-Secondary/10">
               View All
-            </button>
+            </button> */}
           </div>
 
           <div className="space-y-4">

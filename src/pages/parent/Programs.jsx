@@ -12,29 +12,41 @@ import {
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { updateTaskResult } from "../../redux/slices/programsSlice";
+import useClient from "@/hooks/useClient";
+import useMutationClient from "@/hooks/useMutationClient";
+
+const SkeletonBox = ({ className = "" }) => (
+  <div className={`animate-pulse bg-gray-200 rounded-lg ${className}`} />
+);
 
 const ProgramDetailsView = ({ program, onBack }) => {
   const dispatch = useDispatch();
   const [isSavedAll, setIsSavedAll] = useState(false);
   const [taskData, setTaskData] = useState(
-    (program.tasks || [
-      "Responds To Name Within 3 Seconds",
-      "Labels 5+ Common Objects Verbally",
-      "Initiates Conversation With Peer",
-      "Labels 5+ Common Objects Verbally",
-    ]).map((taskTitle) => ({
-      title: taskTitle,
-      trials: 0,
-      correct: 0,
-      incorrect: 0,
+    (program.tasks || []).map((task) => ({
+      id: task.id,
+      title: typeof task === "string" ? task : task.title,
+      trials: task.trials || 0,
+      correct: task.correct || 0,
+      incorrect: task.incorrect || 0,
+      is_completed: task.is_completed || 0,
       undoAction: null,
     }))
   );
 
+  const { mutate: trackTask } = useMutationClient({
+    url: (id) => `/parent/programs/tasks/${id}/track`,
+    method: "post",
+    invalidateKeys: [["parentPrograms"]],
+    successMessage: "Task updated!",
+  });
+
   const handleAction = (index, type) => {
+    let taskId;
     setTaskData((prev) => {
       const next = [...prev];
       const task = { ...next[index] };
+      taskId = task.id;
       
       task.trials += 1;
       if (type === "yes") {
@@ -50,6 +62,30 @@ const ProgramDetailsView = ({ program, onBack }) => {
       next[index] = task;
       return next;
     });
+
+    // Call API to persist the tracking
+    if (taskId) {
+      trackTask({
+        id: taskId,
+        data: { status: type === "yes" ? "correct" : "incorrect" },
+      }, {
+        onSuccess: (res) => {
+          const apiData = res?.data?.data;
+          if (apiData) {
+            setTaskData((prev) => {
+              const next = [...prev];
+              next[index] = {
+                ...next[index],
+                trials: apiData.trials,
+                correct: apiData.correct,
+                incorrect: apiData.incorrect,
+              };
+              return next;
+            });
+          }
+        },
+      });
+    }
   };
 
   const handleUndo = (index) => {
@@ -245,76 +281,15 @@ const ProgramDetailsView = ({ program, onBack }) => {
 
 const Programs = () => {
   const [selectedProgram, setSelectedProgram] = useState(null);
-  const [view, setView] = useState("list"); // "list" or "details"
-  const [completedPrograms, setCompletedPrograms] = useState([]);
+  const [view, setView] = useState("list");
 
-  const assignedPrograms = [
-    {
-      title: "Communication Skills Development",
-      category: "Communication",
-      description:
-        "Helps improve verbal and non-verbal communication skills through structured activities. This comprehensive program includes evidence-based strategies and structured interventions designed to support skill development and track progress over time. The program follows ABA principles and is suitable for individualized treatment plans.",
-      level: "Beginner · Skill Acquisition",
-      isSpecial: true,
-      tasks: [
-        "Responds To Name Within 3 Seconds",
-        "Labels 5+ Common Objects Verbally",
-        "Initiates Conversation With Peer",
-        "Labels 5+ Common Objects Verbally",
-      ],
-    },
-    {
-      title: "Social Interaction Fundamentals",
-      category: "Social Skills",
-      description:
-        "Focuses on the core concepts of social engagement, eye contact, and turn-taking in social settings.",
-      level: "Beginner · Skill Acquisition",
-      tasks: [
-        "Initiates play with peers",
-        "Shares toys and materials",
-        "Takes turns during structured activities",
-        "Uses 'please' and 'thank you' appropriately",
-        "Responds to simple social questions",
-      ],
-    },
-    {
-      title: "Emotion Recognition & Regulation",
-      category: "Social Skills",
-      description:
-        "Teaches patients how to identify and appropriately respond to their own emotions and others'.",
-      level: "Beginner · Skill Acquisition",
-      tasks: [
-        "Identifies basic emotions in pictures",
-        "Labels current feeling when prompted",
-        "Uses a 'calm down' strategy with help",
-        "Recognizes happy/sad facial expressions",
-        "Communicates frustration without aggression",
-      ],
-    },
-  ];
+  const { data: programsData, isLoading } = useClient({
+    queryKey: ["parentPrograms"],
+    url: "/parent/my-programs",
+  });
 
-  const allNotes = [
-    {
-      name: "Eleanor Pena (RBT)",
-      date: "March 5, 2026",
-      text: "Client showing improvement in communication and social interaction during recent sessions. Successfully completed 3 of 4 targeted goals this week.",
-    },
-    {
-      name: "Dr. Devon Lane (BCBA)",
-      date: "February 28, 2026",
-      text: "Client showing improvement in communication and social interaction during recent sessions. Successfully completed 3 of 4 targeted goals this week.",
-    },
-    {
-      name: "Eleanor Pena (RBT)",
-      date: "March 5, 2026",
-      text: "Client showing improvement in communication and social interaction during recent sessions. Successfully completed 3 of 4 targeted goals this week.",
-    },
-    {
-      name: "Dr. Devon Lane (BCBA)",
-      date: "February 28, 2026",
-      text: "Client showing improvement in communication and social interaction during recent sessions. Successfully completed 3 of 4 targeted goals this week.",
-    },
-  ];
+  const programs = programsData?.data?.programs || [];
+  const programNotes = programsData?.data?.program_notes || [];
 
   const handleOpenDetails = (program) => {
     setSelectedProgram(program);
@@ -322,9 +297,57 @@ const Programs = () => {
     window.scrollTo(0, 0);
   };
 
-
   if (view === "details" && selectedProgram) {
     return <ProgramDetailsView program={selectedProgram} onBack={() => setView("list")} />;
+  }
+
+  if (isLoading) {
+    return (
+      <div className="space-y-8 animate-in fade-in duration-700">
+        <div className="bg-white p-8 rounded-3xl shadow-sm border border-[#F3F4F6]">
+          <div className="mb-8 relative w-fit">
+            <SkeletonBox className="h-8 w-56" />
+            <SkeletonBox className="h-1 w-full bg-[#FFBB03]/30 rounded-full mt-2" />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="bg-white p-6 rounded-3xl border border-[#F3F4F6] flex flex-col h-full">
+                <SkeletonBox className="h-6 w-44 mb-3" />
+                <SkeletonBox className="h-5 w-24 rounded-full mb-4" />
+                <div className="space-y-2 mb-6 flex-grow">
+                  <SkeletonBox className="h-4 w-full" />
+                  <SkeletonBox className="h-4 w-5/6" />
+                  <SkeletonBox className="h-4 w-3/4" />
+                </div>
+                <SkeletonBox className="h-4 w-36 mb-6" />
+                <SkeletonBox className="h-11 w-full rounded-xl" />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Notes Skeleton */}
+        <div className="bg-white p-8 rounded-3xl shadow-sm border border-[#F3F4F6]">
+          <div className="mb-8 relative w-fit">
+            <SkeletonBox className="h-8 w-32" />
+            <SkeletonBox className="h-1 w-full bg-[#FFBB03]/30 rounded-full mt-2" />
+          </div>
+          <div className="space-y-4">
+            {Array.from({ length: 2 }).map((_, i) => (
+              <div key={i} className="bg-gray-50 p-6 rounded-2xl border-l-[6px] border-gray-200">
+                <div className="flex justify-between items-start mb-2">
+                  <SkeletonBox className="h-5 w-44" />
+                </div>
+                <div className="space-y-2">
+                  <SkeletonBox className="h-4 w-full" />
+                  <SkeletonBox className="h-4 w-3/4" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -339,40 +362,37 @@ const Programs = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {assignedPrograms.map((program, i) => {
-            const isCompleted = completedPrograms.includes(i);
-            return (
-              <div
-                key={i}
-                className="bg-white p-6 rounded-3xl border border-[#F3F4F6] hover:shadow-md transition-shadow group flex flex-col h-full"
-              >
-                <h4 className="text-xl font-bold text-[#76121F] mb-2 leading-tight group-hover:text-[#800000] transition-colors">
-                  {program.title}
-                </h4>
+          {programs.map((program, i) => (
+            <div
+              key={program.id || i}
+              className="bg-white p-6 rounded-3xl border border-[#F3F4F6] hover:shadow-md transition-shadow group flex flex-col h-full"
+            >
+              <h4 className="text-xl font-bold text-[#76121F] mb-2 leading-tight group-hover:text-[#800000] transition-colors">
+                {program.title}
+              </h4>
 
-                <span className="bg-[#FAF6F7] text-[#800000] px-3 py-1 rounded-full text-xs font-bold w-fit mb-4 border border-[#FEE2E2]">
-                  {program.category}
-                </span>
+              <span className="bg-[#FAF6F7] text-[#800000] px-3 py-1 rounded-full text-xs font-bold w-fit mb-4 border border-[#FEE2E2]">
+                {program.category}
+              </span>
 
-                <p className="text-sm text-[#6B7280] mb-6 flex-grow leading-relaxed line-clamp-3">
-                  {program.description}
-                </p>
+              <p className="text-sm text-[#6B7280] mb-6 flex-grow leading-relaxed line-clamp-3">
+                {program.description}
+              </p>
 
-                <div className="text-xs text-[#B45309] font-bold mb-6 flex items-center gap-1.5 opacity-80">
-                  <ClipboardList size={14} /> {program.level}
-                </div>
-
-                <div className="flex gap-3 mt-auto">
-                  <button
-                    onClick={() => handleOpenDetails(program)}
-                    className="flex-1 border border-[#800000] text-[#800000] py-2.5 rounded-xl text-sm font-bold hover:bg-[#800000] hover:text-white transition-all active:scale-95"
-                  >
-                    View Details
-                  </button>
-                </div>
+              <div className="text-xs text-[#B45309] font-bold mb-6 flex items-center gap-1.5 opacity-80">
+                <ClipboardList size={14} /> {program.level}
               </div>
-            );
-          })}
+
+              <div className="flex gap-3 mt-auto">
+                <button
+                  onClick={() => handleOpenDetails(program)}
+                  className="flex-1 border border-[#800000] text-[#800000] py-2.5 rounded-xl text-sm font-bold hover:bg-[#800000] hover:text-white transition-all active:scale-95"
+                >
+                  View Details
+                </button>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 
@@ -384,26 +404,38 @@ const Programs = () => {
         </div>
 
         <div className="space-y-4">
-          {allNotes.map((note, i) => (
-            <div
-              key={i}
-              className="bg-[#FAF6F7] px-8 py-6 rounded-2xl border-l-[6px] border-[#800000] transition-all hover:bg-white hover:shadow-sm cursor-pointer group"
-            >
-              <div className="flex justify-between items-start mb-2">
-                <div className="flex items-center gap-2">
-                  <h4 className="font-bold text-[#800000] group-hover:text-[#B91C1C] transition-colors">
-                    {note.name}
-                  </h4>
-                  <span className="text-[#9CA3AF] text-sm font-medium">
-                    {note.date}
-                  </span>
+          {programNotes.length === 0 ? (
+            <p className="text-gray-400 text-sm py-4 text-center font-medium">
+              No notes available yet.
+            </p>
+          ) : (
+            programNotes.map((note, i) => (
+              <div
+                key={note.id || i}
+                className="bg-[#FAF6F7] px-8 py-6 rounded-2xl border-l-[6px] border-[#800000] transition-all hover:bg-white hover:shadow-sm group"
+              >
+                <div className="flex justify-between items-start mb-2">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h4 className="font-bold text-[#800000] group-hover:text-[#B91C1C] transition-colors">
+                      {note.employee_name}
+                    </h4>
+                    <span className="text-xs font-semibold text-[#800000]/60 bg-[#800000]/5 px-2 py-0.5 rounded-full">
+                      {note.role}
+                    </span>
+                    <span className="text-[#9CA3AF] text-sm font-medium">
+                      · {note.program_name}
+                    </span>
+                    <span className="text-[#9CA3AF] text-sm font-medium ml-auto">
+                      {note.date}
+                    </span>
+                  </div>
                 </div>
+                <p className="text-[#6B7280] text-sm leading-relaxed max-w-4xl">
+                  {note.content}
+                </p>
               </div>
-              <p className="text-[#6B7280] text-sm leading-relaxed max-w-4xl">
-                {note.text}
-              </p>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </div>
     </div>

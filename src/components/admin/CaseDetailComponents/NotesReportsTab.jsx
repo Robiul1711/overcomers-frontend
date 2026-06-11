@@ -36,8 +36,8 @@ const tableData = [
   { program: "Com. Skills Dev.", trials: "10 times", yes: "7 times", no: "3 times" },
 ];
 
-const NotesReportsTab = ({ onAddNote, onAddReport,notesData,notesLoading,notesIsError }) => {
-  // console.log(notesData)
+const NotesReportsTab = ({ onAddNote, onAddReport,notesData,notesLoading,notesIsError,reportData,reportLoading,reportIsError }) => {
+  console.log(reportData)
   const taskResults = useSelector(state => state.programs?.taskResults || []);
   const [selectedProgramTitle, setSelectedProgramTitle] = useState("Communication Skills Development");
   const [timeframe, setTimeframe] = useState("All time");
@@ -250,7 +250,7 @@ const NotesReportsTab = ({ onAddNote, onAddReport,notesData,notesLoading,notesIs
         <div className="w-full h-[2px] bg-[#FFBB03] rounded-full mb-8"></div>
 
         <div className="flex flex-col gap-4">
-          {reports.map((report, i) => (
+          {reportData.map((report, i) => (
             <div key={i} className="bg-white border border-gray-100 rounded-2xl p-6 flex items-center justify-between group hover:border-[#76121F]/30 hover:shadow-md transition-all">
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 rounded-xl bg-[#FAF6F7] flex items-center justify-center text-[#76121F] border border-gray-50">
@@ -261,7 +261,7 @@ const NotesReportsTab = ({ onAddNote, onAddReport,notesData,notesLoading,notesIs
                   <p className="text-gray-400 text-[12px] font-bold uppercase tracking-wider">{report.type} • Uploaded {report.date}</p>
                 </div>
               </div>
-              <button className="flex items-center gap-2 border-2 border-[#76121F] text-[#76121F] px-4 py-2 rounded-xl font-bold text-[13px] hover:bg-[#76121F] hover:text-white transition-all active:scale-95">
+              <button onClick={() => handleDownload(report.id)} className="flex items-center gap-2 border-2 border-[#76121F] text-[#76121F] px-4 py-2 rounded-xl font-bold text-[13px] hover:bg-[#76121F] hover:text-white transition-all active:scale-95">
                 <Download size={16} /> Download
               </button>
             </div>

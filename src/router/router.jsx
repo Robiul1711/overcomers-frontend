@@ -118,7 +118,7 @@ const router = createBrowserRouter([
       },
       {
         path: "/dashboard/cases/:id",
-        element: <CaseDetails />,
+        element: <CaseDetaiinls />,
       },
       {
         path: "/dashboard/programs",

@@ -46,10 +46,74 @@ const Dashboard = () => {
     }
   };
 
+  const SkeletonBox = ({ className = "" }) => (
+    <div className={`animate-pulse bg-gray-200 rounded-lg ${className}`} />
+  );
+
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-[700px]">
-       <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-Third"/>
+      <div className="flex flex-col gap-6 md:gap-8">
+        {/* Welcome Section Skeleton */}
+        <div className="px-1 flex flex-col gap-2">
+          <SkeletonBox className="h-7 w-72" />
+          <SkeletonBox className="h-4 w-96" />
+        </div>
+
+        {/* Stats Cards Skeleton */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
+          {Array.from({ length: 2 }).map((_, i) => (
+            <div key={i} className="bg-white rounded-xl p-4 shadow-sm border border-gray-50 flex items-center gap-4 md:gap-6">
+              <SkeletonBox className="w-[48px] md:w-[52px] h-[48px] md:h-[52px] rounded-xl shrink-0" />
+              <div className="flex flex-col gap-2">
+                <SkeletonBox className="h-8 w-16" />
+                <SkeletonBox className="h-4 w-28" />
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Recent Cases Skeleton */}
+        <div className="bg-white rounded-[24px] md:rounded-3xl shadow-sm border border-gray-50 overflow-hidden">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-5 md:p-7 border-b border-gray-100">
+            <div className="flex flex-col gap-2">
+              <SkeletonBox className="h-6 w-52" />
+              <SkeletonBox className="h-4 w-72" />
+            </div>
+            <div className="flex gap-3">
+              <SkeletonBox className="h-11 w-40 rounded-xl" />
+              <SkeletonBox className="h-11 w-40 rounded-xl" />
+            </div>
+          </div>
+
+          <div className="overflow-x-auto custom-scrollbar">
+            <table className="w-full text-left border-collapse min-w-[900px]">
+              <thead>
+                <tr className="bg-gray-50/80">
+                  {["Client Name", "Case ID", "Date", "Time", "Location", "Status", "Action"].map((h, i) => (
+                    <th key={i} className="py-4 px-6 font-bold text-Third text-[13px] uppercase tracking-wider">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {Array.from({ length: 4 }).map((_, idx) => (
+                  <tr key={idx}>
+                    <td className="py-4 md:py-5 px-6"><SkeletonBox className="h-4 w-32" /></td>
+                    <td className="py-4 md:py-5 px-6"><SkeletonBox className="h-4 w-20" /></td>
+                    <td className="py-4 md:py-5 px-6"><SkeletonBox className="h-4 w-28" /></td>
+                    <td className="py-4 md:py-5 px-6"><SkeletonBox className="h-4 w-24" /></td>
+                    <td className="py-4 md:py-5 px-6"><SkeletonBox className="h-4 w-24" /></td>
+                    <td className="py-4 md:py-5 px-6"><SkeletonBox className="h-7 w-20 rounded-full" /></td>
+                    <td className="py-4 md:py-5 px-6"><SkeletonBox className="h-8 w-28 rounded-lg" /></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="sm:hidden py-3 px-6 bg-gray-50/30 text-center border-t border-gray-100">
+            <SkeletonBox className="h-3 w-64 mx-auto" />
+          </div>
+        </div>
       </div>
     );
   }

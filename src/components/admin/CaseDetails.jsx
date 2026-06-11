@@ -45,7 +45,14 @@ const CaseDetails = () => {
     queryKey: ["employeeCasePrograms"],
     url: `/employee/cases/${id}/programs`,
   })
-// console.log(programsData)
+  console.log(programsData)
+
+
+  const { data: reportData, isLoading: reportLoading, isError: reportIsError } = useClient({
+    queryKey: ["employeeCaseReports"],
+    url: `/employee/cases/${id}/reports`,
+  })
+console.log(reportData)
 
 
 
@@ -208,6 +215,9 @@ const CaseDetails = () => {
                 setIsNoteModalOpen(true);
               }}
               notesData={notesData?.data}
+              reportData={reportData?.data}
+              reportLoading={reportLoading}
+              reportIsError={reportIsError}
               notesLoading={notesLoading}
               notesIsError={notesIsError}
               onAddReport={() => setIsReportModalOpen(true)}

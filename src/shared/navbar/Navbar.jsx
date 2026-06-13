@@ -5,6 +5,7 @@ import { ArrowUpRight, Menu, X, ChevronDown, LogOut, LayoutDashboard } from "luc
 import { motion, AnimatePresence } from "motion/react";
 import { useSelector, useDispatch } from "react-redux";
 import { selectIsAuthenticated, selectUserType, clearAuth } from "@/redux/slices/authSlice";
+import useClient from "@/hooks/useClient";
 import { toast } from "react-toastify";
 
 const navLinks = [
@@ -25,6 +26,21 @@ const Navbar = () => {
   const userType = useSelector(selectUserType);
   console.log(userType)
   const dashboardPath = userType === "employee" ? "/dashboard" : "/parent-dashboard";
+
+  const { data: profileData } = useClient({
+    queryKey: [userType === "employee" ? "employeeProfile" : "parentProfile"],
+    url: userType === "employee" ? "/employee/profile" : "/parent/profile",
+    enabled: isAuthenticated,
+  });
+
+  const profile = userType === "employee"
+    ? profileData?.data?.personal_information
+    : profileData?.data;
+
+  const initials = profile?.full_name || profile?.name
+    ? (profile?.full_name || profile?.name).split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()
+    : "U";
+
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
@@ -132,13 +148,26 @@ const Navbar = () => {
                       : "bg-white/10 hover:bg-white/20 border border-white/20"
                   }`}
                 >
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
-                    isScrolled
-                      ? "bg-[#800000] text-white"
-                      : "bg-white/20 text-white"
+                  {profile?.profile_picture ? (
+                    <img
+                      src={profile.profile_picture}
+                      alt={profile?.full_name || profile?.name || "User"}
+                      className="w-7 h-7 md:w-8 md:h-8 rounded-full object-cover border-2 border-white shadow-sm"
+                    />
+                  ) : (
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
+                      isScrolled
+                        ? "bg-[#800000] text-white"
+                        : "bg-white/20 text-white"
+                    }`}>
+                      {initials}
+                    </div>
+                  )}
+                  <span className={`hidden md:block text-sm font-medium max-w-[100px] truncate ${
+                    isScrolled ? "text-gray-700" : "text-white"
                   }`}>
-                    U
-                  </div>
+                    {profile?.full_name || profile?.name || "User"}
+                  </span>
                   <ChevronDown
                     size={14}
                     className={`transition-transform duration-200 ${
@@ -148,7 +177,17 @@ const Navbar = () => {
                 </button>
 
                 {isUserMenuOpen && (
-                  <div className="absolute right-0 top-full mt-2 w-52 bg-white rounded-xl shadow-lg border border-gray-100 py-2 animate-in fade-in zoom-in-95 duration-200 origin-top-right">
+                  <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-100 py-2 animate-in fade-in zoom-in-95 duration-200 origin-top-right">
+                    {/* User Info */}
+                    <div className="px-4 py-3 border-b border-gray-100">
+                      <p className="text-sm font-bold text-[#2D2D2D] truncate">
+                        {profile?.full_name || profile?.name || "User"}
+                      </p>
+                      <p className="text-xs text-[#9CA3AF] truncate mt-0.5">
+                        {profile?.email || ""}
+                      </p>
+                    </div>
+
                     <Link
                       to={dashboardPath}
                       onClick={() => setIsUserMenuOpen(false)}
@@ -237,14 +276,34 @@ const Navbar = () => {
               >
                 {isAuthenticated ? (
                   <>
+                    {/* User info for mobile */}
+                    <div className="w-full max-w-[280px] flex flex-col items-center gap-2 mb-4">
+                      {profile?.profile_picture ? (
+                        <img
+                          src={profile.profile_picture}
+                          alt={profile?.full_name || profile?.name || "User"}
+                          className="w-16 h-16 rounded-full object-cover border-4 border-gray-100 shadow-sm"
+                        />
+                      ) : (
+                        <div className="w-16 h-16 bg-[#800000] rounded-full flex items-center justify-center text-white text-xl font-bold shadow-sm">
+                          {initials}
+                        </div>
+                      )}
+                      <p className="text-sm font-bold text-gray-800">
+                        {profile?.full_name || profile?.name || "User"}
+                      </p>
+                      {profile?.email && (
+                        <p className="text-xs text-gray-500 -mt-1">{profile.email}</p>
+                      )}
+                    </div>
                     <Link to={dashboardPath} className="w-full max-w-[250px]" onClick={() => setIsMobileMenuOpen(false)}>
-                      <button className="bg-Secondary text-white font-bold text-[16px] px-6 py-4 rounded-[12px] flex items-center justify-center gap-2 transition-colors w-full">
+                      <button className="bg-Secondary text-white font-bold text-[16px] px-6 py-3 rounded-[12px] flex items-center justify-center gap-2 transition-colors w-full">
                         Dashboard <LayoutDashboard size={18} />
                       </button>
                     </Link>
                     <button
                       onClick={() => { handleLogout(); setIsMobileMenuOpen(false); }}
-                      className="w-full max-w-[250px] bg-red-50 text-red-600 font-bold text-[16px] px-6 py-4 rounded-[12px] flex items-center justify-center gap-2 transition-colors border border-red-100"
+                      className="w-full max-w-[250px] bg-red-50 text-red-600 font-bold text-[16px] px-6 py-3 rounded-[12px] flex items-center justify-center gap-2 transition-colors border border-red-100"
                     >
                       Logout <LogOut size={18} />
                     </button>

@@ -1,20 +1,14 @@
-/* eslint-disable react-hooks/rules-of-hooks */
 import { useQuery } from "@tanstack/react-query";
-import useAxiosPublic from "./useAxiosPublic";
 import useAxiosSecure from "./useAxiosSecure";
-import { useSelector } from "react-redux";
-import { selectCurrentToken } from "@/redux/slices/authSlice";
 
 const useClient = ({
   queryKey,
   url,
-  isPrivate = false,
   params = {},
   enabled = true,
   initialData,
 }) => {
-  const token = useSelector(selectCurrentToken);
-  const client = (isPrivate || token) ? useAxiosSecure() : useAxiosPublic();
+  const client = useAxiosSecure();
 
   const query = useQuery({
     // include params so refetch happens automatically on change

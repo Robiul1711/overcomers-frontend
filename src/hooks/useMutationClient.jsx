@@ -1,23 +1,18 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
-import useAxiosPublic from "./useAxiosPublic";
 import useAxiosSecure from "./useAxiosSecure";
 import { toast } from "react-toastify";
-import { useSelector } from "react-redux";
-import { selectCurrentToken } from "@/redux/slices/authSlice";
 
 const useMutationClient = ({
   url,
   method = "post",
-  isPrivate = false,
   invalidateKeys = [],
   successMessage = "Success",
   redirectTo,
 }) => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const token = useSelector(selectCurrentToken);
-  const client = (isPrivate || token) ? useAxiosSecure() : useAxiosPublic();
+  const client = useAxiosSecure();
 
   return useMutation({
     mutationFn: async (variables = {}) => {

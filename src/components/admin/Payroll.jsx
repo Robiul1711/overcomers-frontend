@@ -1,57 +1,179 @@
 import React, { useState } from 'react';
 import { 
-  Wallet, 
   DollarSign, 
-  ArrowUpRight, 
   Download, 
   Calendar, 
   Clock, 
   ShieldCheck, 
   ChevronDown,
   FileText,
-  X,
-  Search,
-  Info
+  Target
 } from 'lucide-react';
 import { ImageProvider } from '@/utils/ImageProvider';
+import useClient from '@/hooks/useClient';
+
+const formatPayPeriod = (start, end) => {
+  const d1 = new Date(start);
+  const d2 = new Date(end);
+  const opts = { month: 'short', day: 'numeric', year: 'numeric' };
+  return `${d1.toLocaleDateString('en-US', opts)} – ${d2.toLocaleDateString('en-US', opts)}`;
+};
+
+const formatCurrency = (val) => {
+  const num = parseFloat(val || 0);
+  return `$${num.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`;
+};
 
 const Payroll = () => {
-  const [activeTab, setActiveTab] = useState('Payment History');
+const [activeTab, setActiveTab] = useState('Payment History');
   const [showModal, setShowModal] = useState(false);
   const [selectedStub, setSelectedStub] = useState(null);
   const [statusFilter, setStatusFilter] = useState('All Statuses');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
-  const stats = [
-    { icon: <Clock className="text-Secondary" size={24} />, label: "Total Hours Worked", value: "120hrs", subtext: "This month", bgColor: "bg-white" },
-    { icon: <DollarSign className="text-Secondary" size={24} />, label: "Total Earnings", value: "$3,000", subtext: "March 2026", bgColor: "bg-white" },
-    { icon: <ShieldCheck className="text-Secondary" size={24} />, label: "Pending Payments", value: "$500", subtext: "Awaiting processing", bgColor: "bg-white" },
-    { icon: <Calendar className="text-Secondary" size={24} />, label: "Last Payment", value: "Mar 15", subtext: "2026", bgColor: "bg-white" },
-  ];
-
-  const hoursSummary = [
-    { label: "Today", value: "2h 00m", scheduled: "4h 00m", icon: <Clock size={16} />, progress: 50 },
-    { label: "This Week", value: "18h 30m", target: "32h / week", icon: <Calendar size={16} />, progress: 58 },
-    { label: "This Month", value: "120h 00m", target: "128h / month", icon: <Target size={16} />, progress: 93 },
-  ];
-
-  const payrollData = [
-    { period: "Feb 15 – Feb 28, 2026", hours: "40 hrs", rate: "$25.00 / hr", gross: "$1,000", deductions: "$76.50", net: "$923.50", status: "Pending" },
-    { period: "Feb 15 – Feb 28, 2026", hours: "40 hrs", rate: "$25.00 / hr", gross: "$1,000", deductions: "$76.50", net: "$923.50", status: "Paid" },
-    { period: "Feb 15 – Feb 28, 2026", hours: "40 hrs", rate: "$25.00 / hr", gross: "$1,000", deductions: "$76.50", net: "$923.50", status: "Paid" },
-    { period: "Feb 15 – Feb 28, 2026", hours: "40 hrs", rate: "$25.00 / hr", gross: "$1,000", deductions: "$76.50", net: "$923.50", status: "Paid" },
-    { period: "Feb 15 – Feb 28, 2026", hours: "40 hrs", rate: "$25.00 / hr", gross: "$1,000", deductions: "$76.50", net: "$923.50", status: "Paid" },
-    { period: "Feb 15 – Feb 28, 2026", hours: "40 hrs", rate: "$25.00 / hr", gross: "$1,000", deductions: "$76.50", net: "$923.50", status: "Paid" },
-  ];
-
   const taxData = [
     { form: "1099-NEC", desc: "Nonemployee Compensation", type: "PDF", year: "2026", date: "March 9, 2026", status: "Available" },
   ];
+
+  const { data, isLoading, isError, refetch } = useClient({
+    queryKey: ['employeePayrolls'],
+    url: '/employee/payrolls',
+  });
+
+  const topCards = data?.data?.top_cards || {};
+  const workload = data?.data?.workload_summary || {};
+  const hourlyRate = data?.data?.hourly_rate || '0';
+  const payrolls = data?.data?.payrolls || [];
+  const pagination = data?.data?.pagination || {};
+
+  const stats = [
+    {
+      icon: <Clock className="text-Secondary" size={24} />,
+      label: "Total Hours Worked",
+      value: `${topCards.total_hours_this_month ?? 0}`,
+      subtext: topCards.this_month_name || "This month",
+      suffix: "hrs"
+    },
+    {
+      icon: <DollarSign className="text-Secondary" size={24} />,
+      label: "Total Earnings",
+      value: formatCurrency(topCards.total_earnings_this_month ?? 0),
+      subtext: topCards.this_month_name || "This month"
+    },
+    {
+      icon: <ShieldCheck className="text-Secondary" size={24} />,
+      label: "Pending Payments",
+      value: formatCurrency(topCards.pending_payments ?? 0),
+      subtext: "Awaiting processing"
+    },
+    {
+      icon: <Calendar className="text-Secondary" size={24} />,
+      label: "Last Payment",
+      value: formatCurrency(topCards.last_payment_amount ?? 0),
+      subtext: topCards.last_payment_date || "-"
+    },
+  ];
+
+  const hoursSummary = [
+    {
+      label: "Today",
+      value: `${workload?.today?.worked ?? 0}h 00m`,
+      scheduled: `${workload?.today?.scheduled ?? 0}h 00m`,
+      icon: <Clock size={16} />,
+      progress: workload?.today?.scheduled > 0
+        ? Math.round(((workload?.today?.worked ?? 0) / workload?.today?.scheduled) * 100)
+        : 0
+    },
+    {
+      label: "This Week",
+      value: `${workload?.this_week?.worked ?? 0}h 00m`,
+      target: `${workload?.this_week?.target ?? 0}h / week`,
+      icon: <Calendar size={16} />,
+      progress: workload?.this_week?.target > 0
+        ? Math.round(((workload?.this_week?.worked ?? 0) / workload?.this_week?.target) * 100)
+        : 0
+    },
+    {
+      label: "This Month",
+      value: `${workload?.this_month?.worked ?? 0}h 00m`,
+      target: `${workload?.this_month?.target ?? 0}h / month`,
+      icon: <Target size={16} />,
+      progress: workload?.this_month?.target > 0
+        ? Math.round(((workload?.this_month?.worked ?? 0) / workload?.this_month?.target) * 100)
+        : 0
+    },
+  ];
+
+  const filteredPayrolls = statusFilter === 'All Statuses'
+    ? payrolls
+    : payrolls.filter((p) => p.status === statusFilter);
 
   const handleViewPaystub = (item) => {
     setSelectedStub(item);
     setShowModal(true);
   };
+
+  const SkeletonBox = ({ className = '' }) => (
+    <div className={`animate-pulse bg-gray-200 rounded-lg ${className}`} />
+  );
+
+  if (isLoading) {
+    return (
+      <div className='flex flex-col gap-6 md:gap-8 font-poppins pb-10'>
+        {/* Stats Skeleton */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 px-1">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="bg-white rounded-2xl p-5 shadow-sm border border-gray-50 flex items-center gap-4">
+              <SkeletonBox className="w-12 h-12 rounded-full shrink-0" />
+              <div className="space-y-2">
+                <SkeletonBox className="h-7 w-24" />
+                <SkeletonBox className="h-4 w-28" />
+                <SkeletonBox className="h-3 w-20" />
+              </div>
+            </div>
+          ))}
+        </div>
+        {/* Tabs Skeleton */}
+        <SkeletonBox className="h-12 w-72 mx-1" />
+        {/* Workload Skeleton */}
+        <div className="bg-white rounded-[24px] md:rounded-3xl p-5 md:p-8 shadow-sm border border-gray-50 mx-1">
+          <SkeletonBox className="h-6 w-44 mb-8" />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="border border-Secondary/10 rounded-2xl p-5 flex flex-col items-center gap-3">
+                <SkeletonBox className="h-8 w-20" />
+                <SkeletonBox className="h-8 w-16" />
+                <SkeletonBox className="h-4 w-28" />
+                <SkeletonBox className="h-2 w-full rounded-full" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className='flex flex-col gap-6 md:gap-8 font-poppins pb-10 px-1'>
+        <div className="bg-white rounded-[32px] md:rounded-[40px] shadow-sm border border-gray-50 overflow-hidden p-20 flex flex-col items-center text-center gap-4">
+          <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center text-red-400">
+            <DollarSign size={40} />
+          </div>
+          <div>
+            <h4 className="text-xl font-bold text-Third">Failed to load payroll data</h4>
+            <p className="text-gray-400 text-sm">Please try again later</p>
+          </div>
+          <button
+            onClick={() => refetch()}
+            className="px-6 py-2.5 bg-Secondary text-white font-bold text-[13px] rounded-xl hover:bg-Secondary/90 transition-all"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className='flex flex-col gap-6 md:gap-8 font-poppins pb-10'>
@@ -65,7 +187,7 @@ const Payroll = () => {
             <div className="min-w-0">
               <div className="flex items-baseline gap-1">
                  <span className="text-xl md:text-2xl font-bold text-Third leading-none">{stat.value}</span>
-                 {stat.label === "Total Hours Worked" && <span className="text-xs font-bold text-gray-400">hrs</span>}
+                 {stat.suffix && <span className="text-xs font-bold text-gray-400">{stat.suffix}</span>}
               </div>
               <p className="text-[12px] md:text-[13px] font-bold text-Third mt-1 truncate">{stat.label}</p>
               <p className="text-[11px] text-gray-400 font-medium">{stat.subtext}</p>
@@ -118,7 +240,7 @@ const Payroll = () => {
                   <div className="w-full bg-gray-100 h-2 rounded-full mt-auto">
                     <div 
                       className="h-full bg-Secondary rounded-full transition-all duration-1000" 
-                      style={{ width: `${item.progress}%` }}
+                      style={{ width: `${Math.min(item.progress, 100)}%` }}
                     ></div>
                   </div>
                 </div>
@@ -186,42 +308,72 @@ const Payroll = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
-                  {payrollData.map((item, index) => (
-                    <tr key={index} className="hover:bg-gray-50/50 transition-colors">
-                      <td className="py-5 px-6 text-Third font-bold text-[14px]">{item.period}</td>
-                      <td className="py-5 px-6 text-gray-500 font-medium text-[14px] text-center">{item.hours}</td>
-                      <td className="py-5 px-6 text-gray-500 font-medium text-[14px] text-center">{item.rate}</td>
-                      <td className="py-5 px-6 text-Secondary font-bold text-[15px] text-center">{item.gross}</td>
-                      <td className="py-5 px-6 text-red-500 font-bold text-[15px] text-center">{item.deductions}</td>
-                      <td className="py-5 px-6 text-[#1eb15d] font-bold text-[15px] text-center">{item.net}</td>
-                      <td className="py-5 px-6 text-center">
-                        <span className={`px-4 py-1.5 rounded-full text-[11px] font-bold inline-block leading-none border border-transparent shadow-[0_2px_10px_rgba(0,0,0,0.02)] ${
-                          item.status === 'Paid' ? 'bg-green-50 text-green-600' : 'bg-orange-50 text-orange-500'
-                        }`}>
-                          {item.status}
-                        </span>
-                      </td>
-                      <td className="py-5 px-6 text-center">
-                        <button 
-                          onClick={() => handleViewPaystub(item)}
-                          className={`min-w-[130px] px-6 py-2.5 rounded-xl text-[12px] font-bold transition-all border shadow-sm active:scale-95 ${
-                            index === 0 
-                              ? "bg-Secondary text-white border-Secondary" 
-                              : "bg-white text-Secondary border-Secondary/20 hover:bg-Secondary hover:text-white"
-                          }`}
-                        >
-                          View Paystub
-                        </button>
+                  {filteredPayrolls.length > 0 ? (
+                    filteredPayrolls.map((item, index) => (
+                      <tr key={item.id} className="hover:bg-gray-50/50 transition-colors">
+                        <td className="py-5 px-6 text-Third font-bold text-[14px]">
+                          {formatPayPeriod(item.pay_period_start, item.pay_period_end)}
+                        </td>
+                        <td className="py-5 px-6 text-gray-500 font-medium text-[14px] text-center">
+                          {parseFloat(item.total_hours).toFixed(2)} hrs
+                        </td>
+                        <td className="py-5 px-6 text-gray-500 font-medium text-[14px] text-center">
+                          {formatCurrency(item.hourly_rate)} / hr
+                        </td>
+                        <td className="py-5 px-6 text-Secondary font-bold text-[15px] text-center">
+                          {formatCurrency(item.gross_pay)}
+                        </td>
+                        <td className="py-5 px-6 text-red-500 font-bold text-[15px] text-center">
+                          {formatCurrency(item.deductions)}
+                        </td>
+                        <td className="py-5 px-6 text-[#1eb15d] font-bold text-[15px] text-center">
+                          {formatCurrency(item.net_pay)}
+                        </td>
+                        <td className="py-5 px-6 text-center">
+                          <span className={`px-4 py-1.5 rounded-full text-[11px] font-bold inline-block leading-none border border-transparent shadow-[0_2px_10px_rgba(0,0,0,0.02)] ${
+                            item.status === 'Paid' ? 'bg-green-50 text-green-600' : 'bg-orange-50 text-orange-500'
+                          }`}>
+                            {item.status}
+                          </span>
+                        </td>
+                        <td className="py-5 px-6 text-center">
+                          <button 
+                            onClick={() => handleViewPaystub(item)}
+                            className={`min-w-[130px] px-6 py-2.5 rounded-xl text-[12px] font-bold transition-all border shadow-sm active:scale-95 ${
+                              item.status === 'Pending'
+                                ? "bg-Secondary text-white border-Secondary" 
+                                : "bg-white text-Secondary border-Secondary/20 hover:bg-Secondary hover:text-white"
+                            }`}
+                          >
+                            View Paystub
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={8} className="py-16 text-center text-gray-400 font-medium">
+                        <div className="flex flex-col items-center gap-2">
+                          <DollarSign size={32} className="text-gray-300" />
+                          <p>No payroll records found</p>
+                        </div>
                       </td>
                     </tr>
-                  ))}
+                  )}
                 </tbody>
               </table>
             </div>
             
-            {/* mobile hint */}
-            <div className="md:hidden mt-4 py-3 px-4 bg-gray-50/50 rounded-xl text-center">
-               <p className="text-[11px] text-gray-400 italic">Scroll horizontally to view complete records</p>
+            {/* Pagination / mobile hint */}
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-4">
+              <div className="md:hidden py-3 px-4 bg-gray-50/50 rounded-xl text-center w-full">
+                 <p className="text-[11px] text-gray-400 italic">Scroll horizontally to view complete records</p>
+              </div>
+              {pagination?.total > pagination?.per_page && (
+                <p className="hidden sm:block text-[12px] text-gray-400 font-medium">
+                  Page {pagination.current_page} of {pagination.last_page} ({pagination.total} total)
+                </p>
+              )}
             </div>
           </div>
         </div>
@@ -281,7 +433,7 @@ const Payroll = () => {
       )}
 
       {/* Paystub Modal */}
-      {showModal && (
+      {showModal && selectedStub && (
         <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowModal(false)}></div>
           
@@ -290,7 +442,9 @@ const Payroll = () => {
             <div className="flex justify-between items-start mb-6">
               <div className="w-full">
                 <h2 className="text-[32px] font-bold text-[#3A331E] leading-tight mb-2">Paystub</h2>
-                <p className="text-[#6B7280] text-[15px] font-medium mb-3">Feb 15 – Feb 28, 2026</p>
+                <p className="text-[#6B7280] text-[15px] font-medium mb-3">
+                  {formatPayPeriod(selectedStub.pay_period_start, selectedStub.pay_period_end)}
+                </p>
                 <div className="w-full h-[2px] bg-[#FFBB03] rounded-full"></div>
               </div>
               <img src={ImageProvider.Logo} alt="Overcomers" className="h-[90px] w-auto object-contain -mt-4" />
@@ -300,12 +454,12 @@ const Payroll = () => {
             <div className="bg-[#FAF8F8] border border-[#F3F4F6] rounded-[32px] p-8 mb-8 text-center shadow-sm">
                 <div className="flex items-center justify-center gap-2 mb-2">
                    <span className="text-[#800000] font-bold text-[18px]">Gross</span>
-                   <span className="text-[#800000] font-black text-[40px] leading-tight">$1,000</span>
+                   <span className="text-[#800000] font-black text-[40px] leading-tight">{formatCurrency(selectedStub.gross_pay)}</span>
                 </div>
                 <div className="flex items-center justify-center gap-4 text-[#6B7280] text-[15px] font-bold mb-4">
-                   <span>Deductions: $76.50</span>
+                   <span>Deductions: {formatCurrency(selectedStub.deductions)}</span>
                    <div className="w-[1px] h-4 bg-gray-300"></div>
-                   <span>Net Pay: $923.50</span>
+                   <span>Net Pay: {formatCurrency(selectedStub.net_pay)}</span>
                 </div>
                 <p className="text-[#3A331E] font-extrabold text-[16px] uppercase tracking-wider">Total Payment Summary</p>
             </div>
@@ -316,19 +470,19 @@ const Payroll = () => {
                
                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {[
-                    { label: "Employee Name", value: "Eleanor Pena" },
-                    { label: "Employee ID", value: "EMP-2024-017" },
-                    { label: "Pay Period", value: "Mar 1 – Mar 15, 2026" },
-                    { label: "Payment Date", value: "April 1, 2026" },
-                    { label: "Hours Worked", value: "40 hrs" },
-                    { label: "Pay Rate", value: "$25.00 / hr" },
-                    { label: "Gross Payment", value: "$1,000" },
-                    { label: "Status", value: "Pending", isStatus: true },
+                    { label: "Pay Period", value: formatPayPeriod(selectedStub.pay_period_start, selectedStub.pay_period_end) },
+                    { label: "Payment Date", value: selectedStub.payment_date ? new Date(selectedStub.payment_date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : "-" },
+                    { label: "Hours Worked", value: `${parseFloat(selectedStub.total_hours).toFixed(2)} hrs` },
+                    { label: "Pay Rate", value: `${formatCurrency(selectedStub.hourly_rate)} / hr` },
+                    { label: "Gross Payment", value: formatCurrency(selectedStub.gross_pay) },
+                    { label: "Status", value: selectedStub.status, isStatus: true },
                   ].map((info, i) => (
                     <div key={i} className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm flex flex-col gap-1.5">
                       <p className="text-[#800000]/50 text-[11px] font-bold uppercase tracking-wider leading-none">{info.label}</p>
                       {info.isStatus ? (
-                        <span className="bg-[#FFFBEE] text-[#FFBB03] px-3 py-1 rounded-full text-[11px] font-bold w-fit">
+                        <span className={`px-3 py-1 rounded-full text-[11px] font-bold w-fit ${
+                          info.value === 'Paid' ? 'bg-green-50 text-green-600' : 'bg-[#FFFBEE] text-[#FFBB03]'
+                        }`}>
                           {info.value}
                         </span>
                       ) : (
@@ -345,18 +499,13 @@ const Payroll = () => {
                
                <div className="space-y-4">
                  <div className="flex justify-between items-center px-2">
-                    <span className="text-[#6B7280] font-bold text-[14px]">Federal Tax (FICA 7.65%)</span>
-                    <span className="font-bold text-[#3A331E]">$76.50</span>
-                 </div>
-                 <div className="h-px bg-[#FFF3D6] my-2"></div>
-                 <div className="flex justify-between items-center px-2">
                     <span className="text-[#6B7280] font-bold text-[14px]">Total Deductions</span>
-                    <span className="font-bold text-[#EF4444]">$76.50</span>
+                    <span className="font-bold text-[#EF4444]">{formatCurrency(selectedStub.deductions)}</span>
                  </div>
                  <div className="h-px bg-[#FFF3D6] my-2"></div>
                  <div className="flex justify-between items-center px-2 pt-2">
                     <span className="text-[#6B7280] font-bold text-[14px]">Net Payment</span>
-                    <span className="font-extrabold text-[#10B981] text-[16px]">$923.50</span>
+                    <span className="font-extrabold text-[#10B981] text-[16px]">{formatCurrency(selectedStub.net_pay)}</span>
                  </div>
                </div>
             </div>
@@ -387,25 +536,5 @@ const Payroll = () => {
     </div>
   );
 };
-
-
-// Target icon was not imported from lucide-react, using Crosshair as replacement or placeholder
-const Target = ({ size, className }) => (
-  <svg 
-    width={size} 
-    height={size} 
-    viewBox="0 0 24 24" 
-    fill="none" 
-    stroke="currentColor" 
-    strokeWidth="2" 
-    strokeLinecap="round" 
-    strokeLinejoin="round" 
-    className={className}
-  >
-    <circle cx="12" cy="12" r="10" />
-    <circle cx="12" cy="12" r="6" />
-    <circle cx="12" cy="12" r="2" />
-  </svg>
-);
 
 export default Payroll;

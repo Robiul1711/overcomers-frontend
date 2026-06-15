@@ -20,7 +20,13 @@ const CommonNavbar = ({ open, setOpen }) => {
     url: "/employee/profile",
   });
 
+  const { data: notifData } = useClient({
+    queryKey: ["employeeNotifications"],
+    url: "/employee/notifications",
+  });
+
   const profile = profileData?.data?.personal_information;
+  const unreadCount = notifData?.data?.unread_count ?? 0;
 
   const initials = profile?.full_name
     ? profile.full_name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()
@@ -111,8 +117,12 @@ const CommonNavbar = ({ open, setOpen }) => {
           className="relative cursor-pointer p-1.5 md:p-0"
         >
           <Bell color="#4A3E3D" size={20} className="md:w-[24px]" />
-          {/* Notification red dot indicator */}
-          <span className="absolute top-1 md:top-0 right-1 w-2 md:w-2.5 h-2 md:h-2.5 bg-Secondary rounded-full border-2 border-[#FAFAFA]"></span>
+          {/* Notification count badge */}
+          {unreadCount > 0 && (
+            <span className="absolute -top-1 md:top-0 -right-1 md:right-0 min-w-[18px] h-[18px] bg-Secondary text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-[#FAFAFA] px-1 shadow-sm">
+              {unreadCount > 99 ? '99+' : unreadCount}
+            </span>
+          )}
         </Link>
 
         {/* User Avatar Dropdown */}

@@ -30,7 +30,7 @@ const ProgramsTab = ({ programsDataset, isLoading, onAddNote }) => {
               <ArrowLeft size={20} strokeWidth={3} />
             </button>
             <h2 className="text-[28px] md:text-[32px] font-bold text-[#3A331E] leading-tight">
-              Programs
+           Client Programs
             </h2>
           </div>
           <div className="w-full h-[2px] bg-[#FFBB03] rounded-full"></div>

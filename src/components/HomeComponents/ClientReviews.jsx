@@ -3,7 +3,7 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Autoplay, Pagination } from 'swiper/modules';
 import { ChevronLeft, ChevronRight, Star, ArrowUpRight } from 'lucide-react';
 import { motion } from 'motion/react';
-
+import dummy from '@/assets/images/dummy.png'
 // Import Swiper styles
 import 'swiper/css';
 import 'swiper/css/navigation';
@@ -16,7 +16,7 @@ const reviews = [
     name: "Constance Akhimien",
     time: "2 years ago",
     content: "Hands down the best ABA agency I've worked with for my kiddos! Overcomers' dedication and commitment shine through in every aspect. Their BCBAs, like Jessica, are passionate about helping children reach their full potential. The RBTs are knowledgeable, caring, and genuinely invested in the kids' growth. Special shoutout to Stephanie for exceptional support behind the scenes! I'm forever grateful and highly recommend Overcomers to any family seeking top-notch ABA services 💕💙",
-    avatar: "https://randomuser.me/api/portraits/women/44.jpg",
+    avatar: dummy,
     rating: 5
   },
   {
@@ -24,7 +24,7 @@ const reviews = [
     name: "Sarah Jenkins",
     time: "1 year ago",
     content: "We have had a wonderful experience with Overcomers. The therapists are so patient and truly care about my son's progress. Communication with the team is excellent, and we've seen remarkable improvements in his daily living skills and communication. I highly recommend their in-home ABA services!",
-    avatar: "https://randomuser.me/api/portraits/women/68.jpg",
+    avatar: dummy,
     rating: 5
   },
   {
@@ -32,7 +32,7 @@ const reviews = [
     name: "Michael Thompson",
     time: "8 months ago",
     content: "The support our family has received from Overcomers has been incredible. Not only do they provide excellent therapy for our daughter, but their parent training sessions have empowered us with strategies we can use every day. Very grateful for this amazing team of professionals.",
-    avatar: "https://randomuser.me/api/portraits/men/32.jpg",
+    avatar: dummy,
     rating: 5
   }
 ];

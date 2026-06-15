@@ -1,6 +1,6 @@
 import React from "react";
 import { useForm } from "react-hook-form";
-import { Upload, ChevronDown, ArrowUpRight, Loader2 } from "lucide-react";
+import { Upload, ChevronDown, ArrowUpRight, Loader2, X } from "lucide-react";
 import useMutationClient from "@/hooks/useMutationClient";
 
 const formatDateTime = (val) => {
@@ -26,13 +26,68 @@ const EnrollmentForm = () => {
     handleSubmit,
     watch,
     reset,
+    setValue,
     formState: { errors },
   } = useForm();
+
+  const [insuranceFiles, setInsuranceFiles] = React.useState([]);
+  const [previews, setPreviews] = React.useState([]);
 
   const { mutate, isPending } = useMutationClient({
     url: "/parent-applications",
     successMessage: "Application submitted successfully!",
   });
+
+  React.useEffect(() => {
+    register("insuranceCards", { required: true });
+  }, [register]);
+
+  React.useEffect(() => {
+    const objectUrls = [];
+    const newPreviews = [];
+    
+    insuranceFiles.forEach((file) => {
+      if (file.type.startsWith("image/")) {
+        const url = URL.createObjectURL(file);
+        objectUrls.push(url);
+        newPreviews.push({
+          name: file.name,
+          type: "image",
+          url: url
+        });
+      } else {
+        newPreviews.push({
+          name: file.name,
+          type: "file"
+        });
+      }
+    });
+
+    setPreviews(newPreviews);
+
+    return () => {
+      objectUrls.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, [insuranceFiles]);
+
+  const handleInsuranceFilesChange = (e) => {
+    if (e.target.files) {
+      const selected = Array.from(e.target.files);
+      setInsuranceFiles((prev) => {
+        const updated = [...prev, ...selected].slice(0, 2);
+        setValue("insuranceCards", updated, { shouldValidate: true });
+        return updated;
+      });
+    }
+  };
+
+  const handleRemoveInsuranceFile = (indexToRemove) => {
+    setInsuranceFiles((prev) => {
+      const updated = prev.filter((_, idx) => idx !== indexToRemove);
+      setValue("insuranceCards", updated.length > 0 ? updated : null, { shouldValidate: true });
+      return updated;
+    });
+  };
 
   const onSubmit = (data) => {
     const formData = new FormData();
@@ -56,11 +111,11 @@ const EnrollmentForm = () => {
     formData.append("about_us", data.aboutUs);
 
     // Files
-    if (data.insuranceCardFront?.[0]) {
-      formData.append("insurance_card_front", data.insuranceCardFront[0]);
+    if (insuranceFiles[0]) {
+      formData.append("insurance_card_front", insuranceFiles[0]);
     }
-    if (data.insuranceCardBack?.[0]) {
-      formData.append("insurance_card_back", data.insuranceCardBack[0]);
+    if (insuranceFiles[1]) {
+      formData.append("insurance_card_back", insuranceFiles[1]);
     }
     if (data.neurologicalReport?.[0]) {
       formData.append("neurological_report", data.neurologicalReport[0]);
@@ -74,14 +129,13 @@ const EnrollmentForm = () => {
       {
         onSuccess: () => {
           reset();
+          setInsuranceFiles([]);
         },
       }
     );
   };
 
   const aboutUsValue = watch("aboutUs", "");
-  const insuranceFrontFile = watch("insuranceCardFront");
-  const insuranceBackFile = watch("insuranceCardBack");
   const neurologicalReportFile = watch("neurologicalReport");
   const abaReferralFile = watch("abaReferral");
 
@@ -324,64 +378,80 @@ const EnrollmentForm = () => {
               Required Attachments
             </h3>
 
-            <div className="flex flex-col gap-6">
-              {/* Separate Insurance Front & Back Upload */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="flex flex-col gap-2">
-                  <label className="text-[13px] md:text-[14px] font-bold text-[#3A331E]">
-                    Insurance Card - Front Side (Frente de la Tarjeta de Seguro){" "}
-                    <span className="text-[#3A331E]">*</span>
-                  </label>
-                  <div className="w-full border border-dashed border-Primary bg-[#FFFAF0] rounded-lg py-10 px-6 flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-[#fff7e5] transition-colors relative">
-                    <input
-                      type="file"
-                      {...register("insuranceCardFront", { required: true })}
-                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                    />
-                    <Upload
-                      className="text-[#AD3946] w-6 h-6 mb-1"
-                      strokeWidth={2}
-                    />
-                    <div className="text-[#AD3946] font-semibold text-[14px] md:text-[15px] text-center">
-                      {insuranceFrontFile?.[0]?.name ? (
-                        <span className="text-green-600 font-bold">{insuranceFrontFile[0].name}</span>
-                      ) : (
-                        "Upload Front Side"
-                      )}
-                    </div>
-                    <div className="text-gray-500 text-[12px] md:text-[13px]">
-                      Supported: JPG, PDF. Max size: 10MB
-                    </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Single Front & Back Insurance Card Upload */}
+              <div className="flex flex-col gap-2 md:col-span-2">
+                <label className="text-[13px] md:text-[14px] font-bold text-[#3A331E]">
+                  Insurance Card - Front & Back Side (Tarjeta de Seguro - Frente y Reverso){" "}
+                  <span className="text-[#3A331E]">*</span>
+                </label>
+                <div className="w-full border border-dashed border-Primary bg-[#FFFAF0] rounded-lg py-10 px-6 flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-[#fff7e5] transition-colors relative">
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/*,application/pdf"
+                    onChange={handleInsuranceFilesChange}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  />
+                  <Upload
+                    className="text-[#AD3946] w-6 h-6 mb-1"
+                    strokeWidth={2}
+                  />
+                  <div className="text-[#AD3946] font-semibold text-[14px] md:text-[15px] text-center">
+                    {insuranceFiles.length > 0 ? (
+                      <span className="text-green-600 font-bold">{insuranceFiles.length} file(s) selected</span>
+                    ) : (
+                      "Upload Front & Back Sides"
+                    )}
+                  </div>
+                  <div className="text-gray-500 text-[12px] md:text-[13px] text-center">
+                    Select up to 2 files (front first, then back). Supported: JPG, PNG, PDF. Max: 10MB
                   </div>
                 </div>
 
-                <div className="flex flex-col gap-2">
-                  <label className="text-[13px] md:text-[14px] font-bold text-[#3A331E]">
-                    Insurance Card - Back Side (Reverso de la Tarjeta de Seguro){" "}
-                    <span className="text-[#3A331E]">*</span>
-                  </label>
-                  <div className="w-full border border-dashed border-Primary bg-[#FFFAF0] rounded-lg py-10 px-6 flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-[#fff7e5] transition-colors relative">
-                    <input
-                      type="file"
-                      {...register("insuranceCardBack", { required: true })}
-                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                    />
-                    <Upload
-                      className="text-[#AD3946] w-6 h-6 mb-1"
-                      strokeWidth={2}
-                    />
-                    <div className="text-[#AD3946] font-semibold text-[14px] md:text-[15px] text-center">
-                      {insuranceBackFile?.[0]?.name ? (
-                        <span className="text-green-600 font-bold">{insuranceBackFile[0].name}</span>
-                      ) : (
-                        "Upload Back Side"
-                      )}
-                    </div>
-                    <div className="text-gray-500 text-[12px] md:text-[13px]">
-                      Supported: JPG, PDF. Max size: 10MB
-                    </div>
+                {previews.length > 0 && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
+                    {previews.map((preview, index) => (
+                      <div key={index} className="flex flex-col gap-2 p-4 border border-gray-200 rounded-xl bg-white shadow-sm relative overflow-hidden">
+                        {/* Label badge */}
+                        <span className="absolute top-3 left-3 bg-[#AD3946] text-white text-[11px] font-bold px-2.5 py-1 rounded-full z-10 shadow">
+                          {index === 0 ? "Front Side (Frente)" : "Back Side (Reverso)"}
+                        </span>
+                        {/* Remove button */}
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveInsuranceFile(index)}
+                          className="absolute top-3 right-3 bg-white border border-gray-200 rounded-full p-1 shadow hover:bg-red-50 hover:border-red-300 transition-colors z-10 group"
+                          title="Remove file"
+                        >
+                          <X size={14} className="text-gray-400 group-hover:text-red-500 transition-colors" />
+                        </button>
+                        {/* Preview area */}
+                        <div className="w-full h-44 rounded-lg bg-gray-50 flex items-center justify-center overflow-hidden border border-gray-100 mt-6">
+                          {preview.type === "image" ? (
+                            <img
+                              src={preview.url}
+                              alt={index === 0 ? "Front preview" : "Back preview"}
+                              className="object-contain w-full h-full transition-transform hover:scale-105 duration-300"
+                            />
+                          ) : (
+                            <div className="flex flex-col items-center justify-center text-gray-400 gap-2 p-4">
+                              <div className="w-12 h-12 bg-red-50 rounded-lg flex items-center justify-center">
+                                <span className="text-[#AD3946] font-bold text-[13px]">PDF</span>
+                              </div>
+                              <span className="font-semibold text-[13px] text-gray-600">PDF Document</span>
+                            </div>
+                          )}
+                        </div>
+                        {/* File name */}
+                        <div className="text-[12px] text-gray-500 truncate text-center font-medium px-2">
+                          {preview.name}
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                </div>
+                )}
+              </div>
                           <div className="flex flex-col gap-2">
                   <label className="text-[13px] md:text-[14px] font-bold text-[#3A331E]">
                     Neurological Report / Proof of Diagnosis{" "}
@@ -440,7 +510,7 @@ const EnrollmentForm = () => {
 
   
             </div>
-          </div>
+      
 
           <div className="flex flex-col items-center justify-center mt-6 gap-4">
             <button
@@ -471,6 +541,7 @@ const EnrollmentForm = () => {
             </p>
           </div>
         </form>
+        
       </div>
     </div>
   );

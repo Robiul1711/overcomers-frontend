@@ -191,7 +191,7 @@ const Dashboard = () => {
                 size={18}
                 className="group-hover/btn:-rotate-12 transition-transform hidden sm:block"
               />
-              Client Schedule
+             Create Program
             </button>
 
             <Link

@@ -143,7 +143,13 @@ const ParentNavbar = ({ setOpen }) => {
     url: "/parent/profile",
   });
 
+  const { data: notifData } = useClient({
+    queryKey: ["parentNotifications"],
+    url: "/parent/notifications",
+  });
+
   const profile = profileData?.data;
+  const unreadCount = notifData?.data?.unread_count ?? 0;
 
   const initials = profile?.name
     ? profile.name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()
@@ -248,10 +254,17 @@ const ParentNavbar = ({ setOpen }) => {
 
       <div className="flex items-center gap-3  shrink-0">
         {/* Notification Bell */}
-        <button className="relative p-2 text-[#B91C1C] hover:bg-[#FEF2F2] rounded-full transition-colors group">
+        <Link
+          to="/parent-dashboard/notifications"
+          className="relative p-2 text-[#B91C1C] hover:bg-[#FEF2F2] rounded-full transition-colors group"
+        >
           <Bell size={20} className="md:w-5 md:h-5" />
-          <span className="absolute top-1.5 right-1.5 w-3.5 h-3.5 md:w-4 md:h-4 bg-[#B91C1C] text-white text-[9px] md:text-[10px] flex items-center justify-center rounded-full border-2 border-white group-hover:scale-110 transition-transform shadow-sm">3</span>
-        </button>
+          {unreadCount > 0 && (
+            <span className="absolute top-1.5 right-1.5 min-w-[18px] h-[18px] bg-[#B91C1C] text-white text-[9px] md:text-[10px] font-bold flex items-center justify-center rounded-full border-2 border-white group-hover:scale-110 transition-transform shadow-sm px-1">
+              {unreadCount > 99 ? '99+' : unreadCount}
+            </span>
+          )}
+        </Link>
 
         {/* User Avatar Dropdown */}
         <div className="relative" ref={userMenuRef}>

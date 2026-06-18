@@ -1,10 +1,11 @@
 import axios from "axios";
-import { useSelector } from "react-redux";
-import { selectCurrentToken } from "../redux/slices/authSlice";
+import { useSelector, useDispatch } from "react-redux";
+import { selectCurrentToken, clearAuth } from "../redux/slices/authSlice";
 import { useMemo } from "react";
 
 const useAxiosSecure = () => {
   const token = useSelector(selectCurrentToken);
+  const dispatch = useDispatch();
 
   const axiosSecure = useMemo(() => {
     const instance = axios.create({
@@ -19,8 +20,18 @@ const useAxiosSecure = () => {
       return config;
     });
 
+    instance.interceptors.response.use(
+      (response) => response,
+      (error) => {
+        if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+          dispatch(clearAuth());
+        }
+        return Promise.reject(error);
+      }
+    );
+
     return instance;
-  }, [token]);
+  }, [token, dispatch]);
 
   return axiosSecure;
 };

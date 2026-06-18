@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
 import { 
   DollarSign, 
   Download, 
@@ -39,7 +41,10 @@ const [activeTab, setActiveTab] = useState('Payment History');
     queryKey: ['employeePayrolls'],
     url: '/employee/payrolls',
   });
-
+  const { data:textDocument, isLoading:textDocumentLoading, isError:textDocumentError, refetch:textDocumentRefetch } = useClient({
+    queryKey: ['employeeTextDocumentsPayrolls'],
+    url: '/employee/payrolls/tax-documents',
+  });
   const topCards = data?.data?.top_cards || {};
   const workload = data?.data?.workload_summary || {};
   const hourlyRate = data?.data?.hourly_rate || '0';
@@ -108,9 +113,86 @@ const [activeTab, setActiveTab] = useState('Payment History');
     ? payrolls
     : payrolls.filter((p) => p.status === statusFilter);
 
+  const paystubRef = useRef(null);
+  const [shouldCapture, setShouldCapture] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
+
+  const generatePDF = useCallback(async () => {
+    if (!paystubRef.current || !selectedStub || isDownloading) return;
+    
+    setIsDownloading(true);
+    try {
+      const el = paystubRef.current;
+      
+      // Clone the element to render layout at exactly 650px (desktop width) offscreen
+      const clone = el.cloneNode(true);
+      clone.style.width = '650px';
+      clone.style.position = 'absolute';
+      clone.style.left = '-9999px';
+      clone.style.top = '-9999px';
+      clone.style.height = 'auto';
+      clone.style.maxHeight = 'none';
+      clone.style.overflow = 'visible';
+      
+      document.body.appendChild(clone);
+      
+      // Allow minor delay for layout styling to initialize
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      const canvas = await html2canvas(clone, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff',
+      });
+      
+      document.body.removeChild(clone);
+      
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pageWidth = pdf.internal.pageSize.getWidth(); // 210
+      const pageHeight = pdf.internal.pageSize.getHeight(); // 297
+      const margin = 10;
+      const maxW = pageWidth - margin * 2; // 190
+      const maxH = pageHeight - margin * 2; // 277
+      
+      let imgWidth = maxW;
+      let imgHeight = (canvas.height * imgWidth) / canvas.width;
+      
+      // Scale down to fit within page height boundary if it overflows
+      if (imgHeight > maxH) {
+        imgHeight = maxH;
+        imgWidth = (canvas.width * imgHeight) / canvas.height;
+      }
+      
+      // Center on page
+      const x = margin + (maxW - imgWidth) / 2;
+      const y = margin + (maxH - imgHeight) / 2;
+      
+      pdf.addImage(imgData, 'PNG', x, y, imgWidth, imgHeight);
+      pdf.save(`paystub-${selectedStub.id || 'document'}.pdf`);
+    } catch (err) {
+      console.error('Failed to generate PDF:', err);
+    } finally {
+      setIsDownloading(false);
+    }
+  }, [selectedStub, isDownloading]);
+
+  // Trigger PDF download after modal renders with new selectedStub
+  useEffect(() => {
+    if (shouldCapture && selectedStub && paystubRef.current) {
+      const timer = setTimeout(() => {
+        setShouldCapture(false);
+        generatePDF();
+      }, 600);
+      return () => clearTimeout(timer);
+    }
+  }, [shouldCapture, selectedStub, generatePDF]);
+
   const handleViewPaystub = (item) => {
     setSelectedStub(item);
     setShowModal(true);
+    setShouldCapture(true);
   };
 
   const SkeletonBox = ({ className = '' }) => (
@@ -403,17 +485,17 @@ const [activeTab, setActiveTab] = useState('Payment History');
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
-                  {taxData.map((item, index) => (
+                  {textDocument?.data?.map((item, index) => (
                     <tr key={index} className="hover:bg-gray-50/50 transition-colors">
                       <td className="py-5 px-6">
                          <div className="flex flex-col">
-                            <p className="text-Third font-bold text-[14px]">{item.form}</p>
-                            <p className="text-gray-400 text-[11px] font-medium leading-none mt-1">{item.desc}</p>
+                            <p className="text-Third font-bold text-[14px]">{item.form_reference}</p>
+                            <p className="text-gray-400 text-[11px] font-medium leading-none mt-1">{item.description}</p>
                          </div>
                       </td>
-                      <td className="py-5 px-6 text-gray-500 font-bold text-[12px] text-center">{item.type}</td>
-                      <td className="py-5 px-6 text-gray-500 font-bold text-[13px] text-center">{item.year}</td>
-                      <td className="py-5 px-6 text-gray-500 font-medium text-[13px] text-center whitespace-nowrap">{item.date}</td>
+                      <td className="py-5 px-6 text-gray-500 font-bold text-[12px] text-center">{item.extension}</td>
+                      <td className="py-5 px-6 text-gray-500 font-bold text-[13px] text-center">{item.fiscal_year}</td>
+                      <td className="py-5 px-6 text-gray-500 font-medium text-[13px] text-center whitespace-nowrap">{item.date_issued}</td>
                       <td className="py-5 px-6 text-center">
                         <span className="px-4 py-1.5 rounded-full text-[11px] font-bold bg-green-50 text-green-600 border border-transparent shadow-sm">
                           {item.status}
@@ -437,87 +519,90 @@ const [activeTab, setActiveTab] = useState('Payment History');
         <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowModal(false)}></div>
           
-          <div className="bg-white rounded-[32px] w-full max-w-[650px] max-h-[95vh] overflow-y-auto relative z-10 shadow-2xl flex flex-col p-8 sm:p-10 font-poppins animate-in fade-in zoom-in duration-300 custom-scrollbar">
-            {/* Modal Header */}
-            <div className="flex justify-between items-start mb-6">
-              <div className="w-full">
-                <h2 className="text-[32px] font-bold text-[#3A331E] leading-tight mb-2">Paystub</h2>
-                <p className="text-[#6B7280] text-[15px] font-medium mb-3">
-                  {formatPayPeriod(selectedStub.pay_period_start, selectedStub.pay_period_end)}
-                </p>
-                <div className="w-full h-[2px] bg-[#FFBB03] rounded-full"></div>
+          <div className="bg-white rounded-[32px] w-full max-w-[650px] max-h-[95vh] overflow-y-auto relative z-10 shadow-2xl flex flex-col p-0 font-poppins animate-in fade-in zoom-in duration-300 custom-scrollbar">
+            {/* Paystub content (captured for PDF) */}
+            <div ref={paystubRef} className="bg-white rounded-[32px] p-8 sm:p-10 font-poppins">
+              {/* Modal Header */}
+              <div className="flex justify-between items-start mb-6">
+                <div className="w-full">
+                  <h2 className="text-[32px] font-bold text-[#3A331E] leading-tight mb-2">Paystub</h2>
+                  <p className="text-[#6B7280] text-[15px] font-medium mb-3">
+                    {formatPayPeriod(selectedStub.pay_period_start, selectedStub.pay_period_end)}
+                  </p>
+                  <div className="w-full h-[2px] bg-[#FFBB03] rounded-full"></div>
+                </div>
+                <img src={ImageProvider.Logo} alt="Overcomers" className="h-[90px] w-auto object-contain -mt-4" />
               </div>
-              <img src={ImageProvider.Logo} alt="Overcomers" className="h-[90px] w-auto object-contain -mt-4" />
-            </div>
 
-            {/* Top Summary Card */}
-            <div className="bg-[#FAF8F8] border border-[#F3F4F6] rounded-[32px] p-8 mb-8 text-center shadow-sm">
-                <div className="flex items-center justify-center gap-2 mb-2">
-                   <span className="text-[#800000] font-bold text-[18px]">Gross</span>
-                   <span className="text-[#800000] font-black text-[40px] leading-tight">{formatCurrency(selectedStub.gross_pay)}</span>
-                </div>
-                <div className="flex items-center justify-center gap-4 text-[#6B7280] text-[15px] font-bold mb-4">
-                   <span>Deductions: {formatCurrency(selectedStub.deductions)}</span>
-                   <div className="w-[1px] h-4 bg-gray-300"></div>
-                   <span>Net Pay: {formatCurrency(selectedStub.net_pay)}</span>
-                </div>
-                <p className="text-[#3A331E] font-extrabold text-[16px] uppercase tracking-wider">Total Payment Summary</p>
-            </div>
+              {/* Top Summary Card */}
+              <div className="bg-[#FAF8F8] border border-[#F3F4F6] rounded-[32px] p-8 mb-8 text-center shadow-sm">
+                  <div className="flex items-center justify-center gap-2 mb-2">
+                     <span className="text-[#800000] font-bold text-[18px]">Gross</span>
+                     <span className="text-[#800000] font-black text-[40px] leading-tight">{formatCurrency(selectedStub.gross_pay)}</span>
+                  </div>
+                  <div className="flex items-center justify-center gap-4 text-[#6B7280] text-[15px] font-bold mb-4">
+                     <span>Deductions: {formatCurrency(selectedStub.deductions)}</span>
+                     <div className="w-[1px] h-4 bg-gray-300"></div>
+                     <span>Net Pay: {formatCurrency(selectedStub.net_pay)}</span>
+                  </div>
+                  <p className="text-[#3A331E] font-extrabold text-[16px] uppercase tracking-wider">Total Payment Summary</p>
+              </div>
 
-            {/* Professional Section */}
-            <div className="bg-[#FFFBEE] border border-[#FFF3D6] rounded-[28px] p-6 sm:p-8 mb-6">
-               <h4 className="text-[#3A331E] font-extrabold text-[18px] tracking-wide mb-6">Professional (Read-only)</h4>
-               
-               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {[
-                    { label: "Pay Period", value: formatPayPeriod(selectedStub.pay_period_start, selectedStub.pay_period_end) },
-                    { label: "Payment Date", value: selectedStub.payment_date ? new Date(selectedStub.payment_date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : "-" },
-                    { label: "Hours Worked", value: `${parseFloat(selectedStub.total_hours).toFixed(2)} hrs` },
-                    { label: "Pay Rate", value: `${formatCurrency(selectedStub.hourly_rate)} / hr` },
-                    { label: "Gross Payment", value: formatCurrency(selectedStub.gross_pay) },
-                    { label: "Status", value: selectedStub.status, isStatus: true },
-                  ].map((info, i) => (
-                    <div key={i} className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm flex flex-col gap-1.5">
-                      <p className="text-[#800000]/50 text-[11px] font-bold uppercase tracking-wider leading-none">{info.label}</p>
-                      {info.isStatus ? (
-                        <span className={`px-3 py-1 rounded-full text-[11px] font-bold w-fit ${
-                          info.value === 'Paid' ? 'bg-green-50 text-green-600' : 'bg-[#FFFBEE] text-[#FFBB03]'
-                        }`}>
-                          {info.value}
-                        </span>
-                      ) : (
-                        <p className="text-[#800000] font-bold text-[16px] leading-tight">{info.value}</p>
-                      )}
-                    </div>
-                  ))}
-               </div>
-            </div>
-
-            {/* Deductions Breakdown */}
-            <div className="bg-[#FFFBEE] border border-[#FFF3D6] rounded-[28px] p-6 sm:p-8 mb-6">
-               <h4 className="text-[#3A331E] font-extrabold text-[18px] tracking-wide mb-6">Deductions Breakdown</h4>
-               
-               <div className="space-y-4">
-                 <div className="flex justify-between items-center px-2">
-                    <span className="text-[#6B7280] font-bold text-[14px]">Total Deductions</span>
-                    <span className="font-bold text-[#EF4444]">{formatCurrency(selectedStub.deductions)}</span>
+              {/* Professional Section */}
+              <div className="bg-[#FFFBEE] border border-[#FFF3D6] rounded-[28px] p-6 sm:p-8 mb-6">
+                 <h4 className="text-[#3A331E] font-extrabold text-[18px] tracking-wide mb-6">Professional (Read-only)</h4>
+                 
+                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {[
+                      { label: "Pay Period", value: formatPayPeriod(selectedStub.pay_period_start, selectedStub.pay_period_end) },
+                      { label: "Payment Date", value: selectedStub.payment_date ? new Date(selectedStub.payment_date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : "-" },
+                      { label: "Hours Worked", value: `${parseFloat(selectedStub.total_hours).toFixed(2)} hrs` },
+                      { label: "Pay Rate", value: `${formatCurrency(selectedStub.hourly_rate)} / hr` },
+                      { label: "Gross Payment", value: formatCurrency(selectedStub.gross_pay) },
+                      { label: "Status", value: selectedStub.status, isStatus: true },
+                    ].map((info, i) => (
+                      <div key={i} className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm flex flex-col gap-1.5">
+                        <p className="text-[#800000]/50 text-[11px] font-bold uppercase tracking-wider leading-none">{info.label}</p>
+                        {info.isStatus ? (
+                          <span className={`px-3 py-1 rounded-full text-[11px] font-bold w-fit ${
+                            info.value === 'Paid' ? 'bg-green-50 text-green-600' : 'bg-[#FFFBEE] text-[#FFBB03]'
+                          }`}>
+                            {info.value}
+                          </span>
+                        ) : (
+                          <p className="text-[#800000] font-bold text-[16px] leading-tight">{info.value}</p>
+                        )}
+                      </div>
+                    ))}
                  </div>
-                 <div className="h-px bg-[#FFF3D6] my-2"></div>
-                 <div className="flex justify-between items-center px-2 pt-2">
-                    <span className="text-[#6B7280] font-bold text-[14px]">Net Payment</span>
-                    <span className="font-extrabold text-[#10B981] text-[16px]">{formatCurrency(selectedStub.net_pay)}</span>
+              </div>
+
+              {/* Deductions Breakdown */}
+              <div className="bg-[#FFFBEE] border border-[#FFF3D6] rounded-[28px] p-6 sm:p-8 mb-6">
+                 <h4 className="text-[#3A331E] font-extrabold text-[18px] tracking-wide mb-6">Deductions Breakdown</h4>
+                 
+                 <div className="space-y-4">
+                   <div className="flex justify-between items-center px-2">
+                      <span className="text-[#6B7280] font-bold text-[14px]">Total Deductions</span>
+                      <span className="font-bold text-[#EF4444]">{formatCurrency(selectedStub.deductions)}</span>
+                   </div>
+                   <div className="h-px bg-[#FFF3D6] my-2"></div>
+                   <div className="flex justify-between items-center px-2 pt-2">
+                      <span className="text-[#6B7280] font-bold text-[14px]">Net Payment</span>
+                      <span className="font-extrabold text-[#10B981] text-[16px]">{formatCurrency(selectedStub.net_pay)}</span>
+                   </div>
                  </div>
-               </div>
+              </div>
+
+              {/* Notice */}
+              <div className="bg-[#FFFBEE] border border-[#FFF3D6] rounded-2xl p-4 flex items-center gap-3">
+                 <ShieldCheck size={18} className="text-[#800000] shrink-0" />
+                 <p className="text-[13px] font-bold text-[#800000]/70 leading-relaxed">Payroll is automatically calculated from approved clock-in/out records</p>
+              </div>
             </div>
 
-            {/* Notice */}
-            <div className="bg-[#FFFBEE] border border-[#FFF3D6] rounded-2xl p-4 flex items-center gap-3 mb-8">
-               <ShieldCheck size={18} className="text-[#800000] shrink-0" />
-               <p className="text-[13px] font-bold text-[#800000]/70 leading-relaxed">Payroll is automatically calculated from approved clock-in/out records</p>
-            </div>
-
-            {/* Actions */}
-            <div className="flex items-center justify-end gap-3 mt-auto">
+            {/* Actions (NOT included in PDF - outside the ref div) */}
+            <div className="flex items-center justify-end gap-3 p-8 sm:p-10 pt-0">
               <button 
                 onClick={() => setShowModal(false)}
                 className="bg-[#FFBB03] hover:bg-[#eab002] text-white font-bold text-[15px] px-10 py-3.5 rounded-xl transition-all active:scale-95 shadow-md shadow-[#FFBB03]/10"
@@ -525,9 +610,11 @@ const [activeTab, setActiveTab] = useState('Payment History');
                 Cancel
               </button>
               <button 
-                className="bg-[#76121F] hover:bg-[#600000] text-white font-bold text-[15px] px-10 py-3.5 rounded-xl flex items-center justify-center gap-2 transition-all shadow-md active:scale-95"
+                onClick={() => generatePDF()}
+                disabled={isDownloading}
+                className="bg-[#76121F] hover:bg-[#600000] text-white font-bold text-[15px] px-10 py-3.5 rounded-xl flex items-center justify-center gap-2 transition-all shadow-md active:scale-95 disabled:opacity-60"
               >
-                <Download size={18} /> Download
+                <Download size={18} /> {isDownloading ? 'Downloading...' : 'Download'}
               </button>
             </div>
           </div>

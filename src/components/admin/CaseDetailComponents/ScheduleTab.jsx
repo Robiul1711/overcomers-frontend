@@ -1,131 +1,121 @@
-import React from "react";
-import {
-  ChevronLeft,
-  ChevronRight,
-  Clock,
-  MapPin,
-  Calendar,
-  LayoutGrid,
-} from "lucide-react";
+import React, { useState, useMemo } from "react";
+import { useParams } from "react-router-dom";
+import WeeklyCalendar from "../ScheduleComponents/WeeklyCalendar";
+import useClient from "@/hooks/useClient";
 
-const ScheduleTab = ({ weeklySchedule }) => {
+const DAY_NAMES = [
+  "Sunday",
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+];
+const DAY_ABBR = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const MONTH_NAMES = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+];
+
+// Normalize API statuses to the format WeeklyCalendar expects
+const normalizeStatus = (status) => {
+  if (!status) return "Upcoming";
+  const upper = status.toUpperCase();
+  if (upper === "UPCOMING") return "Upcoming";
+  if (upper === "IN_PROGRESS" || upper === "IN PROGRESS") return "In Progress";
+  if (upper === "COMPLETED") return "Completed";
+  return status;
+};
+
+const ScheduleTab = () => {
+  const { id } = useParams();
+  const [weekOffset, setWeekOffset] = useState(0);
+
+  const { data: schedulesData, isLoading } = useClient({
+    queryKey: ["employeeCaseSchedules", id],
+    url: `/employee/cases/${id}/schedules`,
+  });
+
+  const generateWeekDays = (offset) => {
+    const today = new Date();
+    const weekStart = new Date(today);
+    weekStart.setDate(today.getDate() + offset * 7);
+    // Find the Sunday of this week
+    const dayOfWeek = weekStart.getDay();
+    weekStart.setDate(weekStart.getDate() - dayOfWeek);
+
+    const days = [];
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(weekStart);
+      date.setDate(weekStart.getDate() + i);
+      const dayIdx = date.getDay();
+      days.push({
+        day: DAY_ABBR[dayIdx],
+        dayFull: DAY_NAMES[dayIdx],
+        date: date.getDate(),
+        dateObj: date,
+        month: MONTH_NAMES[date.getMonth()],
+        year: date.getFullYear(),
+        isToday:
+          date.toDateString() === new Date().toDateString(),
+        sessions: [],
+      });
+    }
+    return days;
+  };
+
+  const weeklySessions = useMemo(() => {
+    const weekDays = generateWeekDays(weekOffset);
+    const scheduleData = schedulesData?.data;
+    if (!scheduleData) return weekDays;
+
+    scheduleData.forEach((item) => {
+      const itemDate = new Date(item.timestamp * 1000);
+      const matchingDay = weekDays.find(
+        (d) =>
+          d.dateObj.getFullYear() === itemDate.getFullYear() &&
+          d.dateObj.getMonth() === itemDate.getMonth() &&
+          d.dateObj.getDate() === itemDate.getDate(),
+      );
+      if (matchingDay) {
+        matchingDay.sessions.push({
+          id: item.id,
+          client: item.client_name,
+          time: item.time_formatted || item.time,
+          type: item.session_type,
+          room: item.location,
+          status: normalizeStatus(item.status),
+        });
+      }
+    });
+
+    return weekDays;
+  }, [schedulesData, weekOffset]);
+
+  const weekLabel = useMemo(() => {
+    if (!weeklySessions || weeklySessions.length === 0) return "";
+    const first = weeklySessions[0];
+    const last = weeklySessions[weeklySessions.length - 1];
+    if (first.month === last.month) {
+      return `${first.month} ${first.year}`;
+    }
+    return `${first.month} - ${last.month} ${first.year}`;
+  }, [weeklySessions]);
+
+  const handlePrevWeek = () => setWeekOffset((prev) => prev - 1);
+  const handleNextWeek = () => setWeekOffset((prev) => prev + 1);
+
   return (
-    <div className="bg-white rounded-[24px] md:rounded-[32px] p-6 md:p-10 shadow-sm border border-gray-100 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-10 gap-6">
-        <div className="flex items-center gap-4 bg-gray-50 p-2 rounded-2xl shadow-inner border border-gray-100">
-          <button className="p-2.5 hover:bg-white hover:shadow-sm rounded-xl transition-all text-[#76121F] active:scale-90">
-            <ChevronLeft size={20} strokeWidth={2.5} />
-          </button>
-          <div className="px-6 py-2 bg-transparent font-bold text-[#76121F] text-[14px] md:text-[16px] uppercase tracking-widest whitespace-nowrap">
-            March 2026
-          </div>
-          <button className="p-2.5 hover:bg-white hover:shadow-sm rounded-xl transition-all text-[#76121F] active:scale-90">
-            <ChevronRight size={20} strokeWidth={2.5} />
-          </button>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <button className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-8 py-3 bg-[#FAF6F4] text-[#76121F] font-bold text-[13px] md:text-[14px] rounded-xl hover:bg-[#F2ECE8] transition-colors shadow-sm uppercase tracking-wider">
-            <Calendar size={18} /> Master Schedule
-          </button>
-        </div>
-      </div>
-
-      {/* Weekly Grid Wrapper for Horizontal Scroll */}
-      <div className="overflow-x-auto custom-scrollbar pb-6 -mx-2 px-2 scroll-smooth">
-        <div className="flex gap-4 min-w-max lg:grid lg:grid-cols-7 lg:min-w-0">
-          {weeklySchedule.map((day, idx) => (
-            <div
-              key={idx}
-              className="flex flex-col gap-4 w-[160px] md:w-[180px] lg:w-auto"
-            >
-              {/* Day Header */}
-              <div
-                className={`rounded-xl p-5 text-center border-2 transition-all ${day.session?.isActiveDay ? "bg-[#FFBB03]/10 border-[#FFBB03] shadow-lg shadow-[#FFBB03]/5" : "bg-gray-50 border-transparent opacity-60"}`}
-              >
-                <p
-                  className={`text-[12px] font-bold uppercase tracking-[0.2em] leading-none mb-2 ${day.session?.isActiveDay ? "text-[#76121F]" : "text-gray-400"}`}
-                >
-                  {day.day}
-                </p>
-                <p
-                  className={`text-[28px] md:text-3xl font-bold leading-none ${day.session?.isActiveDay ? "text-[#76121F]" : "text-[#76121F]/90"}`}
-                >
-                  {day.date}
-                </p>
-              </div>
-
-              {/* Sessions List */}
-              <div className="flex flex-col gap-3">
-                {day.session ? (
-                  <div className="bg-white rounded-[24px] p-5 border border-gray-100 shadow-sm flex flex-col gap-4 group hover:border-[#76121F]/30 hover:shadow-md transition-all duration-300 relative overflow-hidden h-full">
-                    <div className="absolute top-0 right-0 w-16 h-16 bg-[#76121F]/5 rounded-full translate-x-1/2 -translate-y-1/2"></div>
-
-                    <div className="flex flex-col gap-1 relative z-10">
-                      <h4 className="font-bold text-Third text-[14px] md:text-[15px] leading-tight line-clamp-1">
-                        {day.session.client}
-                      </h4>
-                      <div className="flex items-center gap-1.5 mt-0.5">
-                        <div
-                          className={`w-1.5 h-1.5 rounded-full animate-pulse shrink-0 ${day.session.isActiveDay ? "bg-green-500" : "bg-blue-400"}`}
-                        ></div>
-                        <span
-                          className={`text-[10px] uppercase font-bold tracking-widest ${day.session.isActiveDay ? "text-green-600" : "text-blue-500"}`}
-                        >
-                          {day.session.status}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="flex flex-col gap-3 relative z-10">
-                      <div className="flex items-center gap-2.5 text-gray-400 font-bold text-[11px] md:text-[12px]">
-                        <Clock
-                          size={14}
-                          className="text-[#76121F]/30 shrink-0"
-                        />{" "}
-                        <span className="truncate">{day.session.time}</span>
-                      </div>
-                      <div className="px-4 py-1.5 bg-gray-50 border border-gray-100 text-[#76121F]/60 rounded-full text-[10px] md:text-[11px] font-bold uppercase tracking-wider w-fit shrink-0">
-                        {day.session.type}
-                      </div>
-                      <div className="flex items-center gap-2.5 text-gray-400 font-bold text-[11px] md:text-[12px]">
-                        <MapPin
-                          size={14}
-                          className="text-[#FFBB03]/50 shrink-0"
-                        />{" "}
-                        <span className="truncate">{day.session.room}</span>
-                      </div>
-                    </div>
-
-                    <button
-                      disabled={!day.session.isActiveDay}
-                      className={`w-full py-3.5 rounded-xl font-bold text-[12px] md:text-[13px] transition-all duration-300 shadow-sm active:scale-95 z-10 mt-2 uppercase tracking-widest ${
-                        day.session.isActiveDay
-                          ? "bg-[#76121F] text-white hover:shadow-lg shadow-[#76121F]/20"
-                          : "bg-gray-50 text-gray-300 border border-gray-100 cursor-not-allowed opacity-50"
-                      }`}
-                    >
-                      Clock In
-                    </button>
-                  </div>
-                ) : (
-                  <div className="h-[240px] md:h-[280px] rounded-[24px] border-2 border-dashed border-gray-100 bg-gray-50/20 flex items-center justify-center group/empty transition-colors hover:border-gray-200">
-                    <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-gray-200 group-hover/empty:scale-110 transition-transform shadow-sm">
-                      <LayoutGrid size={18} />
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="mt-6 text-center lg:hidden">
-        <p className="text-[11px] text-gray-300 font-bold uppercase tracking-widest italic">
-          Slide horizontally to explore full weekly schedule
-        </p>
-      </div>
+    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <WeeklyCalendar
+        weeklySessions={weeklySessions}
+        weekLabel={weekLabel}
+        isLoading={isLoading}
+        onPrevWeek={handlePrevWeek}
+        onNextWeek={handleNextWeek}
+        hideActions={true}
+      />
     </div>
   );
 };

@@ -29,6 +29,66 @@ const ProfileTab = ({
     },
   ];
 
+  // Skeleton component for loading state
+  if (isLoading) {
+    return (
+      <div className="flex flex-col lg:flex-row gap-6 md:gap-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        {/* Client Information Skeleton */}
+        <div className="flex-1 bg-white rounded-[24px] md:rounded-[32px] p-6 md:p-10 shadow-sm border border-gray-50 flex flex-col">
+          <div className="mb-8">
+            <div className="h-[36px] w-[200px] bg-gray-200 rounded-lg animate-pulse mb-2" />
+            <div className="w-full h-[2px] bg-gray-100 rounded-full" />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+            {[1, 2, 3, 4].map((i) => (
+              <div
+                key={i}
+                className="bg-gray-50 rounded-2xl p-5 border border-gray-100 flex flex-col gap-3"
+              >
+                <div className="h-3 w-24 bg-gray-200 rounded-full animate-pulse" style={{ animationDelay: `${i * 0.1}s` }} />
+                <div className="h-5 w-32 bg-gray-200 rounded-full animate-pulse" style={{ animationDelay: `${i * 0.1 + 0.05}s` }} />
+              </div>
+            ))}
+          </div>
+          <div className="mt-4">
+            <div className="h-[18px] w-24 bg-gray-200 rounded-full animate-pulse" />
+          </div>
+        </div>
+
+        {/* Service Details Skeleton */}
+        <div className="flex-1 bg-white rounded-[24px] md:rounded-[32px] p-6 md:p-10 shadow-sm border border-gray-50 flex flex-col">
+          <div className="mb-8">
+            <div className="h-[36px] w-[180px] bg-gray-200 rounded-lg animate-pulse mb-2" />
+            <div className="w-full h-[2px] bg-gray-100 rounded-full" />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="bg-gray-50 rounded-2xl p-5 border border-gray-100 flex flex-col gap-3"
+              >
+                <div className="h-3 w-20 bg-gray-200 rounded-full animate-pulse" style={{ animationDelay: `${i * 0.1}s` }} />
+                <div className="h-5 w-28 bg-gray-200 rounded-full animate-pulse" style={{ animationDelay: `${i * 0.1 + 0.05}s` }} />
+                <div className="h-3 w-16 bg-gray-200 rounded-full animate-pulse mt-1" style={{ animationDelay: `${i * 0.1 + 0.1}s` }} />
+              </div>
+            ))}
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 mt-4">
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="bg-gray-50 rounded-2xl p-5 border border-gray-100 flex flex-col gap-3"
+              >
+                <div className="h-3 w-24 bg-gray-200 rounded-full animate-pulse" style={{ animationDelay: `${i * 0.1}s` }} />
+                <div className="h-5 w-20 bg-gray-200 rounded-full animate-pulse" style={{ animationDelay: `${i * 0.1 + 0.05}s` }} />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col lg:flex-row gap-6 md:gap-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       {/* Client Information Card */}

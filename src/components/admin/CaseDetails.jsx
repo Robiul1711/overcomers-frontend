@@ -61,47 +61,6 @@ const CaseDetails = () => {
 
 
 
-  const weeklySchedule = [
-    {
-      day: "Sun",
-      date: "22",
-      session: {
-        client: "John Smith",
-        time: "09:00 - 10:00",
-        type: "One-to-One",
-        room: "Room 101",
-        status: "Upcoming",
-        isActiveDay: true,
-      },
-    },
-    { day: "Mon", date: "23", session: null },
-    { day: "Tue", date: "24", session: null },
-    { day: "Wed", date: "25", session: null },
-    { day: "Thu", date: "26", session: null },
-    {
-      day: "Fri",
-      date: "27",
-      session: {
-        client: "John Smith",
-        time: "09:00 - 10:00",
-        type: "Group",
-        room: "Room 101",
-        status: "Upcoming",
-      },
-    },
-    {
-      day: "Sat",
-      date: "28",
-      session: {
-        client: "John Smith",
-        time: "10:30 - 11:30",
-        type: "One-to-One",
-        room: "Room 101",
-        status: "Upcoming",
-      },
-    },
-  ];
-
   const insuranceDetails = [
     { label: "Authorization Number", value: "C8812945" },
     { label: "Insurance Provider", value: "Aetna" },
@@ -232,7 +191,7 @@ const CaseDetails = () => {
           )}
 
           {activeTab === "Client Schedule" && (
-            <ScheduleTab weeklySchedule={weeklySchedule} />
+            <ScheduleTab />
           )}
 
           {activeTab === "Insurance" && (

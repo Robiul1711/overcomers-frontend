@@ -1,6 +1,5 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
-import html2canvas from 'html2canvas';
-import { jsPDF } from 'jspdf';
+import React, { useState, useRef } from 'react';
+
 import { 
   DollarSign, 
   Download, 
@@ -32,10 +31,6 @@ const [activeTab, setActiveTab] = useState('Payment History');
   const [selectedStub, setSelectedStub] = useState(null);
   const [statusFilter, setStatusFilter] = useState('All Statuses');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-
-  const taxData = [
-    { form: "1099-NEC", desc: "Nonemployee Compensation", type: "PDF", year: "2026", date: "March 9, 2026", status: "Available" },
-  ];
 
   const { data, isLoading, isError, refetch } = useClient({
     queryKey: ['employeePayrolls'],
@@ -113,86 +108,11 @@ const [activeTab, setActiveTab] = useState('Payment History');
     ? payrolls
     : payrolls.filter((p) => p.status === statusFilter);
 
-  const paystubRef = useRef(null);
-  const [shouldCapture, setShouldCapture] = useState(false);
-  const [isDownloading, setIsDownloading] = useState(false);
-
-  const generatePDF = useCallback(async () => {
-    if (!paystubRef.current || !selectedStub || isDownloading) return;
-    
-    setIsDownloading(true);
-    try {
-      const el = paystubRef.current;
-      
-      // Clone the element to render layout at exactly 650px (desktop width) offscreen
-      const clone = el.cloneNode(true);
-      clone.style.width = '650px';
-      clone.style.position = 'absolute';
-      clone.style.left = '-9999px';
-      clone.style.top = '-9999px';
-      clone.style.height = 'auto';
-      clone.style.maxHeight = 'none';
-      clone.style.overflow = 'visible';
-      
-      document.body.appendChild(clone);
-      
-      // Allow minor delay for layout styling to initialize
-      await new Promise((resolve) => setTimeout(resolve, 100));
-
-      const canvas = await html2canvas(clone, {
-        scale: 2,
-        useCORS: true,
-        logging: false,
-        backgroundColor: '#ffffff',
-      });
-      
-      document.body.removeChild(clone);
-      
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      const pageWidth = pdf.internal.pageSize.getWidth(); // 210
-      const pageHeight = pdf.internal.pageSize.getHeight(); // 297
-      const margin = 10;
-      const maxW = pageWidth - margin * 2; // 190
-      const maxH = pageHeight - margin * 2; // 277
-      
-      let imgWidth = maxW;
-      let imgHeight = (canvas.height * imgWidth) / canvas.width;
-      
-      // Scale down to fit within page height boundary if it overflows
-      if (imgHeight > maxH) {
-        imgHeight = maxH;
-        imgWidth = (canvas.width * imgHeight) / canvas.height;
-      }
-      
-      // Center on page
-      const x = margin + (maxW - imgWidth) / 2;
-      const y = margin + (maxH - imgHeight) / 2;
-      
-      pdf.addImage(imgData, 'PNG', x, y, imgWidth, imgHeight);
-      pdf.save(`paystub-${selectedStub.id || 'document'}.pdf`);
-    } catch (err) {
-      console.error('Failed to generate PDF:', err);
-    } finally {
-      setIsDownloading(false);
-    }
-  }, [selectedStub, isDownloading]);
-
-  // Trigger PDF download after modal renders with new selectedStub
-  useEffect(() => {
-    if (shouldCapture && selectedStub && paystubRef.current) {
-      const timer = setTimeout(() => {
-        setShouldCapture(false);
-        generatePDF();
-      }, 600);
-      return () => clearTimeout(timer);
-    }
-  }, [shouldCapture, selectedStub, generatePDF]);
 
   const handleViewPaystub = (item) => {
     setSelectedStub(item);
     setShowModal(true);
-    setShouldCapture(true);
+  
   };
 
   const SkeletonBox = ({ className = '' }) => (
@@ -521,7 +441,7 @@ const [activeTab, setActiveTab] = useState('Payment History');
           
           <div className="bg-white rounded-[32px] w-full max-w-[650px] max-h-[95vh] overflow-y-auto relative z-10 shadow-2xl flex flex-col p-0 font-poppins animate-in fade-in zoom-in duration-300 custom-scrollbar">
             {/* Paystub content (captured for PDF) */}
-            <div ref={paystubRef} className="bg-white rounded-[32px] p-8 sm:p-10 font-poppins">
+            <div className="bg-white rounded-[32px] p-8 sm:p-10 font-poppins">
               {/* Modal Header */}
               <div className="flex justify-between items-start mb-6">
                 <div className="w-full">
@@ -610,11 +530,11 @@ const [activeTab, setActiveTab] = useState('Payment History');
                 Cancel
               </button>
               <button 
-                onClick={() => generatePDF()}
-                disabled={isDownloading}
+         
+           
                 className="bg-[#76121F] hover:bg-[#600000] text-white font-bold text-[15px] px-10 py-3.5 rounded-xl flex items-center justify-center gap-2 transition-all shadow-md active:scale-95 disabled:opacity-60"
               >
-                <Download size={18} /> {isDownloading ? 'Downloading...' : 'Download'}
+                <Download size={18} />Download
               </button>
             </div>
           </div>

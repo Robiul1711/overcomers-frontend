@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { ImageProvider } from '@/utils/ImageProvider';
 import useClient from '@/hooks/useClient';
+import useAxiosSecure from '@/hooks/useAxiosSecure';
 
 const formatPayPeriod = (start, end) => {
   const d1 = new Date(start);
@@ -109,10 +110,49 @@ const [activeTab, setActiveTab] = useState('Payment History');
     : payrolls.filter((p) => p.status === statusFilter);
 
 
+  const axiosSecure = useAxiosSecure();
+
   const handleViewPaystub = (item) => {
     setSelectedStub(item);
     setShowModal(true);
-  
+  };
+
+  const handleDownloadPaystub = async () => {
+    if (!selectedStub) return;
+    try {
+      const response = await axiosSecure.get(
+        `/employee/payrolls/${selectedStub.id}/paystub/download`,
+        { responseType: 'blob' }
+      );
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `paystub-${selectedStub.id}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Failed to download paystub:', err);
+    }
+  };
+
+  const handleExportStatement = async () => {
+    try {
+      const response = await axiosSecure.get('/employee/payrolls/export', {
+        responseType: 'blob',
+      });
+      const url = window.URL.createObjectURL(new Blob([response.data], { type: 'text/csv' }));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'payroll-statement.csv');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Failed to export statement:', err);
+    }
   };
 
   const SkeletonBox = ({ className = '' }) => (
@@ -289,7 +329,10 @@ const [activeTab, setActiveTab] = useState('Payment History');
                   )}
                 </div>
                 
-                <button className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-2.5 bg-Primary hover:bg-Primary/90 text-Third font-bold text-[13px] rounded-xl transition-all shadow-sm active:scale-95">
+                <button 
+                  onClick={handleExportStatement}
+                  className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-2.5 bg-Primary hover:bg-Primary/90 text-Third font-bold text-[13px] rounded-xl transition-all shadow-sm active:scale-95"
+                >
                   <Download size={18} /> Export <span className="hidden xs:inline">Statement</span>
                 </button>
               </div>
@@ -422,7 +465,10 @@ const [activeTab, setActiveTab] = useState('Payment History');
                         </span>
                       </td>
                       <td className="py-5 px-6 text-center">
-                        <button className="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl text-[12px] font-bold transition-all border border-Secondary/20 text-Secondary hover:bg-Secondary hover:text-white shadow-sm active:scale-95">
+                        <button
+                          onClick={() => window.open(item.file_url, "_blank")}
+                          className="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl text-[12px] font-bold transition-all border border-Secondary/20 text-Secondary hover:bg-Secondary hover:text-white shadow-sm active:scale-95"
+                        >
                           <Download size={16} /> Download
                         </button>
                       </td>
@@ -530,8 +576,7 @@ const [activeTab, setActiveTab] = useState('Payment History');
                 Cancel
               </button>
               <button 
-         
-           
+                onClick={handleDownloadPaystub}
                 className="bg-[#76121F] hover:bg-[#600000] text-white font-bold text-[15px] px-10 py-3.5 rounded-xl flex items-center justify-center gap-2 transition-all shadow-md active:scale-95 disabled:opacity-60"
               >
                 <Download size={18} />Download

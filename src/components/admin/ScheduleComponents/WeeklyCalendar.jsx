@@ -6,7 +6,10 @@ const WeeklyCalendar = ({
   weekLabel,
   isLoading = false,
   setShowScheduleModal, 
-  handleClockAction 
+  handleClockAction,
+  onPrevWeek,
+  onNextWeek,
+  hideActions = false,
 }) => {
   return (
     <div className="bg-white rounded-[32px] md:rounded-[40px] p-5 md:p-8 shadow-sm border border-gray-100">
@@ -14,13 +17,19 @@ const WeeklyCalendar = ({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
         <div className="flex items-center gap-4">
           <div className="flex items-center bg-gray-50 p-1.5 rounded-2xl shadow-inner border border-gray-100">
-            <button className="p-2 md:p-2.5 hover:bg-white hover:shadow-sm rounded-xl transition-all text-Secondary active:scale-90">
+            <button 
+              onClick={onPrevWeek}
+              className="p-2 md:p-2.5 hover:bg-white hover:shadow-sm rounded-xl transition-all text-Secondary active:scale-90"
+            >
               <ChevronLeft size={20} strokeWidth={2.5} />
             </button>
             <div className="px-4 md:px-6 py-2 bg-transparent font-extrabold text-Secondary text-[14px] md:text-[16px] uppercase tracking-wider">
               {weekLabel || "Loading..."}
             </div>
-            <button className="p-2 md:p-2.5 hover:bg-white hover:shadow-sm rounded-xl transition-all text-Secondary active:scale-90">
+            <button 
+              onClick={onNextWeek}
+              className="p-2 md:p-2.5 hover:bg-white hover:shadow-sm rounded-xl transition-all text-Secondary active:scale-90"
+            >
               <ChevronRight size={20} strokeWidth={2.5} />
             </button>
           </div>
@@ -28,14 +37,17 @@ const WeeklyCalendar = ({
         <div className="flex items-center gap-3">
           <div className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-[#FAF6F4] text-Secondary font-bold text-[13px] md:text-[14px] rounded-xl hover:bg-[#F2ECE8] transition-colors shadow-sm">
             Weekly View
+
           </div>
 
-          <button
-            onClick={() => setShowScheduleModal(true)}
-            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 text-white bg-Secondary font-bold text-[13px] md:text-[14px] rounded-xl hover:bg-[#426c3c] transition-colors shadow-sm"
-          >
-            <Calendar size={18} /> Schedule Session
-          </button>
+          {!hideActions && (
+            <button
+              onClick={() => setShowScheduleModal(true)}
+              className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 text-white bg-Secondary font-bold text-[13px] md:text-[14px] rounded-xl hover:bg-[#426c3c] transition-colors shadow-sm"
+            >
+              <Calendar size={18} /> Schedule Session
+            </button>
+          )}
         </div>
       </div>
 
@@ -119,23 +131,25 @@ const WeeklyCalendar = ({
                       {session.type} Alt
                     </div>
 
-                    {session.status !== "Completed" ? (
-                      <button
-                        onClick={() => handleClockAction(session)}
-                        className={`w-full py-3 rounded-xl font-bold text-[12px] md:text-[13px] transition-all duration-300 shadow-sm active:scale-95 z-10 mt-1 uppercase tracking-wider ${
-                          session.status === "In Progress"
-                            ? "bg-Secondary text-white hover:shadow-lg shadow-Secondary/10"
-                            : "bg-Primary text-Secondary hover:bg-Primary/90"
-                        }`}
-                      >
-                        {session.status === "In Progress"
-                          ? "End Session"
-                          : "Start Session"}
-                      </button>
-                    ) : (
-                      <div className="w-full py-3 rounded-xl font-bold text-[12px] text-center bg-gray-50 border border-gray-100 text-gray-300 pointer-events-none mt-1 uppercase tracking-wider z-10">
-                        Archived
-                      </div>
+                    {!hideActions && (
+                      session.status !== "Completed" ? (
+                        <button
+                          onClick={() => handleClockAction(session)}
+                          className={`w-full py-3 rounded-xl font-bold text-[12px] md:text-[13px] transition-all duration-300 shadow-sm active:scale-95 z-10 mt-1 uppercase tracking-wider ${
+                            session.status === "In Progress"
+                              ? "bg-Secondary text-white hover:shadow-lg shadow-Secondary/10"
+                              : "bg-Primary text-Secondary hover:bg-Primary/90"
+                          }`}
+                        >
+                          {session.status === "In Progress"
+                            ? "End Session"
+                            : "Start Session"}
+                        </button>
+                      ) : (
+                        <div className="w-full py-3 rounded-xl font-bold text-[12px] text-center bg-gray-50 border border-gray-100 text-gray-300 pointer-events-none mt-1 uppercase tracking-wider z-10">
+                          Archived
+                        </div>
+                      )
                     )}
 
                     {/* Subtle Decoration */}

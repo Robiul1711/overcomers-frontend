@@ -32,6 +32,11 @@ const CaseDetails = () => {
     queryKey: ["employeeCaseDetails", id],
     url: `/employee/cases/${id}`,
   });
+  const { data: insuranceData, isLoading: insuranceLoading } = useClient({
+    queryKey: ["employeeCaseInsurance", id],
+    url: `/employee/cases/${id}/insurances`,
+  });
+
   const { data: notesData, isLoading: notesLoading, isError: notesIsError } = useClient({
     queryKey: ["employeeCaseNotes", id],
     url: `/employee/cases/${id}/notes`,
@@ -60,92 +65,6 @@ const CaseDetails = () => {
 
 
 
-
-  const weeklySchedule = [
-    {
-      day: "Sun",
-      date: "22",
-      session: {
-        client: "John Smith",
-        time: "09:00 - 10:00",
-        type: "One-to-One",
-        room: "Room 101",
-        status: "Upcoming",
-        isActiveDay: true,
-      },
-    },
-    { day: "Mon", date: "23", session: null },
-    { day: "Tue", date: "24", session: null },
-    { day: "Wed", date: "25", session: null },
-    { day: "Thu", date: "26", session: null },
-    {
-      day: "Fri",
-      date: "27",
-      session: {
-        client: "John Smith",
-        time: "09:00 - 10:00",
-        type: "Group",
-        room: "Room 101",
-        status: "Upcoming",
-      },
-    },
-    {
-      day: "Sat",
-      date: "28",
-      session: {
-        client: "John Smith",
-        time: "10:30 - 11:30",
-        type: "One-to-One",
-        room: "Room 101",
-        status: "Upcoming",
-      },
-    },
-  ];
-
-  const insuranceDetails = [
-    { label: "Authorization Number", value: "C8812945" },
-    { label: "Insurance Provider", value: "Aetna" },
-    { label: "Member ID", value: "M-2024-4421" },
-    { label: "Plan / Policy Number", value: "AET-78902-NJ" },
-    { label: "Authorization Start Date", value: "March 1, 2026" },
-    { label: "Authorization End Date", value: "August 31, 2026" },
-  ];
-
-  const cptCodes = [
-    {
-      code: "97153",
-      title: "ABA Therapy - Technician",
-      desc: "Adaptive behavior treatment by protocol - direct contact, each 15 min",
-      units: "160 units auth",
-      status: "Active",
-    },
-    {
-      code: "97155",
-      title: "ABA Therapy - Supervision",
-      desc: "Adaptive behavior treatment with protocol modification - each 15 min",
-      units: "80 units auth",
-      status: "Active",
-    },
-  ];
-
-  const authHistory = [
-    {
-      number: "C8812945",
-      start: "March 1, 2026",
-      end: "Aug 31, 2026",
-      codes: "97153, 97155",
-      units: "240 units",
-      status: "Active",
-    },
-    {
-      number: "C7701234",
-      start: "Sep 1, 2025",
-      end: "Feb 28, 2026",
-      codes: "97153, 97155",
-      units: "200 units",
-      status: "Expired",
-    },
-  ];
 
   return (
     <div className="flex flex-col gap-6 md:gap-8  font-poppins ">
@@ -232,14 +151,13 @@ const CaseDetails = () => {
           )}
 
           {activeTab === "Client Schedule" && (
-            <ScheduleTab weeklySchedule={weeklySchedule} />
+            <ScheduleTab />
           )}
 
           {activeTab === "Insurance" && (
             <InsuranceTab
-              insuranceDetails={insuranceDetails}
-              cptCodes={cptCodes}
-              authHistory={authHistory}
+              insuranceCaseData={insuranceData?.data?.[0]}
+              isLoading={insuranceLoading}
             />
           )}
         </div>

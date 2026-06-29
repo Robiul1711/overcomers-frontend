@@ -20,13 +20,13 @@ const TAG_MAP = {
   ALERT: { icon: AlertCircle, label: "Alert" },
 };
 
-const ParentNotifications = () => {
+const SupervisorNotifications = () => {
   const navigate = useNavigate();
   const [selectedNotification, setSelectedNotification] = React.useState(null);
 
   const { data, isLoading, isError, refetch } = useClient({
-    queryKey: ["parentNotifications"],
-    url: "/parent/notifications",
+    queryKey: ["supervisorNotifications"],
+    url: "/supervisor/notifications",
   });
 
   const notifications = data?.data?.notifications || [];
@@ -34,33 +34,33 @@ const ParentNotifications = () => {
 
   // Delete single notification
   const { mutate: deleteNotification } = useMutationClient({
-    url: (id) => `/parent/notifications/${id}`,
+    url: (id) => `/supervisor/notifications/${id}`,
     method: "delete",
-    invalidateKeys: [["parentNotifications"]],
+    invalidateKeys: [["supervisorNotifications"]],
     successMessage: "Notification deleted",
   });
 
   // Mark single notification as read
   const { mutate: markAsRead } = useMutationClient({
-    url: (id) => `/parent/notifications/${id}/mark-read`,
+    url: (id) => `/supervisor/notifications/${id}/mark-read`,
     method: "post",
-    invalidateKeys: [["parentNotifications"]],
+    invalidateKeys: [["supervisorNotifications"]],
     successMessage: "Marked as read",
   });
 
   // Mark all as read
   const { mutate: markAllRead, isPending: isMarkingAll } = useMutationClient({
-    url: "/parent/notifications/mark-all-read",
+    url: "/supervisor/notifications/mark-all-read",
     method: "post",
-    invalidateKeys: [["parentNotifications"]],
+    invalidateKeys: [["supervisorNotifications"]],
     successMessage: "All notifications marked as read",
   });
 
   // Clear all notifications
   const { mutate: clearAll, isPending: isClearingAll } = useMutationClient({
-    url: "/parent/notifications/clear-all",
+    url: "/supervisor/notifications/clear-all",
     method: "post",
-    invalidateKeys: [["parentNotifications"]],
+    invalidateKeys: [["supervisorNotifications"]],
     successMessage: "All notifications cleared",
   });
 
@@ -72,8 +72,8 @@ const ParentNotifications = () => {
 
   if (isLoading) {
     return (
-      <div className="space-y-6 md:space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-10">
-        <div className="sm:bg-white p-4 sm:p-6 md:p-10 rounded-2xl sm:rounded-[32px] md:rounded-[48px] shadow-sm border border-[#F3F4F6] overflow-hidden">
+      <div className="space-y-6 md:space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-10 font-poppins">
+        <div className="bg-white p-4 sm:p-6 md:p-10 rounded-2xl sm:rounded-[32px] md:rounded-[48px] shadow-sm border border-[#F3F4F6] overflow-hidden">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-10 md:mb-12">
             <div className="space-y-2">
               <SkeletonBox className="h-8 w-44" />
@@ -100,8 +100,8 @@ const ParentNotifications = () => {
 
   if (isError) {
     return (
-      <div className="space-y-6 md:space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-10">
-        <div className="sm:bg-white p-4 sm:p-6 md:p-10 rounded-2xl sm:rounded-[32px] md:rounded-[48px] shadow-sm border border-[#F3F4F6] overflow-hidden p-20 flex flex-col items-center text-center gap-4">
+      <div className="space-y-6 md:space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-10 font-poppins">
+        <div className="bg-white p-4 sm:p-6 md:p-10 rounded-2xl sm:rounded-[32px] md:rounded-[48px] shadow-sm border border-[#F3F4F6] overflow-hidden p-20 flex flex-col items-center text-center gap-4">
           <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center text-red-400">
             <AlertCircle size={40} />
           </div>
@@ -121,12 +121,12 @@ const ParentNotifications = () => {
   }
 
   return (
-    <div className="space-y-6 md:space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-10">
+    <div className="space-y-6 md:space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-10 font-poppins">
       {/* Notifications Section */}
-      <div className="sm:bg-white p-4 sm:p-6 md:p-10 rounded-2xl sm:rounded-[32px] md:rounded-[48px] shadow-sm border border-[#F3F4F6] overflow-hidden">
+      <div className="bg-white p-4 sm:p-6 md:p-10 rounded-2xl sm:rounded-[32px] md:rounded-[48px] shadow-sm border border-[#F3F4F6] overflow-hidden">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-10 md:mb-12">
           <div className="relative">
-            <h3 className="text-2xl md:text-3xl font-black text-Third tracking-tight leading-tight">Sync Updates</h3>
+            <h3 className="text-2xl md:text-3xl font-black text-Third tracking-tight leading-tight">Notifications</h3>
             <p className="text-[12px] md:text-sm font-bold text-gray-400 mt-1 uppercase tracking-wider">
               You have{' '}
               <span className="text-Secondary font-black">{unreadCount} unread</span> notification{unreadCount !== 1 ? 's' : ''}
@@ -303,4 +303,4 @@ const ParentNotifications = () => {
   );
 };
 
-export default ParentNotifications;
+export default SupervisorNotifications;

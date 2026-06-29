@@ -1,6 +1,7 @@
 import React from 'react';
 import { Bell, Trash2, FileText, CheckCircle, AlertTriangle, ArrowUpRight, Eye, CheckCheck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import useClient from '@/hooks/useClient';
 import useMutationClient from '@/hooks/useMutationClient';
 
@@ -13,6 +14,7 @@ const TAG_MAP = {
 
 const Notifications = () => {
   const navigate = useNavigate();
+  const [selectedNotification, setSelectedNotification] = React.useState(null);
 
   const { data, isLoading, isError, refetch } = useClient({
     queryKey: ['employeeNotifications'],
@@ -160,9 +162,13 @@ const Notifications = () => {
             return (
               <div
                 key={item.id}
-                className={`flex flex-col xl:flex-row xl:items-center justify-between gap-6 p-6 md:p-8 transition-all duration-300 relative overflow-hidden group ${
+                className={`flex flex-col xl:flex-row xl:items-center justify-between gap-6 p-6 md:p-8 transition-all duration-300 relative overflow-hidden group cursor-pointer ${
                   !item.is_read ? 'bg-[#FAF6F7]/60' : 'bg-white hover:bg-gray-50/50'
                 }`}
+                onClick={() => {
+                  setSelectedNotification(item);
+                  if (!item.is_read) markAsRead(item.id);
+                }}
               >
                 <div className="flex gap-4 md:gap-6 items-start">
                   <div className={`w-12 h-12 md:w-14 md:h-14 rounded-2xl border flex-shrink-0 flex items-center justify-center shadow-lg transition-transform group-hover:scale-105 ${
@@ -201,10 +207,10 @@ const Notifications = () => {
                     </button>
                   )}
                   <button
-                    onClick={() => {
-                      if (item.action_url) {
-                        navigate(item.action_url);
-                      }
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedNotification(item);
+                      if (!item.is_read) markAsRead(item.id);
                     }}
                     className="flex items-center gap-2 xl:flex-none px-6 py-3 bg-white border border-Secondary/20 text-Secondary font-bold text-[13px] rounded-xl hover:bg-Secondary hover:text-white hover:border-Secondary transition-all shadow-sm active:scale-95"
                   >
@@ -252,6 +258,46 @@ const Notifications = () => {
           </div>
         )}
       </div>
+
+      <Dialog open={!!selectedNotification} onOpenChange={() => setSelectedNotification(null)}>
+        <DialogContent className="max-w-[95vw] sm:max-w-[500px] p-0 rounded-[28px] overflow-hidden border-none shadow-2xl font-poppins">
+          {selectedNotification && (
+            <div className="p-6 sm:p-8 flex flex-col gap-6 bg-white">
+              <div className="flex items-center gap-4 border-b border-gray-100 pb-4">
+                <div className={`p-3.5 rounded-2xl ${
+                  !selectedNotification.is_read ? 'bg-Secondary text-white' : 'bg-gray-100 text-gray-400'
+                }`}>
+                  {React.createElement(getTagInfo(selectedNotification.tag).icon, { size: 24, strokeWidth: 2.5 })}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <span className="text-[10px] font-black text-Secondary uppercase tracking-widest bg-Secondary/10 px-2 py-0.5 rounded-md">
+                    {getTagInfo(selectedNotification.tag).label}
+                  </span>
+                  <p className="text-xs text-gray-400 font-bold mt-1 uppercase tracking-wider">{selectedNotification.created_at}</p>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <h3 className="text-xl font-black text-Third leading-snug">
+                  {selectedNotification.title}
+                </h3>
+                <p className="text-sm text-gray-600 font-medium leading-relaxed bg-gray-50/50 p-4 rounded-2xl border border-gray-100">
+                  {selectedNotification.message}
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3 mt-2">
+                <button
+                  onClick={() => setSelectedNotification(null)}
+                  className="w-full border border-gray-200 text-gray-500 hover:bg-gray-50 font-black text-[13px] py-3.5 rounded-xl md:rounded-2xl transition-all uppercase tracking-widest"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

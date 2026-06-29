@@ -11,6 +11,7 @@ import {
   Users,
   ClipboardList,
   Settings,
+  Bell,
 } from "lucide-react";
 
 const DirectorLayout = () => {
@@ -64,6 +65,13 @@ const DirectorLayout = () => {
       text: "Profile",
       path: "/director-dashboard/profile",
       activePaths: ["/director-dashboard/profile"],
+    },
+    {
+      id: 7,
+      icon: <Bell size={20} />,
+      text: "Notifications",
+      path: "/director-dashboard/notifications",
+      activePaths: ["/director-dashboard/notifications"],
     },
   ];
   const location = useLocation();

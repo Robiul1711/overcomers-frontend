@@ -26,6 +26,22 @@ import Authorizations from "@/pages/parent/Authorizations";
 import ParentNotifications from "@/pages/parent/Notifications";
 import ParentProfileSettings from "@/pages/parent/ProfileSettings";
 
+import DirectorLayout from "@/layout/DirectorLayout";
+import DirectorDashboard from "@/pages/director/DirectorDashboard";
+import DirectorCases from "@/pages/director/Cases";
+import DirectorPrograms from "@/pages/director/Programs";
+import DirectorStaff from "@/pages/director/Staff";
+import DirectorAudit from "@/pages/director/Audit";
+import DirectorProfile from "@/pages/director/Profile";
+
+import SupervisorLayout from "@/layout/SupervisorLayout";
+import SupervisorDashboard from "@/pages/supervisor/SupervisorDashboard";
+import SupervisorCases from "@/pages/supervisor/Cases";
+import SupervisorCaseDetails from "@/pages/supervisor/CaseDetails";
+import SupervisorPrograms from "@/pages/supervisor/Programs";
+import SupervisorProfile from "@/pages/supervisor/Profile";
+import SupervisorSessions from "@/pages/supervisor/Sessions";
+
 import { createBrowserRouter } from "react-router-dom";
 import PrivateRoute from "@/components/common/PrivateRoute";
 import Home from "@/pages/Pages/Home";
@@ -187,6 +203,68 @@ const router = createBrowserRouter([
       {
         path: "/parent-dashboard/settings",
         element: <ParentProfileSettings />,
+      },
+    ],
+  },
+  // Director routes
+  {
+    path: "/director-dashboard",
+    element: <PrivateRoute><DirectorLayout /></PrivateRoute>,
+    children: [
+      {
+        path: "/director-dashboard",
+        element: <DirectorDashboard />,
+      },
+      {
+        path: "/director-dashboard/cases",
+        element: <DirectorCases />,
+      },
+      {
+        path: "/director-dashboard/programs",
+        element: <DirectorPrograms />,
+      },
+      {
+        path: "/director-dashboard/staff",
+        element: <DirectorStaff />,
+      },
+      {
+        path: "/director-dashboard/audit",
+        element: <DirectorAudit />,
+      },
+      {
+        path: "/director-dashboard/profile",
+        element: <DirectorProfile />,
+      },
+    ],
+  },
+  // Supervisor routes
+  {
+    path: "/supervisor-dashboard",
+    element: <PrivateRoute><SupervisorLayout /></PrivateRoute>,
+    children: [
+      {
+        path: "/supervisor-dashboard",
+        element: <SupervisorDashboard />,
+      },
+      {
+        path: "/supervisor-dashboard/cases",
+        element: <SupervisorCases />,
+      },
+      {
+        path: "/supervisor-dashboard/cases/:id",
+        element: <SupervisorCaseDetails />,
+      },
+      {
+        path: "/supervisor-dashboard/programs",
+        element: <SupervisorPrograms />,
+      },
+      {
+        path: "/supervisor-dashboard/sessions",
+        element: <SupervisorSessions />,
+      },
+      {
+        path: "/supervisor-dashboard/profile",
+        element: <SupervisorProfile />,
       },
     ],
   },

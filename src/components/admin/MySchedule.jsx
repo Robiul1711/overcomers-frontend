@@ -56,7 +56,7 @@ const mapSessionsToDays = (scheduleData, sessionStatuses) => {
       (d) => d.dayFull === item.day_of_week,
     );
     if (matchingDay) {
-      const status = sessionStatuses[item.id] || "Upcoming";
+      const status = sessionStatuses[item.id] || item.status || "Upcoming";
       matchingDay.sessions.push({
         id: item.id,
         clinical_case_id: item.clinical_case_id,
@@ -101,6 +101,8 @@ const MySchedule = () => {
   const [actualStartTime, setActualStartTime] = useState("");
   const [sessionNotes, setSessionNotes] = useState("");
   const [sessionStatuses, setSessionStatuses] = useState({});
+  const [latitude, setLatitude] = useState("");
+  const [longitude, setLongitude] = useState("");
 
   const parentSignatureRef = useRef(null);
   const employeeSignatureRef = useRef(null);
@@ -169,12 +171,32 @@ const MySchedule = () => {
 
   const handleClockAction = (session) => {
     setSelectedSession(session);
-    if (session.status === "Upcoming") {
-      setActualStartTime(formatTimeForApi(new Date()));
-      setShowClockInModal(true);
-    } else if (session.status === "In Progress") {
+    setLatitude("");
+    setLongitude("");
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setLatitude(position.coords.latitude.toString());
+          setLongitude(position.coords.longitude.toString());
+        },
+        (error) => {
+          console.error("Error obtaining geolocation:", error);
+          toast.warn("Could not retrieve current location. Please allow location permissions.");
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      );
+    } else {
+      toast.warn("Geolocation is not supported by this browser.");
+    }
+
+    const status = session.status?.toUpperCase();
+    if (status === "PROCESSING" || status === "IN_PROGRESS" || status === "In Progress") {
       setSessionNotes("");
       setShowClockOutModal(true);
+    } else {
+      setActualStartTime(formatTimeForApi(new Date()));
+      setShowClockInModal(true);
     }
   };
 
@@ -182,14 +204,17 @@ const MySchedule = () => {
     const formData = new FormData();
     formData.append("clinical_case_schedule_id", selectedSession.id);
     formData.append("time", actualStartTime);
+    formData.append("latitude", latitude);
+    formData.append("longitude", longitude);
 
     startSession(
       { data: formData },
       {
-        onSuccess: () => {
+        onSuccess: (res) => {
+          const status = res?.data?.data?.status || "PROCESSING";
           setSessionStatuses((prev) => ({
             ...prev,
-            [selectedSession.id]: "In Progress",
+            [selectedSession.id]: status,
           }));
           setShowClockInModal(false);
         },
@@ -223,13 +248,16 @@ const MySchedule = () => {
           session_notes: sessionNotes,
           parent_signature: parentSig,
           employee_signature: employeeSig,
+          latitude: latitude,
+          longitude: longitude,
         },
       },
       {
-        onSuccess: () => {
+        onSuccess: (res) => {
+          const status = res?.data?.data?.status || "COMPLETED";
           setSessionStatuses((prev) => ({
             ...prev,
-            [selectedSession.id]: "Completed",
+            [selectedSession.id]: status,
           }));
           setShowClockOutModal(false);
           setSessionNotes("");
@@ -259,6 +287,8 @@ const MySchedule = () => {
         selectedSession={selectedSession}
         actualStartTime={actualStartTime}
         setActualStartTime={setActualStartTime}
+        latitude={latitude}
+        longitude={longitude}
         confirmClockIn={confirmClockIn}
         isProcessing={isStarting}
       />
@@ -269,6 +299,8 @@ const MySchedule = () => {
         selectedSession={selectedSession}
         sessionNotes={sessionNotes}
         setSessionNotes={setSessionNotes}
+        latitude={latitude}
+        longitude={longitude}
         confirmClockOut={confirmClockOut}
         isProcessing={isEnding}
         parentSignatureRef={parentSignatureRef}

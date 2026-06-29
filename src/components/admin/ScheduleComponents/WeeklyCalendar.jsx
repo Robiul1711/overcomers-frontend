@@ -1,11 +1,18 @@
 import React from "react";
-import { ChevronLeft, ChevronRight, Clock, MapPin, Calendar, Plus } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Clock,
+  MapPin,
+  Calendar,
+  Plus,
+} from "lucide-react";
 
-const WeeklyCalendar = ({ 
-  weeklySessions, 
+const WeeklyCalendar = ({
+  weeklySessions,
   weekLabel,
   isLoading = false,
-  setShowScheduleModal, 
+  setShowScheduleModal,
   handleClockAction,
   onPrevWeek,
   onNextWeek,
@@ -17,7 +24,7 @@ const WeeklyCalendar = ({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
         <div className="flex items-center gap-4">
           <div className="flex items-center bg-gray-50 p-1.5 rounded-2xl shadow-inner border border-gray-100">
-            <button 
+            <button
               onClick={onPrevWeek}
               className="p-2 md:p-2.5 hover:bg-white hover:shadow-sm rounded-xl transition-all text-Secondary active:scale-90"
             >
@@ -26,7 +33,7 @@ const WeeklyCalendar = ({
             <div className="px-4 md:px-6 py-2 bg-transparent font-extrabold text-Secondary text-[14px] md:text-[16px] uppercase tracking-wider">
               {weekLabel || "Loading..."}
             </div>
-            <button 
+            <button
               onClick={onNextWeek}
               className="p-2 md:p-2.5 hover:bg-white hover:shadow-sm rounded-xl transition-all text-Secondary active:scale-90"
             >
@@ -37,17 +44,16 @@ const WeeklyCalendar = ({
         <div className="flex items-center gap-3">
           <div className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-[#FAF6F4] text-Secondary font-bold text-[13px] md:text-[14px] rounded-xl hover:bg-[#F2ECE8] transition-colors shadow-sm">
             Weekly View
-
           </div>
 
-          {!hideActions && (
+          {/* {!hideActions && (
             <button
               onClick={() => setShowScheduleModal(true)}
               className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 text-white bg-Secondary font-bold text-[13px] md:text-[14px] rounded-xl hover:bg-[#426c3c] transition-colors shadow-sm"
             >
-              <Calendar size={18} /> Schedule Session
+              <Calendar size={18} />
             </button>
-          )}
+          )} */}
         </div>
       </div>
 
@@ -89,18 +95,18 @@ const WeeklyCalendar = ({
                       <div className="flex items-center gap-1.5 mt-0.5">
                         <div
                           className={`w-1.5 h-1.5 rounded-full animate-pulse shrink-0 ${
-                            session.status === "In Progress"
+                            session.status === "PROCESSING" || session.status === "IN_PROGRESS" || session.status === "In Progress"
                               ? "bg-green-500"
-                              : session.status === "Completed"
+                              : session.status === "COMPLETED" || session.status === "Completed"
                                 ? "bg-gray-300"
                                 : "bg-blue-400"
                           }`}
                         ></div>
                         <span
                           className={`text-[10px] uppercase font-bold tracking-wider ${
-                            session.status === "In Progress"
+                            session.status === "PROCESSING" || session.status === "IN_PROGRESS" || session.status === "In Progress"
                               ? "text-green-600"
-                              : session.status === "Completed"
+                              : session.status === "COMPLETED" || session.status === "Completed"
                                 ? "text-gray-400"
                                 : "text-blue-500"
                           }`}
@@ -131,17 +137,17 @@ const WeeklyCalendar = ({
                       {session.type} Alt
                     </div>
 
-                    {!hideActions && (
-                      session.status !== "Completed" ? (
+                    {!hideActions &&
+                      (session.status !== "Completed" && session.status !== "COMPLETED" ? (
                         <button
                           onClick={() => handleClockAction(session)}
                           className={`w-full py-3 rounded-xl font-bold text-[12px] md:text-[13px] transition-all duration-300 shadow-sm active:scale-95 z-10 mt-1 uppercase tracking-wider ${
-                            session.status === "In Progress"
+                            session.status === "In Progress" || session.status === "PROCESSING" || session.status === "IN_PROGRESS"
                               ? "bg-Secondary text-white hover:shadow-lg shadow-Secondary/10"
                               : "bg-Primary text-Secondary hover:bg-Primary/90"
                           }`}
                         >
-                          {session.status === "In Progress"
+                          {session.status === "In Progress" || session.status === "PROCESSING" || session.status === "IN_PROGRESS"
                             ? "End Session"
                             : "Start Session"}
                         </button>
@@ -149,13 +155,12 @@ const WeeklyCalendar = ({
                         <div className="w-full py-3 rounded-xl font-bold text-[12px] text-center bg-gray-50 border border-gray-100 text-gray-300 pointer-events-none mt-1 uppercase tracking-wider z-10">
                           Archived
                         </div>
-                      )
-                    )}
+                      ))}
 
                     {/* Subtle Decoration */}
                     <div
                       className={`absolute top-0 right-0 w-16 h-16 opacity-[0.03] transition-opacity group-hover:opacity-[0.07] pointer-events-none -translate-x-1/4 -translate-y-1/4 ${
-                        session.status === "In Progress"
+                        session.status === "In Progress" || session.status === "PROCESSING" || session.status === "IN_PROGRESS"
                           ? "text-green-500"
                           : "text-Secondary"
                       }`}

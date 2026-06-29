@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Bell, Menu, ChevronLeft, Home, ChevronDown, LogOut, Settings } from "lucide-react";
 import CommonButton from "@/components/common/CommonButton";
 import { useDispatch, useSelector } from "react-redux";
-import { clearAuth } from "@/redux/slices/authSlice";
+import { clearAuth, selectUserType } from "@/redux/slices/authSlice";
 import { toast } from "react-toastify";
 import useClient from "@/hooks/useClient";
 
@@ -11,18 +11,20 @@ const CommonNavbar = ({ open, setOpen }) => {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const userType = useSelector(selectUserType);
 
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const userMenuRef = useRef(null);
 
   const { data: profileData } = useClient({
-    queryKey: ["employeeProfile"],
-    url: "/employee/profile",
+    queryKey: [`${userType}Profile`],
+    url: `/${userType}/profile`,
   });
 
   const { data: notifData } = useClient({
-    queryKey: ["employeeNotifications"],
-    url: "/employee/notifications",
+    queryKey: [`${userType}Notifications`],
+    url: `/${userType}/notifications`,
+    enabled: userType !== "supervisor" && userType !== "director",
   });
 
   const profile = profileData?.data?.personal_information;

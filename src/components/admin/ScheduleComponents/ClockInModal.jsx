@@ -7,6 +7,8 @@ const ClockInModal = ({
   selectedSession, 
   actualStartTime, 
   setActualStartTime, 
+  latitude,
+  longitude,
   confirmClockIn,
   isProcessing = false,
 }) => {
@@ -75,6 +77,33 @@ const ClockInModal = ({
               <ShieldCheck size={12} className="text-green-500" /> Logged
               timestamp for billing accuracy
             </p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="flex flex-col gap-2">
+              <label className="text-[13px] font-extrabold text-Third uppercase tracking-wider ml-1">
+                Latitude
+              </label>
+              <input
+                type="text"
+                value={latitude || ""}
+                disabled
+                placeholder="Detecting..."
+                className="w-full bg-[#FAF9F6] border border-gray-100 px-5 py-4 rounded-2xl text-Third font-extrabold text-[14px] focus:outline-none transition-all shadow-sm opacity-70 cursor-not-allowed"
+              />
+            </div>
+            <div className="flex flex-col gap-2">
+              <label className="text-[13px] font-extrabold text-Third uppercase tracking-wider ml-1">
+                Longitude
+              </label>
+              <input
+                type="text"
+                value={longitude || ""}
+                disabled
+                placeholder="Detecting..."
+                className="w-full bg-[#FAF9F6] border border-gray-100 px-5 py-4 rounded-2xl text-Third font-extrabold text-[14px] focus:outline-none transition-all shadow-sm opacity-70 cursor-not-allowed"
+              />
+            </div>
           </div>
         </div>
 

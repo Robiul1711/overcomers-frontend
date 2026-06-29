@@ -1,12 +1,37 @@
 import React from "react";
 import { useForm } from "react-hook-form";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, Loader2 } from "lucide-react";
+import { useMutation } from "@tanstack/react-query";
+import useAxiosPublic from "@/hooks/useAxiosPublic";
+import { toast } from "react-toastify";
 
 const ContactForm = () => {
-  const { register, handleSubmit } = useForm();
+  const { register, handleSubmit, reset } = useForm();
+  const axiosPublic = useAxiosPublic();
+
+  const { mutate, isPending } = useMutation({
+    mutationFn: async (payload) => {
+      const res = await axiosPublic.post("/contact", payload);
+      return res.data;
+    },
+    onSuccess: (data) => {
+      toast.success(data?.message || "Thank you! Your message has been sent successfully.");
+      reset();
+    },
+    onError: (error) => {
+      const msg = error?.response?.data?.message || error.message || "Failed to send message";
+      toast.error(msg);
+    },
+  });
 
   const onSubmit = (data) => {
-    console.log("Message Submitted:", data);
+    const payload = {
+      full_name: data.fullName,
+      email: data.email,
+      phone_number: data.phone,
+      message: data.message,
+    };
+    mutate(payload);
   };
 
   return (
@@ -69,9 +94,18 @@ const ContactForm = () => {
           <div className="flex flex-col items-center justify-center mt-6">
             <button
               type="submit"
-              className="bg-Primary hover:bg-Primary/90 text-[#3A331E] font-bold text-[14px] md:text-[15px] px-8 py-3.5 rounded-[12px] flex items-center justify-center gap-2 transition-colors w-full md:w-auto min-w-[200px]"
+              disabled={isPending}
+              className="bg-Primary hover:bg-Primary/90 text-[#3A331E] font-bold text-[14px] md:text-[15px] px-8 py-3.5 rounded-[12px] flex items-center justify-center gap-2 transition-colors w-full md:w-auto min-w-[200px] disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Send Message <ArrowUpRight size={18} strokeWidth={2.5} />
+              {isPending ? (
+                <>
+                  <Loader2 className="animate-spin" size={18} /> Sending...
+                </>
+              ) : (
+                <>
+                  Send Message <ArrowUpRight size={18} strokeWidth={2.5} />
+                </>
+              )}
             </button>
           </div>
         </form>

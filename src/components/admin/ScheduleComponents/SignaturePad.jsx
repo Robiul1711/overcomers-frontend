@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { PenTool, RotateCcw } from "lucide-react";
 
-const SignaturePad = React.forwardRef(({ label, id }, ref) => {
+const SignaturePad = React.forwardRef(({ label, id, onDraw }, ref) => {
   const canvasRef = React.useRef(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [isEmpty, setIsEmpty] = useState(true);
@@ -36,6 +36,7 @@ const SignaturePad = React.forwardRef(({ label, id }, ref) => {
     ctx.moveTo(x, y);
     setIsDrawing(true);
     setIsEmpty(false);
+    if (onDraw) onDraw(false);
   };
 
   const draw = (e) => {
@@ -56,6 +57,7 @@ const SignaturePad = React.forwardRef(({ label, id }, ref) => {
     const ctx = canvas.getContext("2d");
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     setIsEmpty(true);
+    if (onDraw) onDraw(true);
   };
 
   React.useEffect(() => {

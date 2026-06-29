@@ -25,17 +25,23 @@ const Navbar = () => {
   const isAuthenticated = useSelector(selectIsAuthenticated);
   const userType = useSelector(selectUserType);
   console.log(userType)
-  const dashboardPath = userType === "employee" ? "/dashboard" : "/parent-dashboard";
+  const getDashboardPath = (type) => {
+    if (type === "parent") return "/parent-dashboard";
+    if (type === "director") return "/director-dashboard";
+    if (type === "supervisor") return "/supervisor-dashboard";
+    return "/dashboard";
+  };
+  const dashboardPath = getDashboardPath(userType);
 
   const { data: profileData } = useClient({
-    queryKey: [userType === "employee" ? "employeeProfile" : "parentProfile"],
-    url: userType === "employee" ? "/employee/profile" : "/parent/profile",
-    enabled: isAuthenticated,
+    queryKey: [`${userType}Profile`],
+    url: `/${userType}/profile`,
+    enabled: isAuthenticated && !!userType,
   });
 
-  const profile = userType === "employee"
-    ? profileData?.data?.personal_information
-    : profileData?.data;
+  const profile = userType === "parent"
+    ? profileData?.data
+    : profileData?.data?.personal_information;
 
   const initials = profile?.full_name || profile?.name
     ? (profile?.full_name || profile?.name).split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()

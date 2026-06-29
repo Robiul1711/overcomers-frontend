@@ -27,6 +27,13 @@ const CaseDetails = () => {
   const [selectedMember, setSelectedMember] = useState(null);
   const sectionRef = React.useRef(null);
   const id = useParams().id;
+  const now = new Date();
+  const [taskPerformanceParams, setTaskPerformanceParams] = useState({
+    period: "all_time",
+    month: now.getMonth() + 1,
+    year: now.getFullYear(),
+    program_id: undefined,
+  });
 
   const { data, isLoading, isError } = useClient({
     queryKey: ["employeeCaseDetails", id],
@@ -60,6 +67,7 @@ const CaseDetails = () => {
   const { data: taskPerformanceData, isLoading: taskPerformanceLoading, isError: taskPerformanceIsError } = useClient({
     queryKey: ["employeeCaseTaskPerformance"],
     url: `/employee/cases/${id}/task-performance`,
+    params: taskPerformanceParams,
   })
 // console.log(reportData)
 
@@ -142,6 +150,8 @@ const CaseDetails = () => {
               taskPerformanceData={taskPerformanceData?.data}
               taskPerformanceLoading={taskPerformanceLoading}
               taskPerformanceIsError={taskPerformanceIsError}
+              taskPerformanceParams={taskPerformanceParams}
+              setTaskPerformanceParams={setTaskPerformanceParams}
               reportLoading={reportLoading}
               reportIsError={reportIsError}
               notesLoading={notesLoading}

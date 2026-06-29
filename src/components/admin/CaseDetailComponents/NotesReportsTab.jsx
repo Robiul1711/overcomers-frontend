@@ -1,5 +1,4 @@
-import React, { useState } from "react";
-import { useSelector } from "react-redux";
+import React from "react";
 import { PlusCircle, FileText, Download, ChevronDown } from "lucide-react";
 import {
   AreaChart,
@@ -9,21 +8,7 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  ReferenceLine,
 } from "recharts";
-
-const chartData = [
-  { name: "Task 1", value: 38 },
-  { name: "Task 2", value: 45 },
-  { name: "Task 3", value: 42 },
-  { name: "Task 4", value: 70 },
-  { name: "Task 5", value: 86 },
-  { name: "Task 6", value: 65 },
-  { name: "Task 7", value: 50 },
-  { name: "Task 8", value: 72 },
-  { name: "Task 9", value: 45 },
-  { name: "Task 10", value: 80 },
-];
 
 const CustomTooltip = ({ active, payload }) => {
   if (active && payload && payload.length) {
@@ -31,43 +16,16 @@ const CustomTooltip = ({ active, payload }) => {
       <div className="bg-[#76121F] text-white p-2 px-4 rounded-xl text-center shadow-lg transform -translate-y-2 relative">
         <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-3 h-3 bg-[#76121F] rotate-45"></div>
         <p className="text-[12px] font-medium relative z-10 leading-tight">
-          Yes
+          {payload[0].payload?.task_title || "Success"}
         </p>
         <p className="text-[18px] font-bold relative z-10 leading-tight">
-          {payload[0].value}%
+          {Math.round(payload[0].value)}%
         </p>
       </div>
     );
   }
   return null;
 };
-
-const tableData = [
-  {
-    program: "Com. Skills Dev.",
-    trials: "10 times",
-    yes: "7 times",
-    no: "3 times",
-  },
-  {
-    program: "Social Int. Fund.",
-    trials: "10 times",
-    yes: "7 times",
-    no: "3 times",
-  },
-  {
-    program: "Emot. Rec. & Reg.",
-    trials: "10 times",
-    yes: "7 times",
-    no: "3 times",
-  },
-  {
-    program: "Com. Skills Dev.",
-    trials: "10 times",
-    yes: "7 times",
-    no: "3 times",
-  },
-];
 
 const NotesReportsTab = ({
   onAddNote,
@@ -81,69 +39,52 @@ const NotesReportsTab = ({
   taskPerformanceData,
   taskPerformanceLoading,
   taskPerformanceIsError,
+  taskPerformanceParams,
+  setTaskPerformanceParams,
 }) => {
-  console.log(reportData);
-  const taskResults = useSelector((state) => state.programs?.taskResults || []);
-  const [selectedProgramTitle, setSelectedProgramTitle] = useState(
-    "Communication Skills Development",
-  );
-  const [timeframe, setTimeframe] = useState("All time");
+  const overallPerformance = taskPerformanceData?.overall_task_performance;
+  const chartData = overallPerformance?.chart_data || [];
+  const availablePrograms = overallPerformance?.available_programs || [];
+  const taskResponds = taskPerformanceData?.task_responds || [];
 
-  const selectedProgramResult = taskResults.find(
-    (p) => p.programTitle === selectedProgramTitle,
-  );
+  const selectedProgramId = taskPerformanceParams?.program_id;
+  const activePeriod = taskPerformanceParams?.period || "all_time";
 
-  // Filtering logic based on timeframe (mocking since we don't have real timestamps for tasks yet)
-  const getFilteredTasks = (tasks) => {
-    if (!tasks) return [];
-    if (timeframe === "Month") return tasks.slice(0, 4); // Just show first 4 for month
-    if (timeframe === "Year") return tasks.slice(0, 7); // Show 7 for year
-    return tasks; // All time
+  // Build chart data from API response
+  const dynamicChartData = chartData.map((item) => ({
+    name: item.task_label,
+    task_title: item.task_title,
+    value: Math.round(item.success_rate),
+    trials: item.trials,
+    correct: item.correct,
+    incorrect: item.incorrect,
+  }));
+
+  const handlePeriodChange = (period) => {
+    setTaskPerformanceParams((prev) => ({
+      ...prev,
+      period,
+    }));
   };
 
-  const filteredTasks = getFilteredTasks(selectedProgramResult?.tasks);
+  const handleProgramChange = (programId) => {
+    setTaskPerformanceParams((prev) => ({
+      ...prev,
+      program_id: programId || undefined,
+    }));
+  };
 
-  const dynamicChartData =
-    filteredTasks.length > 0
-      ? filteredTasks.map((t, index) => ({
-          name: `Task ${index + 1}`,
-          value: t.trials > 0 ? Math.round((t.correct / t.trials) * 100) : 0,
-        }))
-      : timeframe === "Month"
-        ? chartData.slice(0, 4)
-        : timeframe === "Year"
-          ? chartData.slice(0, 7)
-          : chartData;
-
-  const dynamicTableData = taskResults.map((p) => {
-    const totalTrials = p.tasks.reduce((sum, t) => sum + (t.trials || 0), 0);
-    const totalYes = p.tasks.reduce((sum, t) => sum + (t.correct || 0), 0);
-    const totalNo = p.tasks.reduce((sum, t) => sum + (t.incorrect || 0), 0);
-
-    // Create short name for table
-    let shortName = p.programTitle;
-    if (shortName.includes("Communication")) shortName = "Com. Skills Dev.";
-    else if (shortName.includes("Social Interaction"))
-      shortName = "Social Int. Fund.";
-    else if (shortName.includes("Emotion Recognition"))
-      shortName = "Emot. Rec. & Reg.";
-
-    return {
-      program: shortName,
-      trials: `${totalTrials} times`,
-      yes: `${totalYes} times`,
-      no: `${totalNo} times`,
-    };
-  });
-
-  const finalTableData =
-    dynamicTableData.length > 0 ? dynamicTableData : tableData;
+  const periodValueMap = {
+    "All time": "all_time",
+    Month: "month",
+    Year: "year",
+  };
 
   const handleDownload = (fileUrl, fileName) => {
     const link = document.createElement("a");
     link.href = fileUrl;
     link.download = fileName;
-    link.target = "_blank"; // optional
+    link.target = "_blank";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -164,37 +105,41 @@ const NotesReportsTab = ({
                   Success rate (%) across sessions
                 </p>
                 <div className="flex bg-gray-50 p-1 rounded-lg border border-gray-100">
-                  {["Month", "Year", "All time"].map((tf) => (
-                    <button
-                      key={tf}
-                      onClick={() => setTimeframe(tf)}
-                      className={`px-3 py-1 text-[11px] font-bold rounded-md transition-all ${
-                        timeframe === tf
-                          ? "bg-Secondary text-white shadow-sm"
-                          : "text-gray-400 hover:text-gray-600"
-                      }`}
-                    >
-                      {tf}
-                    </button>
-                  ))}
+                  {["Month", "Year", "All time"].map((label) => {
+                    const val = periodValueMap[label];
+                    return (
+                      <button
+                        key={label}
+                        onClick={() => handlePeriodChange(val)}
+                        className={`px-3 py-1 text-[11px] font-bold rounded-md transition-all ${
+                          activePeriod === val
+                            ? "bg-Secondary text-white shadow-sm"
+                            : "text-gray-400 hover:text-gray-600"
+                        }`}
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             </div>
             <div className="relative">
               <select
-                value={selectedProgramTitle}
-                onChange={(e) => setSelectedProgramTitle(e.target.value)}
+                value={selectedProgramId || "all"}
+                onChange={(e) =>
+                  handleProgramChange(
+                    e.target.value === "all" ? undefined : Number(e.target.value),
+                  )
+                }
                 className="appearance-none bg-[#76121F] text-white px-5 py-3 pr-10 rounded-xl font-bold text-[13px] md:text-[14px] shadow-md cursor-pointer outline-none focus:ring-2 focus:ring-[#76121F]/50"
               >
-                <option value="Communication Skills Development">
-                  Communication Skills Development
-                </option>
-                <option value="Social Interaction Fundamentals">
-                  Social Interaction Fundamentals
-                </option>
-                <option value="Emotion Recognition & Regulation">
-                  Emotion Recognition & Regulation
-                </option>
+                <option value="all">All Programs</option>
+                {availablePrograms.map((prog) => (
+                  <option key={prog.id} value={prog.id}>
+                    {prog.name}
+                  </option>
+                ))}
               </select>
               <ChevronDown
                 className="absolute right-4 top-1/2 -translate-y-1/2 text-white pointer-events-none"
@@ -203,63 +148,83 @@ const NotesReportsTab = ({
             </div>
           </div>
 
-          <div className="w-full h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart
-                data={dynamicChartData}
-                margin={{ top: 20, right: 10, left: -20, bottom: 0 }}
-              >
-                <defs>
-                  <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#76121F" stopOpacity={0.2} />
-                    <stop offset="95%" stopColor="#76121F" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid
-                  vertical={false}
-                  strokeDasharray="3 3"
-                  stroke="#f0f0f0"
-                />
-                <XAxis
-                  dataKey="name"
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fill: "#9CA3AF", fontSize: 12, fontWeight: 500 }}
-                  dy={10}
-                />
-                <YAxis
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fill: "#9CA3AF", fontSize: 12, fontWeight: 500 }}
-                  tickFormatter={(val) => `${val}%`}
-                  domain={[0, 100]}
-                  ticks={[0, 20, 40, 60, 80, 100]}
-                />
-                <Tooltip
-                  content={<CustomTooltip />}
-                  cursor={{
-                    stroke: "#76121F",
-                    strokeWidth: 1,
-                    strokeDasharray: "4 4",
-                  }}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="value"
-                  stroke="#76121F"
-                  strokeWidth={3}
-                  fillOpacity={1}
-                  fill="url(#colorValue)"
-                  activeDot={{
-                    r: 6,
-                    fill: "#76121F",
-                    stroke: "#FFF",
-                    strokeWidth: 2,
-                  }}
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
+          {taskPerformanceLoading ? (
+            <div className="flex items-center justify-center h-[300px]">
+              <div className="flex flex-col items-center gap-3">
+                <div className="w-8 h-8 border-4 border-[#76121F]/20 border-t-[#76121F] rounded-full animate-spin"></div>
+                <span className="text-gray-400 text-sm font-medium">Loading chart data...</span>
+              </div>
+            </div>
+          ) : taskPerformanceIsError ? (
+            <div className="flex items-center justify-center h-[300px]">
+              <div className="text-center">
+                <p className="text-[#EF4444] text-sm font-semibold">Failed to load chart data</p>
+                <p className="text-gray-400 text-xs mt-1">Please try again later.</p>
+              </div>
+            </div>
+          ) : dynamicChartData.length > 0 ? (
+            <div className="w-full h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart
+                  data={dynamicChartData}
+                  margin={{ top: 20, right: 10, left: -20, bottom: 0 }}
+                >
+                  <defs>
+                    <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#76121F" stopOpacity={0.2} />
+                      <stop offset="95%" stopColor="#76121F" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid
+                    vertical={false}
+                    strokeDasharray="3 3"
+                    stroke="#f0f0f0"
+                  />
+                  <XAxis
+                    dataKey="name"
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: "#9CA3AF", fontSize: 12, fontWeight: 500 }}
+                    dy={10}
+                  />
+                  <YAxis
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: "#9CA3AF", fontSize: 12, fontWeight: 500 }}
+                    tickFormatter={(val) => `${val}%`}
+                    domain={[0, 100]}
+                    ticks={[0, 20, 40, 60, 80, 100]}
+                  />
+                  <Tooltip
+                    content={<CustomTooltip />}
+                    cursor={{
+                      stroke: "#76121F",
+                      strokeWidth: 1,
+                      strokeDasharray: "4 4",
+                    }}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="value"
+                    stroke="#76121F"
+                    strokeWidth={3}
+                    fillOpacity={1}
+                    fill="url(#colorValue)"
+                    activeDot={{
+                      r: 6,
+                      fill: "#76121F",
+                      stroke: "#FFF",
+                      strokeWidth: 2,
+                    }}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          ) : (
+            <div className="flex items-center justify-center h-[300px] text-gray-400 text-sm font-medium">
+              No task performance data available for the selected filters.
+            </div>
+          )}
         </div>
 
         {/* Table Section */}
@@ -292,25 +257,36 @@ const NotesReportsTab = ({
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {taskPerformanceData?.task_responds?.map((row, idx) => (
-                  <tr
-                    key={idx}
-                    className="hover:bg-gray-50/50 transition-colors"
-                  >
-                    <td className="py-4 px-4 text-[#3A331E] text-[13px] font-semibold whitespace-nowrap">
-                      {row.program_name}
-                    </td>
-                    <td className="py-4 px-2 text-[#6B7280] text-[13px] font-medium whitespace-nowrap">
-                      {row.trials}
-                    </td>
-                    <td className="py-4 px-2 text-[#10B981] text-[13px] font-bold whitespace-nowrap">
-                      {row.correct}
-                    </td>
-                    <td className="py-4 px-4 text-[#EF4444] text-[13px] font-bold whitespace-nowrap">
-                      {row.incorrect}
+                {taskResponds.length > 0 ? (
+                  taskResponds.map((row, idx) => (
+                    <tr
+                      key={idx}
+                      className="hover:bg-gray-50/50 transition-colors"
+                    >
+                      <td className="py-4 px-4 text-[#3A331E] text-[13px] font-semibold whitespace-nowrap">
+                        {row.program_name}
+                      </td>
+                      <td className="py-4 px-2 text-[#6B7280] text-[13px] font-medium whitespace-nowrap">
+                        {row.trials}
+                      </td>
+                      <td className="py-4 px-2 text-[#10B981] text-[13px] font-bold whitespace-nowrap">
+                        {row.correct}
+                      </td>
+                      <td className="py-4 px-4 text-[#EF4444] text-[13px] font-bold whitespace-nowrap">
+                        {row.incorrect}
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td
+                      colSpan={4}
+                      className="py-8 text-center text-gray-400 text-sm font-medium"
+                    >
+                      No task response data available.
                     </td>
                   </tr>
-                ))}
+                )}
               </tbody>
             </table>
           </div>

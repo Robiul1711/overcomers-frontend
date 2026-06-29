@@ -61,17 +61,17 @@ const DirectorLayout = () => {
     },
     {
       id: 6,
-      icon: <Settings size={20} />,
-      text: "Profile",
-      path: "/director-dashboard/profile",
-      activePaths: ["/director-dashboard/profile"],
-    },
-    {
-      id: 7,
       icon: <Bell size={20} />,
       text: "Notifications",
       path: "/director-dashboard/notifications",
       activePaths: ["/director-dashboard/notifications"],
+    },
+    {
+      id: 7,
+      icon: <Settings size={20} />,
+      text: "Profile",
+      path: "/director-dashboard/profile",
+      activePaths: ["/director-dashboard/profile"],
     },
   ];
   const location = useLocation();

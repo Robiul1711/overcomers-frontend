@@ -45,11 +45,18 @@ const SupervisorLayout = () => {
     //   activePaths: ["/supervisor-dashboard/programs"],
     // },
     {
-      id: 4,
+      id: 3,
       icon: <Clock size={20} />,
       text: "Sessions",
       path: "/supervisor-dashboard/sessions",
       activePaths: ["/supervisor-dashboard/sessions"],
+    },
+    {
+      id: 4,
+      icon: <Bell size={20} />,
+      text: "Notifications",
+      path: "/supervisor-dashboard/notifications",
+      activePaths: ["/supervisor-dashboard/notifications"],
     },
     {
       id: 5,
@@ -57,13 +64,6 @@ const SupervisorLayout = () => {
       text: "Profile",
       path: "/supervisor-dashboard/profile",
       activePaths: ["/supervisor-dashboard/profile"],
-    },
-    {
-      id: 6,
-      icon: <Bell size={20} />,
-      text: "Notifications",
-      path: "/supervisor-dashboard/notifications",
-      activePaths: ["/supervisor-dashboard/notifications"],
     },
   ];
   const location = useLocation();

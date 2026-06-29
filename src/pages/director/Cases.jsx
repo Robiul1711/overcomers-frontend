@@ -670,29 +670,54 @@ const Cases = () => {
                 </div>
               ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  {detailsCase.schedules.map((sched) => (
-                    <div
-                      key={sched.id}
-                      className="bg-white p-3.5 rounded-xl border border-gray-100 shadow-sm flex flex-col gap-2"
-                    >
-                      <div className="flex items-center justify-between border-b border-gray-50 pb-1.5">
-                        <span className="font-bold text-xs text-Third">{sched.day_of_week}</span>
-                        <span className="bg-Primary/10 text-Secondary text-[8px] font-bold px-1.5 py-0.5 rounded uppercase">
-                          {sched.session_type || "ONE-TO-ONE"}
-                        </span>
-                      </div>
-                      <div className="flex flex-col gap-1 text-[11px] text-gray-500 font-medium">
-                        <div className="flex items-center gap-1">
-                          <Clock size={12} className="text-gray-400 shrink-0" />
-                          <span>{sched.start_time?.slice(0, 5)} - {sched.end_time?.slice(0, 5)}</span>
+                  {detailsCase.schedules.map((sched) => {
+                    const session = sched?.sessions?.[0];
+                    const sessionStatus = session?.status;
+                    const isCompleted = sessionStatus === "completed";
+                    const isInProgress = sessionStatus === "in_progress";
+                    const cardBgClass = isCompleted 
+                      ? "bg-emerald-50/40 border-emerald-100 shadow-sm" 
+                      : isInProgress 
+                        ? "bg-amber-50/40 border-amber-100 shadow-sm" 
+                        : "bg-white border-gray-100 shadow-sm";
+                    return (
+                      <div
+                        key={sched.id}
+                        className={`${cardBgClass} p-3.5 rounded-xl border flex flex-col gap-2`}
+                      >
+                        <div className="flex items-center justify-between border-b border-gray-50 pb-1.5">
+                          <span className="font-bold text-xs text-Third">{sched.day_of_week}</span>
+                          <span className="bg-Primary/10 text-Secondary text-[8px] font-bold px-1.5 py-0.5 rounded uppercase">
+                            {sched.session_type || "ONE-TO-ONE"}
+                          </span>
                         </div>
-                        <div className="flex items-center gap-1">
-                          <MapPin size={12} className="text-gray-400 shrink-0" />
-                          <span className="truncate">{sched.location || "N/A"}</span>
+                        <div className="flex flex-col gap-1 text-[11px] text-gray-500 font-medium">
+                          <div className="flex items-center gap-1">
+                            <Clock size={12} className="text-gray-400 shrink-0" />
+                            <span className="truncate">{sched.start_time?.slice(0, 5)} - {sched.end_time?.slice(0, 5)}</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <MapPin size={12} className="text-gray-400 shrink-0" />
+                            <span className="truncate">{sched.location || "N/A"}</span>
+                          </div>
+                          {sessionStatus && (
+                            <div className="mt-1 pt-1.5 border-t border-gray-50 flex items-center justify-between">
+                              <span className="text-[10px] text-gray-400 font-bold uppercase">Status</span>
+                              <span className={`text-[8px] font-extrabold px-1.5 py-0.5 rounded-full uppercase border ${
+                                isCompleted 
+                                  ? "bg-emerald-100/80 text-emerald-800 border-emerald-200" 
+                                  : isInProgress 
+                                    ? "bg-amber-100/80 text-amber-800 border-amber-200" 
+                                    : "bg-gray-100/80 text-gray-800 border-gray-200"
+                              }`}>
+                                {sessionStatus.replace("_", " ")}
+                              </span>
+                            </div>
+                          )}
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>

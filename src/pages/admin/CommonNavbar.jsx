@@ -13,6 +13,20 @@ const CommonNavbar = ({ open, setOpen }) => {
   const dispatch = useDispatch();
   const userType = useSelector(selectUserType);
 
+  const getNotificationsPath = (type) => {
+    if (type === "parent") return "/parent-dashboard/notifications";
+    if (type === "director") return "/director-dashboard/notifications";
+    if (type === "supervisor") return "/supervisor-dashboard/notifications";
+    return "/dashboard/notifications";
+  };
+
+  const getSettingsPath = (type) => {
+    if (type === "parent") return "/parent-dashboard/settings";
+    if (type === "director") return "/director-dashboard/profile";
+    if (type === "supervisor") return "/supervisor-dashboard/profile";
+    return "/dashboard/settings";
+  };
+
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const userMenuRef = useRef(null);
 
@@ -24,7 +38,6 @@ const CommonNavbar = ({ open, setOpen }) => {
   const { data: notifData } = useClient({
     queryKey: [`${userType}Notifications`],
     url: `/${userType}/notifications`,
-    enabled: userType !== "supervisor" && userType !== "director",
   });
 
   const profile = profileData?.data?.personal_information;
@@ -115,7 +128,7 @@ const CommonNavbar = ({ open, setOpen }) => {
 
       <div className="flex items-center gap-3 md:gap-6 shrink-0">
         <Link
-          to="/dashboard/notifications"
+          to={getNotificationsPath(userType)}
           className="relative cursor-pointer p-1.5 md:p-0"
         >
           <Bell color="#4A3E3D" size={20} className="md:w-[24px]" />
@@ -170,7 +183,7 @@ const CommonNavbar = ({ open, setOpen }) => {
 
               {/* Menu Items */}
               <Link
-                to="/dashboard/settings"
+                to={getSettingsPath(userType)}
                 onClick={() => setIsUserMenuOpen(false)}
                 className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#6B7280] hover:bg-[#FAF6F7] hover:text-[#2D2D2D] transition-colors"
               >

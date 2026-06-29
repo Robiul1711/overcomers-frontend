@@ -33,6 +33,7 @@ import DirectorPrograms from "@/pages/director/Programs";
 import DirectorStaff from "@/pages/director/Staff";
 import DirectorAudit from "@/pages/director/Audit";
 import DirectorProfile from "@/pages/director/Profile";
+import DirectorNotifications from "@/pages/director/Notifications";
 
 import SupervisorLayout from "@/layout/SupervisorLayout";
 import SupervisorDashboard from "@/pages/supervisor/SupervisorDashboard";
@@ -41,6 +42,7 @@ import SupervisorCaseDetails from "@/pages/supervisor/CaseDetails";
 import SupervisorPrograms from "@/pages/supervisor/Programs";
 import SupervisorProfile from "@/pages/supervisor/Profile";
 import SupervisorSessions from "@/pages/supervisor/Sessions";
+import SupervisorNotifications from "@/pages/supervisor/Notifications";
 
 import { createBrowserRouter } from "react-router-dom";
 import PrivateRoute from "@/components/common/PrivateRoute";
@@ -235,6 +237,10 @@ const router = createBrowserRouter([
         path: "/director-dashboard/profile",
         element: <DirectorProfile />,
       },
+      {
+        path: "/director-dashboard/notifications",
+        element: <DirectorNotifications />,
+      },
     ],
   },
   // Supervisor routes
@@ -265,6 +271,10 @@ const router = createBrowserRouter([
       {
         path: "/supervisor-dashboard/profile",
         element: <SupervisorProfile />,
+      },
+      {
+        path: "/supervisor-dashboard/notifications",
+        element: <SupervisorNotifications />,
       },
     ],
   },

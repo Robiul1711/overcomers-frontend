@@ -10,6 +10,7 @@ import {
   Layers,
   Clock,
   Settings,
+  Bell,
 } from "lucide-react";
 
 const SupervisorLayout = () => {
@@ -56,6 +57,13 @@ const SupervisorLayout = () => {
       text: "Profile",
       path: "/supervisor-dashboard/profile",
       activePaths: ["/supervisor-dashboard/profile"],
+    },
+    {
+      id: 6,
+      icon: <Bell size={20} />,
+      text: "Notifications",
+      path: "/supervisor-dashboard/notifications",
+      activePaths: ["/supervisor-dashboard/notifications"],
     },
   ];
   const location = useLocation();

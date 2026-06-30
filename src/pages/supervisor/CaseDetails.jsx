@@ -43,12 +43,36 @@ const CaseDetails = () => {
   const [otherType, setOtherType] = useState("");
   const [customLevel, setCustomLevel] = useState("Beginner");
   const [customDescription, setCustomDescription] = useState("");
+  const [customTasks, setCustomTasks] = useState([""]);
+
+  const handleTaskChange = (index, value) => {
+    const newTasks = [...customTasks];
+    newTasks[index] = value;
+    setCustomTasks(newTasks);
+  };
+
+  const handleRemoveTask = (index) => {
+    const newTasks = customTasks.filter((_, i) => i !== index);
+    setCustomTasks(newTasks.length ? newTasks : [""]);
+  };
 
   // Edit program form state
   const [editProgramId, setEditProgramId] = useState(null);
   const [editTitle, setEditTitle] = useState("");
   const [editLevel, setEditLevel] = useState("Beginner");
   const [editDescription, setEditDescription] = useState("");
+  const [editTasks, setEditTasks] = useState([""]);
+
+  const handleEditTaskChange = (index, value) => {
+    const newTasks = [...editTasks];
+    newTasks[index] = value;
+    setEditTasks(newTasks);
+  };
+
+  const handleRemoveEditTask = (index) => {
+    const newTasks = editTasks.filter((_, i) => i !== index);
+    setEditTasks(newTasks.length ? newTasks : [""]);
+  };
 
   // API Queries & Mutations
   const { data: resData, isLoading, isError } = useClient({
@@ -114,6 +138,7 @@ const CaseDetails = () => {
 
     const finalCategory = customCategory === "Other" ? otherCategory : customCategory;
     const finalType = customType === "Other" ? otherType : customType;
+    const filteredTasks = customTasks.map(t => t.trim()).filter(t => t !== "");
 
     createCustomProgram(
       {
@@ -124,6 +149,7 @@ const CaseDetails = () => {
           type: finalType,
           level: customLevel,
           description: customDescription,
+          tasks: filteredTasks,
         },
       },
       {
@@ -136,6 +162,7 @@ const CaseDetails = () => {
           setOtherType("");
           setCustomLevel("Beginner");
           setCustomDescription("");
+          setCustomTasks([""]);
         },
       }
     );
@@ -146,11 +173,14 @@ const CaseDetails = () => {
     setEditTitle(program.title || "");
     setEditDescription(program.description || "");
     setEditLevel(program.level || "Beginner");
+    const existingTasks = program.tasks ? program.tasks.map(t => t.title || "") : [];
+    setEditTasks(existingTasks.length ? existingTasks : [""]);
     setIsEditModalOpen(true);
   };
 
   const handleEditSubmit = () => {
     if (!editTitle.trim()) return;
+    const filteredTasks = editTasks.map(t => t.trim()).filter(t => t !== "");
     updateProgram(
       {
         id: editProgramId,
@@ -158,6 +188,7 @@ const CaseDetails = () => {
           title: editTitle,
           description: editDescription,
           level: editLevel,
+          tasks: filteredTasks,
         },
       },
       {
@@ -167,6 +198,7 @@ const CaseDetails = () => {
           setEditTitle("");
           setEditDescription("");
           setEditLevel("Beginner");
+          setEditTasks([""]);
         },
       }
     );
@@ -631,6 +663,7 @@ const CaseDetails = () => {
             setOtherType("");
             setCustomLevel("Beginner");
             setCustomDescription("");
+            setCustomTasks([""]);
           }
         }}
       >
@@ -750,6 +783,42 @@ const CaseDetails = () => {
                   className="w-full bg-[#F4F4F4] rounded-xl p-3.5 text-[13px] text-gray-700 outline-none border border-transparent focus:border-Primary transition-all font-medium h-24 resize-none"
                 />
               </div>
+
+              {/* Custom Tasks Input list */}
+              <div className="flex flex-col gap-2.5">
+                <div className="flex items-center justify-between">
+                  <label className="text-Third font-bold text-[13px]">Program Tasks</label>
+                  <button
+                    type="button"
+                    onClick={() => setCustomTasks([...customTasks, ""])}
+                    className="flex items-center gap-1 text-[11px] text-Secondary hover:underline font-bold"
+                  >
+                    <Plus size={14} /> Add Task
+                  </button>
+                </div>
+                <div className="flex flex-col gap-2 max-h-[180px] overflow-y-auto pr-1">
+                  {customTasks.map((task, index) => (
+                    <div key={index} className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        placeholder={`e.g. Task ${index + 1}`}
+                        value={task}
+                        onChange={(e) => handleTaskChange(index, e.target.value)}
+                        className="flex-1 bg-[#F4F4F4] rounded-xl p-3.5 text-[13px] text-gray-700 outline-none border border-transparent focus:border-Primary transition-all font-medium"
+                      />
+                      {customTasks.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveTask(index)}
+                          className="p-3 bg-red-50 hover:bg-red-100 text-red-500 rounded-xl transition-colors border border-red-100 flex items-center justify-center"
+                        >
+                          <X size={16} />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
 
             <div className="flex flex-col-reverse sm:flex-row items-center justify-end gap-3 pt-3 border-t border-gray-100">
@@ -787,6 +856,7 @@ const CaseDetails = () => {
             setEditTitle("");
             setEditDescription("");
             setEditLevel("Beginner");
+            setEditTasks([""]);
           }
         }}
       >
@@ -837,6 +907,42 @@ const CaseDetails = () => {
                   onChange={(e) => setEditDescription(e.target.value)}
                   className="w-full bg-[#F4F4F4] rounded-xl p-3.5 text-[13px] text-gray-700 outline-none border border-transparent focus:border-Primary transition-all font-medium h-28 resize-none"
                 />
+              </div>
+
+              {/* Edit Tasks Input list */}
+              <div className="flex flex-col gap-2.5">
+                <div className="flex items-center justify-between">
+                  <label className="text-Third font-bold text-[13px]">Program Tasks</label>
+                  <button
+                    type="button"
+                    onClick={() => setEditTasks([...editTasks, ""])}
+                    className="flex items-center gap-1 text-[11px] text-Secondary hover:underline font-bold"
+                  >
+                    <Plus size={14} /> Add Task
+                  </button>
+                </div>
+                <div className="flex flex-col gap-2 max-h-[180px] overflow-y-auto pr-1">
+                  {editTasks.map((task, index) => (
+                    <div key={index} className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        placeholder={`e.g. Task ${index + 1}`}
+                        value={task}
+                        onChange={(e) => handleEditTaskChange(index, e.target.value)}
+                        className="flex-1 bg-[#F4F4F4] rounded-xl p-3.5 text-[13px] text-gray-700 outline-none border border-transparent focus:border-Primary transition-all font-medium"
+                      />
+                      {editTasks.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveEditTask(index)}
+                          className="p-3 bg-red-50 hover:bg-red-100 text-red-500 rounded-xl transition-colors border border-red-100 flex items-center justify-center"
+                        >
+                          <X size={16} />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
 

@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { ChevronDown, Check, User, Shield, UserCheck, MapPin, Search, ChevronLeft, ChevronRight, Loader2, HelpCircle, Mail, Phone, Clock, Calendar, Trash2, AlertTriangle } from "lucide-react";
 import TableSkeleton from "@/components/common/TableSkeleton";
 import useClient from "@/hooks/useClient";
@@ -6,6 +7,7 @@ import useMutationClient from "@/hooks/useMutationClient";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 const Cases = () => {
+  const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState("All Statuses");
   const [search, setSearch] = useState("");
@@ -17,17 +19,12 @@ const Cases = () => {
   const [assignedSupervisorId, setAssignedSupervisorId] = useState("");
   const [assignedEmployeeId, setAssignedEmployeeId] = useState("");
 
-  // Case details modal states
-  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
-  const [detailsCase, setDetailsCase] = useState(null);
-
   // Delete case states
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [caseToDelete, setCaseToDelete] = useState(null);
 
   const handleOpenDetailsModal = (caseItem) => {
-    setDetailsCase(caseItem);
-    setIsDetailsModalOpen(true);
+    navigate(`/director-dashboard/cases/${caseItem.id}`);
   };
 
   const handleOpenDeleteModal = (caseItem) => {
@@ -487,251 +484,6 @@ const Cases = () => {
                 ) : (
                   "Save Assignment"
                 )}
-              </button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* DIALOG: Case Details Modal */}
-      <Dialog
-        open={isDetailsModalOpen}
-        onOpenChange={(open) => {
-          setIsDetailsModalOpen(open);
-          if (!open) {
-            setDetailsCase(null);
-          }
-        }}
-      >
-        <DialogContent className="max-w-[95vw] sm:max-w-[750px] p-0 rounded-[28px] overflow-hidden border-none shadow-2xl">
-          <div className="p-6 sm:p-8 flex flex-col gap-6 bg-white max-h-[90vh] overflow-y-auto custom-scrollbar">
-            {/* Header Block */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-gray-100">
-              <div>
-                <div className="flex items-center gap-3">
-                  <h2 className="text-xl sm:text-2xl font-black text-Third leading-tight">
-                    Case {detailsCase?.case_number}
-                  </h2>
-                  {detailsCase?.status && (
-                    <span className="px-3 py-1 rounded-full text-[10px] font-bold border bg-green-50 text-green-700 border-green-200">
-                      {detailsCase.status}
-                    </span>
-                  )}
-                </div>
-                <p className="text-gray-400 text-xs mt-1.5 font-semibold">
-                  Service: <strong className="text-Third">{detailsCase?.service?.name || "N/A"}</strong>
-                </p>
-              </div>
-
-              {detailsCase?.start_date && (
-                <div className="flex items-center gap-2 text-xs text-gray-500 bg-[#FAF6F7] px-3.5 py-2 rounded-xl border border-gray-50 self-start md:self-auto font-medium">
-                  <Calendar size={15} className="text-Secondary" />
-                  <span>Start Date: <strong className="text-Third">{detailsCase.start_date}</strong></span>
-                </div>
-              )}
-            </div>
-
-            {/* Profile Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-              {/* Client (Parent) Information */}
-              <div className="bg-gray-50/50 p-5 rounded-2xl border border-gray-100/50 flex flex-col gap-4">
-                <div className="flex items-center gap-2.5 pb-2.5 border-b border-gray-100">
-                  <div className="p-2 bg-Primary/20 text-[#76121F] rounded-xl shrink-0">
-                    <User size={16} />
-                  </div>
-                  <div>
-                    <h3 className="text-xs font-black text-Third uppercase tracking-wide">Client (Parent) Info</h3>
-                  </div>
-                </div>
-
-                <div className="flex flex-col gap-3">
-                  <div>
-                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Full Name</span>
-                    <span className="text-xs font-bold text-Third mt-0.5 block">{detailsCase?.parent?.name || "N/A"}</span>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <Mail size={14} className="text-gray-400 shrink-0" />
-                    <div className="overflow-hidden">
-                      <span className="text-xs font-semibold text-gray-600 block truncate">{detailsCase?.parent?.email || "N/A"}</span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <Phone size={14} className="text-gray-400 shrink-0" />
-                    <div>
-                      <span className="text-xs font-semibold text-gray-600 block">{detailsCase?.parent?.phone_number || "N/A"}</span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <MapPin size={14} className="text-gray-400 shrink-0" />
-                    <div>
-                      <span className="text-xs font-semibold text-gray-600 block truncate">{detailsCase?.location || "N/A"}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Staff Assignments */}
-              <div className="bg-gray-50/50 p-5 rounded-2xl border border-gray-100/50 flex flex-col gap-4">
-                <div className="flex items-center gap-2.5 pb-2.5 border-b border-gray-100">
-                  <div className="p-2 bg-Primary/20 text-[#76121F] rounded-xl shrink-0">
-                    <UserCheck size={16} />
-                  </div>
-                  <div>
-                    <h3 className="text-xs font-black text-Third uppercase tracking-wide">Staff Caseload</h3>
-                  </div>
-                </div>
-
-                <div className="flex flex-col gap-4">
-                  {/* Supervisor */}
-                  <div>
-                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Clinical Supervisor (BCBA)</span>
-                    {detailsCase?.supervisor ? (
-                      <div className="flex items-center gap-2 mt-1">
-                        <div className="w-5 h-5 rounded-full bg-indigo-50 border border-indigo-100 flex items-center justify-center shrink-0">
-                          <Shield className="text-indigo-600" size={10} />
-                        </div>
-                        <span className="text-xs font-bold text-gray-700 truncate max-w-[200px]" title={detailsCase.supervisor.name}>
-                          {detailsCase.supervisor.name}
-                        </span>
-                      </div>
-                    ) : (
-                      <span className="text-xs font-medium text-gray-400 italic block mt-0.5">Unassigned</span>
-                    )}
-                  </div>
-
-                  {/* Employee RBT */}
-                  <div>
-                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Behavior Therapist (RBT)</span>
-                    {detailsCase?.employee ? (
-                      <div className="flex items-center gap-2 mt-1">
-                        <div className="w-5 h-5 rounded-full bg-purple-50 border border-purple-100 flex items-center justify-center shrink-0">
-                          <UserCheck className="text-purple-600" size={10} />
-                        </div>
-                        <span className="text-xs font-bold text-gray-700 truncate max-w-[200px]" title={detailsCase.employee.name}>
-                          {detailsCase.employee.name}
-                        </span>
-                      </div>
-                    ) : (
-                      <span className="text-xs font-medium text-gray-400 italic block mt-0.5">Unassigned</span>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Session Schedule Hours & Frequency */}
-            <div className="bg-gray-50/50 p-5 rounded-2xl border border-gray-100/50 flex flex-col gap-4">
-              <div className="flex items-center justify-between border-b border-gray-100 pb-2.5">
-                <div className="flex items-center gap-2.5">
-                  <div className="p-2 bg-Primary/20 text-[#76121F] rounded-xl shrink-0">
-                    <Clock size={16} />
-                  </div>
-                  <h3 className="text-xs font-black text-Third uppercase tracking-wide">Weekly Caseload Hours</h3>
-                </div>
-                <span className="text-[11px] font-bold text-Secondary bg-Primary/10 px-2.5 py-1 rounded-lg">
-                  {detailsCase?.frequency || 0} Session(s) / Week
-                </span>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <span className="text-[10px] font-bold text-gray-400 uppercase block">Daily Caseload Window</span>
-                  <div className="flex items-center gap-1.5 mt-1 font-semibold text-xs">
-                    <span className="bg-white border border-gray-100 px-2.5 py-1 rounded-md text-Third">
-                      {detailsCase?.session_start_time || "00:00"}
-                    </span>
-                    <span className="text-gray-400 text-[10px] font-bold">to</span>
-                    <span className="bg-white border border-gray-100 px-2.5 py-1 rounded-md text-Third">
-                      {detailsCase?.session_end_time || "00:00"}
-                    </span>
-                  </div>
-                </div>
-
-                <div>
-                  <span className="text-[10px] font-bold text-gray-400 uppercase block">Caseload Location</span>
-                  <span className="text-xs font-bold text-Third mt-1.5 block">{detailsCase?.location || "N/A"}</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Schedules Section */}
-            <div className="flex flex-col gap-3">
-              <div className="flex items-center gap-2">
-                <Clock className="text-Secondary" size={16} />
-                <h3 className="text-xs font-black text-Third uppercase tracking-wide">Day-by-Day Session Schedules</h3>
-              </div>
-
-              {!detailsCase?.schedules || detailsCase.schedules.length === 0 ? (
-                <div className="text-center py-6 text-gray-400 font-medium text-xs bg-gray-50/50 rounded-2xl border border-dashed border-gray-200">
-                  No session schedules defined yet.
-                </div>
-              ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  {detailsCase.schedules.map((sched) => {
-                    const session = sched?.sessions?.[0];
-                    const sessionStatus = session?.status;
-                    const isCompleted = sessionStatus === "completed";
-                    const isInProgress = sessionStatus === "in_progress";
-                    const cardBgClass = isCompleted 
-                      ? "bg-emerald-50/40 border-emerald-100 shadow-sm" 
-                      : isInProgress 
-                        ? "bg-amber-50/40 border-amber-100 shadow-sm" 
-                        : "bg-white border-gray-100 shadow-sm";
-                    return (
-                      <div
-                        key={sched.id}
-                        className={`${cardBgClass} p-3.5 rounded-xl border flex flex-col gap-2`}
-                      >
-                        <div className="flex items-center justify-between border-b border-gray-50 pb-1.5">
-                          <span className="font-bold text-xs text-Third">{sched.day_of_week}</span>
-                          <span className="bg-Primary/10 text-Secondary text-[8px] font-bold px-1.5 py-0.5 rounded uppercase">
-                            {sched.session_type || "ONE-TO-ONE"}
-                          </span>
-                        </div>
-                        <div className="flex flex-col gap-1 text-[11px] text-gray-500 font-medium">
-                          <div className="flex items-center gap-1">
-                            <Clock size={12} className="text-gray-400 shrink-0" />
-                            <span className="truncate">{sched.start_time?.slice(0, 5)} - {sched.end_time?.slice(0, 5)}</span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <MapPin size={12} className="text-gray-400 shrink-0" />
-                            <span className="truncate">{sched.location || "N/A"}</span>
-                          </div>
-                          {sessionStatus && (
-                            <div className="mt-1 pt-1.5 border-t border-gray-50 flex items-center justify-between">
-                              <span className="text-[10px] text-gray-400 font-bold uppercase">Status</span>
-                              <span className={`text-[8px] font-extrabold px-1.5 py-0.5 rounded-full uppercase border ${
-                                isCompleted 
-                                  ? "bg-emerald-100/80 text-emerald-800 border-emerald-200" 
-                                  : isInProgress 
-                                    ? "bg-amber-100/80 text-amber-800 border-amber-200" 
-                                    : "bg-gray-100/80 text-gray-800 border-gray-200"
-                              }`}>
-                                {sessionStatus.replace("_", " ")}
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-
-            {/* Footer */}
-            <div className="flex items-center justify-end pt-3 border-t border-gray-100 mt-2">
-              <button
-                onClick={() => {
-                  setIsDetailsModalOpen(false);
-                  setDetailsCase(null);
-                }}
-                className="w-full sm:w-auto bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold text-xs px-6 py-3 rounded-xl transition-colors"
-              >
-                Close Details
               </button>
             </div>
           </div>

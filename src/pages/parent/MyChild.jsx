@@ -111,7 +111,7 @@ const EditChildProfileModal = ({ isOpen, onClose, childData }) => {
       <div className="bg-white rounded-[2rem] w-full max-w-lg relative z-10 shadow-2xl animate-in zoom-in-95 duration-300 overflow-hidden max-h-[95vh] flex flex-col">
         <div className="p-8 overflow-y-auto custom-scrollbar flex-1 text-left">
           <div className="relative mb-2">
-            <h3 className="text-3xl font-bold text-[#3A331E]">Edit Profile</h3>
+            <h3 className="text-3xl font-bold text-[#3A331E]">Edit Profiless</h3>
             <p className="text-sm font-medium text-[#9CA3AF] mt-1">
               Update your personal information
             </p>

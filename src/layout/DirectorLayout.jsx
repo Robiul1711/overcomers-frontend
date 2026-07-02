@@ -69,7 +69,7 @@ const DirectorLayout = () => {
     {
       id: 7,
       icon: <Settings size={20} />,
-      text: "Profile",
+      text: "Profile & Settings",
       path: "/director-dashboard/profile",
       activePaths: ["/director-dashboard/profile"],
     },

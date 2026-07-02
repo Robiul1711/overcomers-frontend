@@ -61,7 +61,7 @@ const SupervisorLayout = () => {
     {
       id: 6,
       icon: <Settings size={20} />,
-      text: "Profile",
+      text: "Profile & Settings",
       path: "/supervisor-dashboard/profile",
       activePaths: ["/supervisor-dashboard/profile"],
     },

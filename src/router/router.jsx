@@ -29,6 +29,7 @@ import ParentProfileSettings from "@/pages/parent/ProfileSettings";
 import DirectorLayout from "@/layout/DirectorLayout";
 import DirectorDashboard from "@/pages/director/DirectorDashboard";
 import DirectorCases from "@/pages/director/Cases";
+import DirectorCaseDetails from "@/pages/director/CaseDetails";
 import DirectorPrograms from "@/pages/director/Programs";
 import DirectorStaff from "@/pages/director/Staff";
 import DirectorAudit from "@/pages/director/Audit";
@@ -220,6 +221,10 @@ const router = createBrowserRouter([
       {
         path: "/director-dashboard/cases",
         element: <DirectorCases />,
+      },
+      {
+        path: "/director-dashboard/cases/:id",
+        element: <DirectorCaseDetails />,
       },
       {
         path: "/director-dashboard/programs",

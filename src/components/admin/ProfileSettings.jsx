@@ -16,6 +16,10 @@ const ProfileSettings = () => {
   const [editName, setEditName] = useState('');
   const [editPhone, setEditPhone] = useState('');
   const [editAddress, setEditAddress] = useState('');
+  const [editIdNumber, setEditIdNumber] = useState('');
+  const [editBankName, setEditBankName] = useState('');
+  const [editBankAccountNo, setEditBankAccountNo] = useState('');
+  const [editBankRoutingNo, setEditBankRoutingNo] = useState('');
   const [editFile, setEditFile] = useState(null);
   const [editPreview, setEditPreview] = useState('');
   const fileInputRef = useRef(null);
@@ -33,10 +37,11 @@ const ProfileSettings = () => {
   const profile = data?.data;
   const personal = profile?.personal_information || {};
   const professional = profile?.professional_information || {};
+  const payroll = profile?.payroll_information || {};
 
   const { mutate: updateProfile, isPending: isUpdating } = useMutationClient({
     url: "/employee/profile",
-    method: "put",
+    method: "post",
     invalidateKeys: [["employeeProfile"]],
     successMessage: "Profile updated successfully",
   });
@@ -53,10 +58,14 @@ const ProfileSettings = () => {
       setEditName(personal.full_name || '');
       setEditPhone(personal.phone_number || '');
       setEditAddress(personal.address || '');
+      setEditIdNumber(personal.id_number || '');
+      setEditBankName(payroll.bank_name || '');
+      setEditBankAccountNo(payroll.bank_account_no || '');
+      setEditBankRoutingNo(payroll.bank_routing_no || '');
       setEditFile(null);
       setEditPreview('');
     }
-  }, [isEditModalOpen, personal]);
+  }, [isEditModalOpen, personal, payroll]);
 
   // Cleanup preview URL
   useEffect(() => {
@@ -85,6 +94,10 @@ const ProfileSettings = () => {
     formData.append('name', editName);
     formData.append('phone_number', editPhone);
     formData.append('address', editAddress);
+    formData.append('id_number', editIdNumber);
+    formData.append('bank_name', editBankName);
+    formData.append('bank_account_no', editBankAccountNo);
+    formData.append('bank_routing_no', editBankRoutingNo);
     if (editFile) {
       formData.append('profile_picture', editFile);
     }
@@ -100,6 +113,10 @@ const ProfileSettings = () => {
 
   const resetEditModal = () => {
     setIsEditModalOpen(false);
+    setEditIdNumber('');
+    setEditBankName('');
+    setEditBankAccountNo('');
+    setEditBankRoutingNo('');
     setEditFile(null);
     setEditPreview('');
   };
@@ -199,6 +216,7 @@ const ProfileSettings = () => {
     { label: "Residence", value: personal.address },
     { label: "Join Date", value: personal.hire_date },
     { label: "Status", value: personal.employment_status },
+    { label: "ID Number", value: personal.id_number },
   ];
 
   const professionalInfo = [
@@ -206,6 +224,12 @@ const ProfileSettings = () => {
     { label: "Assigned BCBA", value: professional.supervisor },
     { label: "Team Group", value: professional.department },
     { label: "Latest Credentials", value: professional.certification },
+  ];
+
+  const payrollInfo = [
+    { label: "Bank Name", value: payroll.bank_name },
+    { label: "Bank Account No", value: payroll.bank_account_no },
+    { label: "Bank Routing No", value: payroll.bank_routing_no },
   ];
 
   const profilePictureUrl = personal.profile_picture;
@@ -262,42 +286,62 @@ const ProfileSettings = () => {
       </div>
 
       {/* Info Cards Container */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 md:gap-8">
-        {/* Personal Information */}
-        <div className="bg-white rounded-[24px] p-6 md:p-8 shadow-sm h-full flex flex-col border border-gray-50">
-          <div className="flex items-center gap-3 mb-4">
-             <div className="w-2 h-8 bg-Primary rounded-full"></div>
-             <h3 className="text-[20px] md:text-[24px] font-bold text-Third">Personal Data</h3>
+      <div className="flex flex-col gap-6 md:gap-8">
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 md:gap-8">
+          {/* Personal Information */}
+          <div className="bg-white rounded-[24px] p-6 md:p-8 shadow-sm h-full flex flex-col border border-gray-50">
+            <div className="flex items-center gap-3 mb-4">
+               <div className="w-2 h-8 bg-Primary rounded-full"></div>
+               <h3 className="text-[20px] md:text-[24px] font-bold text-Third">Personal Data</h3>
+            </div>
+            <div className="w-full h-px bg-gray-100 mb-8"></div>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-2 xxl:grid-cols-3 gap-4 flex-grow">
+              {personalInfo.map((item, idx) => (
+                <div key={idx} className="bg-[#FAF9F6] p-4 md:p-5 rounded-2xl flex flex-col gap-1 border border-gray-100/50">
+                  <span className="text-gray-400 text-[12px] font-bold uppercase tracking-wider">{item.label}</span>
+                  <span className={`text-Third font-bold text-[14px] md:text-[15px] truncate ${
+                    item.label === "Status" ? (item.value === "Active" ? "text-[#1eb15d]" : "text-gray-500") : ""
+                  }`}>
+                    {item.value || '—'}
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
-          <div className="w-full h-px bg-gray-100 mb-8"></div>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-2 xxl:grid-cols-3 gap-4 flex-grow">
-            {personalInfo.map((item, idx) => (
-              <div key={idx} className="bg-[#FAF9F6] p-4 md:p-5 rounded-2xl flex flex-col gap-1 border border-gray-100/50">
-                <span className="text-gray-400 text-[12px] font-bold uppercase tracking-wider">{item.label}</span>
-                <span className={`text-Third font-bold text-[14px] md:text-[15px] truncate ${
-                  item.label === "Status" ? (item.value === "Active" ? "text-[#1eb15d]" : "text-gray-500") : ""
-                }`}>
-                  {item.value || '—'}
-                </span>
-              </div>
-            ))}
+
+          {/* Professional Information */}
+          <div className="bg-white rounded-[24px] p-6 md:p-8 shadow-sm h-full flex flex-col border border-gray-50">
+            <div className="flex items-center gap-3 mb-4">
+               <div className="w-2 h-8 bg-Secondary rounded-full"></div>
+               <h3 className="text-[20px] md:text-[24px] font-bold text-Third">Employment Info</h3>
+            </div>
+            <div className="w-full h-px bg-gray-100 mb-8"></div>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 flex-grow">
+              {professionalInfo.map((item, idx) => (
+                <div key={idx} className="bg-Secondary/[0.03] p-4 md:p-5 rounded-2xl flex flex-col gap-1 border border-Secondary/5">
+                  <span className="text-Secondary/40 text-[12px] font-bold uppercase tracking-wider">{item.label}</span>
+                  <span className="text-Secondary font-bold text-[14px] md:text-[15px]">{item.value || '—'}</span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 
-        {/* Professional Information */}
-        <div className="bg-white rounded-[24px] p-6 md:p-8 shadow-sm h-full flex flex-col border border-gray-50">
+        {/* Payroll Information */}
+        <div className="bg-white rounded-[24px] p-6 md:p-8 shadow-sm border border-gray-50">
           <div className="flex items-center gap-3 mb-4">
-             <div className="w-2 h-8 bg-Secondary rounded-full"></div>
-             <h3 className="text-[20px] md:text-[24px] font-bold text-Third">Employment Info</h3>
+             <div className="w-2 h-8 bg-Primary rounded-full"></div>
+             <h3 className="text-[20px] md:text-[24px] font-bold text-Third">Payroll Information</h3>
           </div>
           <div className="w-full h-px bg-gray-100 mb-8"></div>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 flex-grow">
-            {professionalInfo.map((item, idx) => (
-              <div key={idx} className="bg-Secondary/[0.03] p-4 md:p-5 rounded-2xl flex flex-col gap-1 border border-Secondary/5">
-                <span className="text-Secondary/40 text-[12px] font-bold uppercase tracking-wider">{item.label}</span>
-                <span className="text-Secondary font-bold text-[14px] md:text-[15px]">{item.value || '—'}</span>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {payrollInfo.map((item, idx) => (
+              <div key={idx} className="bg-[#FAF9F6] p-4 md:p-5 rounded-2xl flex flex-col gap-1 border border-gray-100/50">
+                <span className="text-gray-400 text-[12px] font-bold uppercase tracking-wider">{item.label}</span>
+                <span className="text-Third font-bold text-[14px] md:text-[15px] truncate">{item.value || '—'}</span>
               </div>
             ))}
           </div>
@@ -497,6 +541,61 @@ const ProfileSettings = () => {
                   onChange={(e) => setEditAddress(e.target.value)}
                   className="w-full bg-[#F4F4F4] rounded-xl p-3 sm:p-4 text-sm sm:text-[15px] text-[#3A331E] outline-none border border-transparent focus:border-[#FFBB03] transition-all"
                 />
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <label className="text-[#3A331E] font-bold text-sm">
+                  ID Number
+                </label>
+                <input
+                  type="text"
+                  value={editIdNumber}
+                  onChange={(e) => setEditIdNumber(e.target.value)}
+                  className="w-full bg-[#F4F4F4] rounded-xl p-3 sm:p-4 text-sm sm:text-[15px] text-[#3A331E] outline-none border border-transparent focus:border-[#FFBB03] transition-all"
+                />
+              </div>
+
+              {/* Payroll Section */}
+              <div className="bg-[#FAF9F6] border border-[#FFBB03]/10 rounded-2xl sm:rounded-3xl p-4 sm:p-6 flex flex-col gap-4 sm:gap-5 mt-2">
+                <h4 className="text-[#3A331E] font-extrabold text-base sm:text-lg tracking-wide">
+                  Payroll Information
+                </h4>
+
+                <div className="flex flex-col gap-2">
+                  <label className="text-[#3A331E] font-bold text-[13px]">
+                    Bank Name
+                  </label>
+                  <input
+                    type="text"
+                    value={editBankName}
+                    onChange={(e) => setEditBankName(e.target.value)}
+                    className="w-full bg-white rounded-xl p-3 sm:p-4 text-sm text-[#3A331E] font-semibold border border-[#FFBB03]/20 focus:border-[#FFBB03] outline-none transition-all"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <label className="text-[#3A331E] font-bold text-[13px]">
+                    Bank Account Number
+                  </label>
+                  <input
+                    type="text"
+                    value={editBankAccountNo}
+                    onChange={(e) => setEditBankAccountNo(e.target.value)}
+                    className="w-full bg-white rounded-xl p-3 sm:p-4 text-sm text-[#3A331E] font-semibold border border-[#FFBB03]/20 focus:border-[#FFBB03] outline-none transition-all"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <label className="text-[#3A331E] font-bold text-[13px]">
+                    Bank Routing Number
+                  </label>
+                  <input
+                    type="text"
+                    value={editBankRoutingNo}
+                    onChange={(e) => setEditBankRoutingNo(e.target.value)}
+                    className="w-full bg-white rounded-xl p-3 sm:p-4 text-sm text-[#3A331E] font-semibold border border-[#FFBB03]/20 focus:border-[#FFBB03] outline-none transition-all"
+                  />
+                </div>
               </div>
 
               {/* Professional Section */}

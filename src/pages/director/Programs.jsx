@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Search, ChevronDown, Check, BookOpen, Layers, User, Calendar, Loader2, Plus, ArrowRight, HelpCircle, Pencil, Archive, AlertTriangle } from "lucide-react";
+import { Search, ChevronDown, Check, BookOpen, Layers, User, Calendar, Loader2, Plus, ArrowRight, HelpCircle, Pencil, Archive, AlertTriangle, X } from "lucide-react";
 import useClient from "@/hooks/useClient";
 import useMutationClient from "@/hooks/useMutationClient";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -21,21 +21,23 @@ const Programs = () => {
 
   // Form states for creating a program
   const [title, setTitle] = useState("");
-  const [category, setCategory] = useState("Communication");
+  const [category, setCategory] = useState("");
   const [customCategory, setCustomCategory] = useState("");
-  const [type, setType] = useState("Skill Acquisition");
+  const [type, setType] = useState("");
   const [customType, setCustomType] = useState("");
-  const [level, setLevel] = useState("Beginner");
+  const [level, setLevel] = useState("");
   const [description, setDescription] = useState("");
+  const [tasks, setTasks] = useState([""]);
 
   // Form states for editing a program
   const [editTitle, setEditTitle] = useState("");
-  const [editCategory, setEditCategory] = useState("Communication");
+  const [editCategory, setEditCategory] = useState("");
   const [editCustomCategory, setEditCustomCategory] = useState("");
-  const [editType, setEditType] = useState("Skill Acquisition");
+  const [editType, setEditType] = useState("");
   const [editCustomType, setEditCustomType] = useState("");
-  const [editLevel, setEditLevel] = useState("Beginner");
+  const [editLevel, setEditLevel] = useState("");
   const [editDescription, setEditDescription] = useState("");
+  const [editTasks, setEditTasks] = useState([""]);
 
   // Fetch Library Programs list
   const { data: resData, isLoading, isError } = useClient({
@@ -87,12 +89,45 @@ const Programs = () => {
     return matchesSearch && matchesCategory;
   });
 
+  // Create tasks handlers
+  const handleTaskChange = (index, value) => {
+    const newTasks = [...tasks];
+    newTasks[index] = value;
+    setTasks(newTasks);
+  };
+
+  const handleAddTask = () => {
+    setTasks([...tasks, ""]);
+  };
+
+  const handleRemoveTask = (index) => {
+    const newTasks = tasks.filter((_, i) => i !== index);
+    setTasks(newTasks.length ? newTasks : [""]);
+  };
+
+  // Edit tasks handlers
+  const handleEditTaskChange = (index, value) => {
+    const newTasks = [...editTasks];
+    newTasks[index] = value;
+    setEditTasks(newTasks);
+  };
+
+  const handleEditAddTask = () => {
+    setEditTasks([...editTasks, ""]);
+  };
+
+  const handleEditRemoveTask = (index) => {
+    const newTasks = editTasks.filter((_, i) => i !== index);
+    setEditTasks(newTasks.length ? newTasks : [""]);
+  };
+
   const handleCreateSubmit = (e) => {
     e.preventDefault();
-    if (!title || !description) return;
+    if (!title || !description || !category || !level || !type) return;
 
     const finalCategory = category === "Other" ? customCategory : category;
     const finalType = type === "Other" ? customType : type;
+    const filteredTasks = tasks.map((t) => t.trim()).filter((t) => t !== "");
 
     createProgram(
       {
@@ -102,6 +137,7 @@ const Programs = () => {
           type: finalType || "Standard",
           level,
           description,
+          tasks: filteredTasks,
         },
       },
       {
@@ -109,12 +145,13 @@ const Programs = () => {
           setIsAddModalOpen(false);
           // Clear form
           setTitle("");
-          setCategory("Communication");
+          setCategory("");
           setCustomCategory("");
-          setType("Skill Acquisition");
+          setType("");
           setCustomType("");
-          setLevel("Beginner");
+          setLevel("");
           setDescription("");
+          setTasks([""]);
         },
       }
     );
@@ -158,7 +195,7 @@ const Programs = () => {
       setEditCustomCategory(program.category || "");
     }
 
-    const standardTypes = ["Skill Acquisition", "Task Analysis", "DTT (Discrete Trial Training)", "NET (Natural Environment Teaching)"];
+    const standardTypes = ["Skill Acquisition", "Task Analysis", "DTT (Discrete Trial Training)", "NET (Natural Environment Teaching)", "Behavioral"];
     if (standardTypes.includes(program.type)) {
       setEditType(program.type);
       setEditCustomType("");
@@ -167,17 +204,22 @@ const Programs = () => {
       setEditCustomType(program.type || "");
     }
 
-    setEditLevel(program.level || "Beginner");
+    setEditLevel(program.level || "");
     setEditDescription(program.description || "");
+    
+    const existingTasks = program.tasks ? program.tasks.map((t) => t.title || (typeof t === "string" ? t : "")) : [];
+    setEditTasks(existingTasks.length ? existingTasks : [""]);
+    
     setIsEditModalOpen(true);
   };
 
   const handleEditSubmit = (e) => {
     e.preventDefault();
-    if (!editProgram || !editTitle || !editDescription) return;
+    if (!editProgram || !editTitle || !editDescription || !editCategory || !editLevel || !editType) return;
 
     const finalCategory = editCategory === "Other" ? editCustomCategory : editCategory;
     const finalType = editType === "Other" ? editCustomType : editType;
+    const filteredTasks = editTasks.map((t) => t.trim()).filter((t) => t !== "");
 
     updateProgram(
       {
@@ -188,12 +230,14 @@ const Programs = () => {
           type: finalType || "Standard",
           level: editLevel,
           description: editDescription,
+          tasks: filteredTasks,
         },
       },
       {
         onSuccess: () => {
           setIsEditModalOpen(false);
           setEditProgram(null);
+          setEditTasks([""]);
         },
       }
     );
@@ -432,140 +476,219 @@ const Programs = () => {
 
       {/* DIALOG: Create Program Modal */}
       <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
-        <DialogContent className="max-w-[95vw] sm:max-w-[550px] p-0 rounded-[28px] overflow-hidden border-none shadow-2xl">
-          <form onSubmit={handleCreateSubmit} className="p-6 sm:p-8 flex flex-col gap-6 bg-white">
-            <div>
-              <h2 className="text-[20px] sm:text-[22px] font-black text-Third leading-tight">
-                Create Clinical Template
-              </h2>
-              <p className="text-gray-400 text-xs mt-1 font-medium">
-                Define targets for skill acquisition, manding, or daily living routines to store in the program library.
-              </p>
+        <DialogContent className="max-w-[95vw] sm:max-w-[550px] p-0 rounded-[32px] overflow-hidden border-none shadow-2xl">
+          <form onSubmit={handleCreateSubmit} className="p-6 sm:p-8 flex flex-col gap-6 bg-white max-h-[85vh] overflow-y-auto custom-scrollbar">
+            {/* Header Block */}
+            <div className="flex justify-between items-start w-full">
+              <div>
+                <h2 className="text-xl sm:text-2xl font-black text-Third tracking-tight leading-none">
+                  Add New Program
+                </h2>
+                <span className="text-[10px] font-extrabold text-[#9AA6AC] uppercase tracking-wider mt-1.5 block">
+                  Clinical Protocol Entry
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsAddModalOpen(false)}
+                className="w-8 h-8 rounded-full border border-[#E9EFF2] flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors"
+              >
+                <X size={15} />
+              </button>
             </div>
 
             <div className="flex flex-col gap-4">
               {/* Title */}
               <div className="flex flex-col gap-1.5">
-                <label className="text-Third font-bold text-[13px]">Program Title *</label>
+                <label className="text-[10px] font-extrabold text-[#9AA6AC] tracking-wider uppercase">
+                  Program Title *
+                </label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Toothbrushing Routine, Expressive Language"
+                  placeholder="e.g., Social Initiation Protocol"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="w-full bg-[#F4F4F4] rounded-xl p-3.5 text-[13px] text-gray-700 outline-none border border-transparent focus:border-Primary transition-all font-semibold"
+                  className="w-full bg-[#F8F9FB] border border-[#E9EFF2] rounded-xl p-3.5 text-[13px] text-Third font-semibold placeholder:text-[#BAC6CD] focus:bg-white focus:border-Primary transition-all outline-none"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* Category Selector */}
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-Third font-bold text-[13px]">Category *</label>
-                  <select
-                    value={category}
-                    onChange={(e) => setCategory(e.target.value)}
-                    className="w-full bg-[#F4F4F4] rounded-xl p-3.5 text-[13px] text-gray-700 outline-none border border-transparent focus:border-Primary transition-all font-semibold appearance-none"
-                  >
-                    <option value="Communication">Communication</option>
-                    <option value="Social Skills">Social Skills</option>
-                    <option value="Daily Living Skills">Daily Living Skills</option>
-                    <option value="Behavior Reduction">Behavior Reduction</option>
-                    <option value="Cognitive Skills">Cognitive Skills</option>
-                    <option value="Other">Other (Custom)</option>
-                  </select>
+                  <label className="text-[10px] font-extrabold text-[#9AA6AC] tracking-wider uppercase">
+                    Category *
+                  </label>
+                  <div className="relative">
+                    <select
+                      required
+                      value={category}
+                      onChange={(e) => setCategory(e.target.value)}
+                      className="w-full bg-[#F8F9FB] border border-[#E9EFF2] rounded-xl p-3.5 pr-10 text-[13px] text-Third font-semibold placeholder:text-[#BAC6CD] focus:bg-white focus:border-Primary transition-all appearance-none outline-none cursor-pointer"
+                    >
+                      <option value="" disabled>Select Category</option>
+                      <option value="Communication">Communication</option>
+                      <option value="Social Skills">Social Skills</option>
+                      <option value="Daily Living Skills">Daily Living Skills</option>
+                      <option value="Behavior Reduction">Behavior Reduction</option>
+                      <option value="Cognitive Skills">Cognitive Skills</option>
+                      <option value="Other">Other (Custom)</option>
+                    </select>
+                    <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
+                  </div>
                 </div>
 
                 {/* Level Selector */}
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-Third font-bold text-[13px]">Mastery Level *</label>
-                  <select
-                    value={level}
-                    onChange={(e) => setLevel(e.target.value)}
-                    className="w-full bg-[#F4F4F4] rounded-xl p-3.5 text-[13px] text-gray-700 outline-none border border-transparent focus:border-Primary transition-all font-semibold appearance-none"
-                  >
-                    <option value="Beginner">Beginner</option>
-                    <option value="Intermediate">Intermediate</option>
-                    <option value="Advanced">Advanced</option>
-                  </select>
+                  <label className="text-[10px] font-extrabold text-[#9AA6AC] tracking-wider uppercase">
+                    Level *
+                  </label>
+                  <div className="relative">
+                    <select
+                      required
+                      value={level}
+                      onChange={(e) => setLevel(e.target.value)}
+                      className="w-full bg-[#F8F9FB] border border-[#E9EFF2] rounded-xl p-3.5 pr-10 text-[13px] text-Third font-semibold placeholder:text-[#BAC6CD] focus:bg-white focus:border-Primary transition-all appearance-none outline-none cursor-pointer"
+                    >
+                      <option value="" disabled>Select Level</option>
+                      <option value="Beginner">Beginner</option>
+                      <option value="Intermediate">Intermediate</option>
+                      <option value="Advanced">Advanced</option>
+                    </select>
+                    <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
+                  </div>
                 </div>
               </div>
 
               {category === "Other" && (
                 <div className="flex flex-col gap-1.5 animate-in slide-in-from-top-2 duration-200">
-                  <label className="text-Third font-bold text-[13px]">Custom Category Name *</label>
+                  <label className="text-[10px] font-extrabold text-[#9AA6AC] tracking-wider uppercase">
+                    Custom Category Name *
+                  </label>
                   <input
                     type="text"
                     required
                     placeholder="Enter custom category name"
                     value={customCategory}
                     onChange={(e) => setCustomCategory(e.target.value)}
-                    className="w-full bg-[#F4F4F4] rounded-xl p-3.5 text-[13px] text-gray-700 outline-none border border-transparent focus:border-Primary transition-all font-semibold"
+                    className="w-full bg-[#F8F9FB] border border-[#E9EFF2] rounded-xl p-3.5 text-[13px] text-Third font-semibold placeholder:text-[#BAC6CD] focus:bg-white focus:border-Primary transition-all outline-none"
                   />
                 </div>
               )}
 
               {/* Type Selector */}
               <div className="flex flex-col gap-1.5">
-                <label className="text-Third font-bold text-[13px]">Program Type *</label>
-                <select
-                  value={type}
-                  onChange={(e) => setType(e.target.value)}
-                  className="w-full bg-[#F4F4F4] rounded-xl p-3.5 text-[13px] text-gray-700 outline-none border border-transparent focus:border-Primary transition-all font-semibold appearance-none"
-                >
-                  <option value="Skill Acquisition">Skill Acquisition</option>
-                  <option value="Task Analysis">Task Analysis</option>
-                  <option value="DTT (Discrete Trial Training)">DTT (Discrete Trial Training)</option>
-                  <option value="NET (Natural Environment Teaching)">NET (Natural Environment Teaching)</option>
-                  <option value="Other">Other (Custom)</option>
-                </select>
+                <label className="text-[10px] font-extrabold text-[#9AA6AC] tracking-wider uppercase">
+                  Type *
+                </label>
+                <div className="relative">
+                  <select
+                    required
+                    value={type}
+                    onChange={(e) => setType(e.target.value)}
+                    className="w-full bg-[#F8F9FB] border border-[#E9EFF2] rounded-xl p-3.5 pr-10 text-[13px] text-Third font-semibold placeholder:text-[#BAC6CD] focus:bg-white focus:border-Primary transition-all appearance-none outline-none cursor-pointer"
+                  >
+                    <option value="" disabled>Select Type</option>
+                    <option value="Skill Acquisition">Skill Acquisition</option>
+                    <option value="Task Analysis">Task Analysis</option>
+                    <option value="DTT (Discrete Trial Training)">DTT (Discrete Trial Training)</option>
+                    <option value="NET (Natural Environment Teaching)">NET (Natural Environment Teaching)</option>
+                    <option value="Behavioral">Behavioral</option>
+                    <option value="Other">Other (Custom)</option>
+                  </select>
+                  <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
+                </div>
               </div>
 
               {type === "Other" && (
                 <div className="flex flex-col gap-1.5 animate-in slide-in-from-top-2 duration-200">
-                  <label className="text-Third font-bold text-[13px]">Custom Type Name *</label>
+                  <label className="text-[10px] font-extrabold text-[#9AA6AC] tracking-wider uppercase">
+                    Custom Type Name *
+                  </label>
                   <input
                     type="text"
                     required
                     placeholder="Enter custom type name"
                     value={customType}
                     onChange={(e) => setCustomType(e.target.value)}
-                    className="w-full bg-[#F4F4F4] rounded-xl p-3.5 text-[13px] text-gray-700 outline-none border border-transparent focus:border-Primary transition-all font-semibold"
+                    className="w-full bg-[#F8F9FB] border border-[#E9EFF2] rounded-xl p-3.5 text-[13px] text-Third font-semibold placeholder:text-[#BAC6CD] focus:bg-white focus:border-Primary transition-all outline-none"
                   />
                 </div>
               )}
 
+              {/* Task List */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[10px] font-extrabold text-[#9AA6AC] tracking-wider uppercase">
+                  Task List *
+                </label>
+                <div className="flex flex-col gap-3">
+                  {tasks.map((task, index) => (
+                    <div key={index} className="relative flex items-center w-full">
+                      <input
+                        type="text"
+                        required
+                        placeholder={`e.g., Task ${index + 1} - Description`}
+                        value={task}
+                        onChange={(e) => handleTaskChange(index, e.target.value)}
+                        className="w-full bg-[#F8F9FB] border border-[#E9EFF2] rounded-xl p-3.5 pr-10 text-[13px] text-Third font-semibold placeholder:text-[#BAC6CD] focus:bg-white focus:border-Primary transition-all outline-none"
+                      />
+                      {tasks.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveTask(index)}
+                          className="absolute right-3.5 text-gray-400 hover:text-red-500 transition-colors"
+                        >
+                          <X size={15} />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+
+                  <button
+                    type="button"
+                    onClick={handleAddTask}
+                    className="w-full border border-dashed border-[#D2D9DD] hover:border-Secondary/50 hover:bg-gray-50/50 rounded-xl py-3.5 flex items-center justify-center gap-2 text-xs font-bold text-Secondary transition-all cursor-pointer"
+                  >
+                    <Plus size={15} /> Add Task Input
+                  </button>
+                </div>
+              </div>
+
               {/* Description */}
               <div className="flex flex-col gap-1.5">
-                <label className="text-Third font-bold text-[13px]">Target Instructions / Description *</label>
+                <label className="text-[10px] font-extrabold text-[#9AA6AC] tracking-wider uppercase">
+                  Description *
+                </label>
                 <textarea
                   required
-                  placeholder="Detail step-by-step target criteria, prompt protocols, and mastery definitions..."
+                  placeholder="Detailed program description..."
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  className="w-full bg-[#F4F4F4] rounded-xl p-3.5 text-[13px] text-gray-700 outline-none border border-transparent focus:border-Primary transition-all min-h-[120px] resize-none font-semibold"
+                  className="w-full bg-[#F8F9FB] border border-[#E9EFF2] rounded-xl p-3.5 text-[13px] text-Third font-semibold placeholder:text-[#BAC6CD] focus:bg-white focus:border-Primary transition-all min-h-[100px] resize-none outline-none"
                 ></textarea>
               </div>
             </div>
 
-            <div className="flex flex-col-reverse sm:flex-row items-center justify-end gap-3 pt-3 border-t border-gray-100">
+            {/* Footer buttons */}
+            <div className="flex items-center justify-end gap-6 pt-4 border-t border-gray-100 mt-2">
               <button
                 type="button"
                 onClick={() => setIsAddModalOpen(false)}
-                className="w-full sm:w-auto bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold text-xs px-6 py-3 rounded-xl transition-colors"
+                className="text-Secondary hover:opacity-80 font-black text-xs tracking-wider uppercase transition-colors"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={isCreating}
-                className="w-full sm:w-auto bg-Secondary hover:bg-Secondary/95 text-white font-bold text-xs px-6 py-3 rounded-xl transition-all shadow-md active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="bg-Secondary hover:bg-Secondary/95 text-white font-black text-xs px-8 py-3.5 rounded-2xl transition-all shadow-md active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-wider flex items-center gap-2"
               >
                 {isCreating ? (
                   <>
-                    <Loader2 className="animate-spin" size={14} /> Creating...
+                    <Loader2 className="animate-spin" size={14} /> Adding...
                   </>
                 ) : (
-                  "Create Template"
+                  "Add Program"
                 )}
               </button>
             </div>
@@ -575,9 +698,31 @@ const Programs = () => {
 
       {/* DIALOG: Program Template Details Modal */}
       <Dialog open={isDetailsModalOpen} onOpenChange={setIsDetailsModalOpen}>
-        <DialogContent className="max-w-[95vw] sm:max-w-[500px] p-0 rounded-[28px] overflow-hidden border-none shadow-2xl">
-          <div className="p-6 sm:p-8 flex flex-col gap-5 bg-white">
-            <div className="flex items-center justify-between gap-3 border-b border-gray-100 pb-3">
+        <DialogContent className="max-w-[95vw] sm:max-w-[500px] p-0 rounded-[32px] overflow-hidden border-none shadow-2xl">
+          <div className="p-6 sm:p-8 flex flex-col gap-5 bg-white max-h-[85vh] overflow-y-auto custom-scrollbar">
+            {/* Header Block */}
+            <div className="flex justify-between items-start w-full border-b border-[#E9EFF2] pb-4">
+              <div>
+                <h2 className="text-xl sm:text-2xl font-black text-Third tracking-tight leading-none">
+                  Program Details
+                </h2>
+                <span className="text-[10px] font-extrabold text-[#9AA6AC] uppercase tracking-wider mt-1.5 block">
+                  Clinical Template View
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsDetailsModalOpen(false);
+                  setSelectedProgram(null);
+                }}
+                className="w-8 h-8 rounded-full border border-[#E9EFF2] flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors"
+              >
+                <X size={15} />
+              </button>
+            </div>
+
+            <div className="flex items-center justify-between gap-3 bg-[#F8F9FB] border border-[#E9EFF2] px-4 py-3 rounded-2xl">
               <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-extrabold border uppercase tracking-wider ${getCategoryStyles(selectedProgram?.category)}`}>
                 {selectedProgram?.category || "N/A"}
               </span>
@@ -587,28 +732,43 @@ const Programs = () => {
             </div>
 
             <div>
-              <h3 className="text-lg font-black text-Third leading-snug">{selectedProgram?.title}</h3>
-              <div className="flex items-center gap-4 mt-2 text-[10px] text-gray-400 font-semibold">
-                <span className="flex items-center gap-1">
-                  <Layers size={12} /> Type: {selectedProgram?.type || "N/A"}
+              <h3 className="text-lg sm:text-xl font-black text-Third leading-snug">{selectedProgram?.title}</h3>
+              <div className="flex items-center gap-4 mt-2 text-[10px] text-gray-400 font-semibold uppercase tracking-wider">
+                <span className="flex items-center gap-1.5">
+                  <Layers size={12} className="text-gray-400" /> Type: {selectedProgram?.type || "N/A"}
                 </span>
                 {selectedProgram?.created_at && (
-                  <span className="flex items-center gap-1">
-                    <Calendar size={12} /> Stored: {selectedProgram.created_at.slice(0, 10)}
+                  <span className="flex items-center gap-1.5">
+                    <Calendar size={12} className="text-gray-400" /> Stored: {selectedProgram.created_at.slice(0, 10)}
                   </span>
                 )}
               </div>
             </div>
 
-            <div className="bg-gray-50/50 p-5 rounded-2xl border border-gray-100/50 flex flex-col gap-2.5">
-              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Target Instructions</span>
-              <p className="text-xs text-gray-600 font-medium leading-relaxed">
+            <div className="bg-[#F8F9FB] border border-[#E9EFF2] p-5 rounded-2xl flex flex-col gap-2.5">
+              <span className="text-[10px] font-extrabold text-[#9AA6AC] uppercase tracking-wider">Target Instructions</span>
+              <p className="text-[13px] text-Third font-medium leading-relaxed whitespace-pre-line">
                 {selectedProgram?.description}
               </p>
             </div>
 
+            {/* Task list details */}
+            {selectedProgram?.tasks && selectedProgram.tasks.length > 0 && (
+              <div className="bg-[#F8F9FB] border border-[#E9EFF2] p-5 rounded-2xl flex flex-col gap-2.5">
+                <span className="text-[10px] font-extrabold text-[#9AA6AC] uppercase tracking-wider">Clinical Tasks</span>
+                <div className="flex flex-col gap-2.5">
+                  {selectedProgram.tasks.map((task, index) => (
+                    <div key={task.id || index} className="flex items-start gap-2.5 text-[13px] text-Third font-medium">
+                      <span className="text-Secondary font-extrabold min-w-[15px]">{index + 1}.</span>
+                      <span className="leading-tight">{task.title || (typeof task === "string" ? task : "")}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {selectedProgram?.creator && (
-              <div className="flex items-center gap-2 text-xs text-gray-500 font-semibold bg-gray-50/20 p-3 rounded-xl border border-gray-100/50">
+              <div className="flex items-center gap-2.5 text-xs text-[#9AA6AC] font-semibold bg-[#F8F9FB] border border-[#E9EFF2] p-3 rounded-2xl">
                 <User size={14} className="text-gray-400" />
                 <span>Created by: <strong className="text-Third">{selectedProgram.creator.name}</strong></span>
               </div>
@@ -620,7 +780,7 @@ const Programs = () => {
                   setIsDetailsModalOpen(false);
                   setSelectedProgram(null);
                 }}
-                className="w-full sm:w-auto bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold text-xs px-6 py-3 rounded-xl transition-colors"
+                className="bg-Secondary hover:bg-Secondary/95 text-white font-black text-xs px-8 py-3.5 rounded-2xl transition-all shadow-md active:scale-95 uppercase tracking-wider"
               >
                 Close View
               </button>
@@ -631,136 +791,218 @@ const Programs = () => {
 
       {/* DIALOG: Edit Program Modal */}
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent className="max-w-[95vw] sm:max-w-[550px] p-0 rounded-[28px] overflow-hidden border-none shadow-2xl">
-          <form onSubmit={handleEditSubmit} className="p-6 sm:p-8 flex flex-col gap-6 bg-white">
-            <div>
-              <h2 className="text-[20px] sm:text-[22px] font-black text-Third leading-tight">
-                Edit Clinical Template
-              </h2>
-              <p className="text-gray-400 text-xs mt-1 font-medium">
-                Modify standard clinical program instructions, targets, and categorizations.
-              </p>
-            </div>
-
-            <div className="flex flex-col gap-4">
-              {/* Title */}
-              <div className="flex flex-col gap-1.5">
-                <label className="text-Third font-bold text-[13px]">Program Title *</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Toothbrushing Routine, Expressive Language"
-                  value={editTitle}
-                  onChange={(e) => setEditTitle(e.target.value)}
-                  className="w-full bg-[#F4F4F4] rounded-xl p-3.5 text-[13px] text-gray-700 outline-none border border-transparent focus:border-Primary transition-all font-semibold"
-                />
+        <DialogContent className="max-w-[95vw] sm:max-w-[550px] p-0 rounded-[32px] overflow-hidden border-none shadow-2xl">
+          <form onSubmit={handleEditSubmit} className="p-6 sm:p-8 flex flex-col gap-6 bg-white max-h-[85vh] overflow-y-auto custom-scrollbar">
+            {/* Header Block */}
+            <div className="flex justify-between items-start w-full">
+              <div>
+                <h2 className="text-xl sm:text-2xl font-black text-Third tracking-tight leading-none">
+                  Edit Clinical Template
+                </h2>
+                <span className="text-[10px] font-extrabold text-[#9AA6AC] uppercase tracking-wider mt-1.5 block">
+                  Clinical Protocol Editor
+                </span>
               </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                {/* Category Selector */}
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-Third font-bold text-[13px]">Category *</label>
-                  <select
-                    value={editCategory}
-                    onChange={(e) => setEditCategory(e.target.value)}
-                    className="w-full bg-[#F4F4F4] rounded-xl p-3.5 text-[13px] text-gray-700 outline-none border border-transparent focus:border-Primary transition-all font-semibold appearance-none"
-                  >
-                    <option value="Communication">Communication</option>
-                    <option value="Social Skills">Social Skills</option>
-                    <option value="Daily Living Skills">Daily Living Skills</option>
-                    <option value="Behavior Reduction">Behavior Reduction</option>
-                    <option value="Cognitive Skills">Cognitive Skills</option>
-                    <option value="Other">Other (Custom)</option>
-                  </select>
-                </div>
-
-                {/* Level Selector */}
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-Third font-bold text-[13px]">Mastery Level *</label>
-                  <select
-                    value={editLevel}
-                    onChange={(e) => setEditLevel(e.target.value)}
-                    className="w-full bg-[#F4F4F4] rounded-xl p-3.5 text-[13px] text-gray-700 outline-none border border-transparent focus:border-Primary transition-all font-semibold appearance-none"
-                  >
-                    <option value="Beginner">Beginner</option>
-                    <option value="Intermediate">Intermediate</option>
-                    <option value="Advanced">Advanced</option>
-                  </select>
-                </div>
-              </div>
-
-              {editCategory === "Other" && (
-                <div className="flex flex-col gap-1.5 animate-in slide-in-from-top-2 duration-200">
-                  <label className="text-Third font-bold text-[13px]">Custom Category Name *</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="Enter custom category name"
-                    value={editCustomCategory}
-                    onChange={(e) => setEditCustomCategory(e.target.value)}
-                    className="w-full bg-[#F4F4F4] rounded-xl p-3.5 text-[13px] text-gray-700 outline-none border border-transparent focus:border-Primary transition-all font-semibold"
-                  />
-                </div>
-              )}
-
-              {/* Type Selector */}
-              <div className="flex flex-col gap-1.5">
-                <label className="text-Third font-bold text-[13px]">Program Type *</label>
-                <select
-                  value={editType}
-                  onChange={(e) => setEditType(e.target.value)}
-                  className="w-full bg-[#F4F4F4] rounded-xl p-3.5 text-[13px] text-gray-700 outline-none border border-transparent focus:border-Primary transition-all font-semibold appearance-none"
-                >
-                  <option value="Skill Acquisition">Skill Acquisition</option>
-                  <option value="Task Analysis">Task Analysis</option>
-                  <option value="DTT (Discrete Trial Training)">DTT (Discrete Trial Training)</option>
-                  <option value="NET (Natural Environment Teaching)">NET (Natural Environment Teaching)</option>
-                  <option value="Other">Other (Custom)</option>
-                </select>
-              </div>
-
-              {editType === "Other" && (
-                <div className="flex flex-col gap-1.5 animate-in slide-in-from-top-2 duration-200">
-                  <label className="text-Third font-bold text-[13px]">Custom Type Name *</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="Enter custom type name"
-                    value={editCustomType}
-                    onChange={(e) => setEditCustomType(e.target.value)}
-                    className="w-full bg-[#F4F4F4] rounded-xl p-3.5 text-[13px] text-gray-700 outline-none border border-transparent focus:border-Primary transition-all font-semibold"
-                  />
-                </div>
-              )}
-
-              {/* Description */}
-              <div className="flex flex-col gap-1.5">
-                <label className="text-Third font-bold text-[13px]">Target Instructions / Description *</label>
-                <textarea
-                  required
-                  placeholder="Detail step-by-step target criteria, prompt protocols, and mastery definitions..."
-                  value={editDescription}
-                  onChange={(e) => setEditDescription(e.target.value)}
-                  className="w-full bg-[#F4F4F4] rounded-xl p-3.5 text-[13px] text-gray-700 outline-none border border-transparent focus:border-Primary transition-all min-h-[120px] resize-none font-semibold"
-                ></textarea>
-              </div>
-            </div>
-
-            <div className="flex flex-col-reverse sm:flex-row items-center justify-end gap-3 pt-3 border-t border-gray-100">
               <button
                 type="button"
                 onClick={() => {
                   setIsEditModalOpen(false);
                   setEditProgram(null);
                 }}
-                className="w-full sm:w-auto bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold text-xs px-6 py-3 rounded-xl transition-colors"
+                className="w-8 h-8 rounded-full border border-[#E9EFF2] flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors"
+              >
+                <X size={15} />
+              </button>
+            </div>
+
+            <div className="flex flex-col gap-4">
+              {/* Title */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[10px] font-extrabold text-[#9AA6AC] tracking-wider uppercase">
+                  Program Title *
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Toothbrushing Routine, Expressive Language"
+                  value={editTitle}
+                  onChange={(e) => setEditTitle(e.target.value)}
+                  className="w-full bg-[#F8F9FB] border border-[#E9EFF2] rounded-xl p-3.5 text-[13px] text-Third font-semibold placeholder:text-[#BAC6CD] focus:bg-white focus:border-Primary transition-all outline-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Category Selector */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[10px] font-extrabold text-[#9AA6AC] tracking-wider uppercase">
+                    Category *
+                  </label>
+                  <div className="relative">
+                    <select
+                      required
+                      value={editCategory}
+                      onChange={(e) => setEditCategory(e.target.value)}
+                      className="w-full bg-[#F8F9FB] border border-[#E9EFF2] rounded-xl p-3.5 pr-10 text-[13px] text-Third font-semibold placeholder:text-[#BAC6CD] focus:bg-white focus:border-Primary transition-all appearance-none outline-none cursor-pointer"
+                    >
+                      <option value="" disabled>Select Category</option>
+                      <option value="Communication">Communication</option>
+                      <option value="Social Skills">Social Skills</option>
+                      <option value="Daily Living Skills">Daily Living Skills</option>
+                      <option value="Behavior Reduction">Behavior Reduction</option>
+                      <option value="Cognitive Skills">Cognitive Skills</option>
+                      <option value="Other">Other (Custom)</option>
+                    </select>
+                    <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
+                  </div>
+                </div>
+
+                {/* Level Selector */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[10px] font-extrabold text-[#9AA6AC] tracking-wider uppercase">
+                    Level *
+                  </label>
+                  <div className="relative">
+                    <select
+                      required
+                      value={editLevel}
+                      onChange={(e) => setEditLevel(e.target.value)}
+                      className="w-full bg-[#F8F9FB] border border-[#E9EFF2] rounded-xl p-3.5 pr-10 text-[13px] text-Third font-semibold placeholder:text-[#BAC6CD] focus:bg-white focus:border-Primary transition-all appearance-none outline-none cursor-pointer"
+                    >
+                      <option value="" disabled>Select Level</option>
+                      <option value="Beginner">Beginner</option>
+                      <option value="Intermediate">Intermediate</option>
+                      <option value="Advanced">Advanced</option>
+                    </select>
+                    <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
+                  </div>
+                </div>
+              </div>
+
+              {editCategory === "Other" && (
+                <div className="flex flex-col gap-1.5 animate-in slide-in-from-top-2 duration-200">
+                  <label className="text-[10px] font-extrabold text-[#9AA6AC] tracking-wider uppercase">
+                    Custom Category Name *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Enter custom category name"
+                    value={editCustomCategory}
+                    onChange={(e) => setEditCustomCategory(e.target.value)}
+                    className="w-full bg-[#F8F9FB] border border-[#E9EFF2] rounded-xl p-3.5 text-[13px] text-Third font-semibold placeholder:text-[#BAC6CD] focus:bg-white focus:border-Primary transition-all outline-none"
+                  />
+                </div>
+              )}
+
+              {/* Type Selector */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[10px] font-extrabold text-[#9AA6AC] tracking-wider uppercase">
+                  Type *
+                </label>
+                <div className="relative">
+                  <select
+                    required
+                    value={editType}
+                    onChange={(e) => setEditType(e.target.value)}
+                    className="w-full bg-[#F8F9FB] border border-[#E9EFF2] rounded-xl p-3.5 pr-10 text-[13px] text-Third font-semibold placeholder:text-[#BAC6CD] focus:bg-white focus:border-Primary transition-all appearance-none outline-none cursor-pointer"
+                  >
+                    <option value="" disabled>Select Type</option>
+                    <option value="Skill Acquisition">Skill Acquisition</option>
+                    <option value="Task Analysis">Task Analysis</option>
+                    <option value="DTT (Discrete Trial Training)">DTT (Discrete Trial Training)</option>
+                    <option value="NET (Natural Environment Teaching)">NET (Natural Environment Teaching)</option>
+                    <option value="Behavioral">Behavioral</option>
+                    <option value="Other">Other (Custom)</option>
+                  </select>
+                  <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
+                </div>
+              </div>
+
+              {editType === "Other" && (
+                <div className="flex flex-col gap-1.5 animate-in slide-in-from-top-2 duration-200">
+                  <label className="text-[10px] font-extrabold text-[#9AA6AC] tracking-wider uppercase">
+                    Custom Type Name *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Enter custom type name"
+                    value={editCustomType}
+                    onChange={(e) => setEditCustomType(e.target.value)}
+                    className="w-full bg-[#F8F9FB] border border-[#E9EFF2] rounded-xl p-3.5 text-[13px] text-Third font-semibold placeholder:text-[#BAC6CD] focus:bg-white focus:border-Primary transition-all outline-none"
+                  />
+                </div>
+              )}
+
+              {/* Task List */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[10px] font-extrabold text-[#9AA6AC] tracking-wider uppercase">
+                  Task List *
+                </label>
+                <div className="flex flex-col gap-3">
+                  {editTasks.map((task, index) => (
+                    <div key={index} className="relative flex items-center w-full">
+                      <input
+                        type="text"
+                        required
+                        placeholder={`e.g., Task ${index + 1} - Description`}
+                        value={task}
+                        onChange={(e) => handleEditTaskChange(index, e.target.value)}
+                        className="w-full bg-[#F8F9FB] border border-[#E9EFF2] rounded-xl p-3.5 pr-10 text-[13px] text-Third font-semibold placeholder:text-[#BAC6CD] focus:bg-white focus:border-Primary transition-all outline-none"
+                      />
+                      {editTasks.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => handleEditRemoveTask(index)}
+                          className="absolute right-3.5 text-gray-400 hover:text-red-500 transition-colors"
+                        >
+                          <X size={15} />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+
+                  <button
+                    type="button"
+                    onClick={handleEditAddTask}
+                    className="w-full border border-dashed border-[#D2D9DD] hover:border-Secondary/50 hover:bg-gray-50/50 rounded-xl py-3.5 flex items-center justify-center gap-2 text-xs font-bold text-Secondary transition-all cursor-pointer"
+                  >
+                    <Plus size={15} /> Add Task Input
+                  </button>
+                </div>
+              </div>
+
+              {/* Description */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[10px] font-extrabold text-[#9AA6AC] tracking-wider uppercase">
+                  Description *
+                </label>
+                <textarea
+                  required
+                  placeholder="Detailed program description..."
+                  value={editDescription}
+                  onChange={(e) => setEditDescription(e.target.value)}
+                  className="w-full bg-[#F8F9FB] border border-[#E9EFF2] rounded-xl p-3.5 text-[13px] text-Third font-semibold placeholder:text-[#BAC6CD] focus:bg-white focus:border-Primary transition-all min-h-[100px] resize-none outline-none"
+                ></textarea>
+              </div>
+            </div>
+
+            {/* Footer buttons */}
+            <div className="flex items-center justify-end gap-6 pt-4 border-t border-gray-100 mt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsEditModalOpen(false);
+                  setEditProgram(null);
+                }}
+                className="text-Secondary hover:opacity-80 font-black text-xs tracking-wider uppercase transition-colors"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={isUpdating}
-                className="w-full sm:w-auto bg-Secondary hover:bg-Secondary/95 text-white font-bold text-xs px-6 py-3 rounded-xl transition-all shadow-md active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="bg-Secondary hover:bg-Secondary/95 text-white font-black text-xs px-8 py-3.5 rounded-2xl transition-all shadow-md active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-wider flex items-center gap-2"
               >
                 {isUpdating ? (
                   <>

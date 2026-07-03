@@ -20,9 +20,15 @@ import {
   BookOpen,
   Download,
   CreditCard,
-  Activity
+  Activity,
+  Plus,
+  Search,
+  Loader2,
+  X
 } from "lucide-react";
 import useClient from "@/hooks/useClient";
+import useMutationClient from "@/hooks/useMutationClient";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import WeeklyCalendar from "@/components/admin/ScheduleComponents/WeeklyCalendar";
 import {
   AreaChart,
@@ -94,6 +100,64 @@ const CaseDetails = () => {
     period: "all_time",
     program_id: undefined,
   });
+
+  const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
+  const [librarySearch, setLibrarySearch] = useState("");
+  const [assigningProgramId, setAssigningProgramId] = useState(null);
+
+  // Fetch available programs for this case
+  const { data: libraryProgramsRes, isLoading: isLibraryLoading } = useClient({
+    queryKey: ["directorAvailableProgramsList", id],
+    url: `/director/cases/${id}/programs/available`,
+  });
+  const libraryPrograms = libraryProgramsRes?.data || [];
+
+  const filteredLibraryPrograms = useMemo(() => {
+    if (!Array.isArray(libraryPrograms)) return [];
+    return libraryPrograms
+      .filter((prog) => !prog.is_archived)
+      .filter((prog) => {
+        const searchLower = librarySearch.toLowerCase();
+        return (
+          prog.title?.toLowerCase().includes(searchLower) ||
+          prog.category?.toLowerCase().includes(searchLower) ||
+          prog.type?.toLowerCase().includes(searchLower)
+        );
+      });
+  }, [libraryPrograms, librarySearch]);
+
+  // Assign program mutation
+  const { mutate: assignProgram } = useMutationClient({
+    url: `/director/cases/${id}/programs/assign`,
+    method: "post",
+    invalidateKeys: [
+      ["directorCasePrograms", id],
+      ["directorCaseDetails", id],
+      ["directorAvailableProgramsList", id],
+    ],
+    successMessage: "Program assigned to caseload successfully",
+  });
+
+  const handleAssignProgram = (libraryProgramId) => {
+    setAssigningProgramId(libraryProgramId);
+    assignProgram(
+      {
+        data: {
+          library_program_id: libraryProgramId.toString(),
+        },
+      },
+      {
+        onSuccess: () => {
+          setIsAssignModalOpen(false);
+          setLibrarySearch("");
+          setAssigningProgramId(null);
+        },
+        onError: () => {
+          setAssigningProgramId(null);
+        },
+      }
+    );
+  };
 
   // Fetch client details
   const {
@@ -898,16 +962,25 @@ const CaseDetails = () => {
               ) : (
                 /* Program List View */
                 <div className="flex flex-col gap-6 bg-white p-6 md:p-8 rounded-3xl border border-gray-100 shadow-sm">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2.5 bg-Secondary/10 text-Secondary rounded-2xl">
-                      <Layers size={20} />
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 w-full">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2.5 bg-Secondary/10 text-Secondary rounded-2xl">
+                        <Layers size={20} />
+                      </div>
+                      <div>
+                        <h2 className="text-xl font-bold">Assigned Programs</h2>
+                        <p className="text-gray-400 text-sm mt-0.5">
+                          Active learning programs & tasks assigned to this case ({programsData?.data?.length || 0} total)
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <h2 className="text-xl font-bold">Assigned Programs</h2>
-                      <p className="text-gray-400 text-sm mt-0.5">
-                        Active learning programs & tasks assigned to this case ({programsData?.data?.length || 0} total)
-                      </p>
-                    </div>
+                    
+                    <button
+                      onClick={() => setIsAssignModalOpen(true)}
+                      className="flex items-center justify-center gap-2 bg-Secondary hover:bg-Secondary/95 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition-all shadow-md active:scale-95 cursor-pointer self-start sm:self-auto"
+                    >
+                      <Plus size={14} /> Assign Program
+                    </button>
                   </div>
 
                   {(!programsData?.data || programsData.data.length === 0) ? (
@@ -1449,6 +1522,100 @@ const CaseDetails = () => {
             </div>
           )}
 
+      {/* DIALOG: Assign Program Modal */}
+      <Dialog open={isAssignModalOpen} onOpenChange={setIsAssignModalOpen}>
+        <DialogContent className="max-w-[95vw] sm:max-w-[600px] p-0 rounded-[32px] overflow-hidden border-none shadow-2xl">
+          <div className="p-6 sm:p-8 flex flex-col gap-6 bg-white max-h-[85vh] overflow-y-auto custom-scrollbar font-poppins">
+            {/* Header */}
+            <div className="flex justify-between items-start w-full border-b border-[#E9EFF2] pb-4">
+              <div>
+                <h2 className="text-xl sm:text-2xl font-black text-Third tracking-tight leading-none">
+                  Assign Program Template
+                </h2>
+                <span className="text-[10px] font-extrabold text-[#9AA6AC] uppercase tracking-wider mt-1.5 block">
+                  Select and assign from clinical library
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsAssignModalOpen(false);
+                  setLibrarySearch("");
+                }}
+                className="w-8 h-8 rounded-full border border-[#E9EFF2] flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
+              >
+                <X size={15} />
+              </button>
+            </div>
+
+            {/* Search */}
+            <div className="relative w-full">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+              <input
+                type="text"
+                placeholder="Search program templates by title, category, or type..."
+                value={librarySearch}
+                onChange={(e) => setLibrarySearch(e.target.value)}
+                className="w-full bg-[#F8F9FB] border border-[#E9EFF2] rounded-xl pl-10 pr-4 py-3 text-xs text-Third font-semibold placeholder:text-[#BAC6CD] focus:bg-white focus:border-Primary transition-all outline-none"
+              />
+            </div>
+
+            {/* List */}
+            {isLibraryLoading ? (
+              <div className="flex flex-col items-center justify-center py-12 gap-3">
+                <Loader2 className="animate-spin text-Secondary" size={24} />
+                <span className="text-xs text-gray-400 font-bold uppercase tracking-wider">Loading templates...</span>
+              </div>
+            ) : filteredLibraryPrograms.length === 0 ? (
+              <div className="text-center py-12 bg-gray-50/50 rounded-2xl border border-dashed border-gray-200 flex flex-col items-center gap-2">
+                <Layers className="text-gray-300" size={32} />
+                <span className="text-xs text-gray-400 font-semibold">No templates found matching your query.</span>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-3 max-h-[400px] overflow-y-auto pr-1">
+                {filteredLibraryPrograms.map((prog) => (
+                  <div
+                    key={prog.id}
+                    className="p-4 bg-[#F8F9FB] border border-[#E9EFF2] rounded-2xl flex items-center justify-between gap-4 hover:shadow-md hover:border-[#76121F]/10 transition-all duration-300 group"
+                  >
+                    <div className="flex-1 flex flex-col gap-1.5 min-w-0">
+                      <div className="flex flex-wrap gap-1.5">
+                        <span className="px-2 py-0.5 rounded-full text-[8px] font-extrabold bg-[#E5F9ED] text-[#1EB15D] uppercase tracking-wider">
+                          {prog.category || "General"}
+                        </span>
+                        <span className="px-2 py-0.5 rounded-full text-[8px] font-extrabold bg-blue-50 text-blue-600 uppercase tracking-wider border border-blue-100">
+                          {prog.level || "Intermediate"}
+                        </span>
+                      </div>
+                      <h4 className="text-sm font-extrabold text-Third leading-snug group-hover:text-Secondary transition-colors truncate">
+                        {prog.title}
+                      </h4>
+                      <p className="text-gray-400 text-[10px] font-medium leading-none">
+                        Type: {prog.type || "Standard"}
+                      </p>
+                    </div>
+
+                    <button
+                      type="button"
+                      disabled={assigningProgramId !== null}
+                      onClick={() => handleAssignProgram(prog.id)}
+                      className="bg-Secondary hover:bg-Secondary/95 text-white font-black text-[10px] uppercase tracking-wider px-4 py-2 rounded-xl transition-all shadow-md active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed shrink-0 flex items-center gap-1.5 cursor-pointer"
+                    >
+                      {assigningProgramId === prog.id ? (
+                        <>
+                          <Loader2 className="animate-spin" size={12} /> Assigning
+                        </>
+                      ) : (
+                        "Assign"
+                      )}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
         </div>
       </div>
     </div>

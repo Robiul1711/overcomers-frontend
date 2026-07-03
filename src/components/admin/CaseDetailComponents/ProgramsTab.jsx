@@ -91,7 +91,7 @@ const ProgramsTab = ({ programsDataset, isLoading, onAddNote }) => {
                     {task.title}
                   </h5>
 
-                  <div className="grid grid-cols-3 gap-3 mb-6">
+                  <div className="grid grid-cols-3 gap-3 ">
                     <div className="flex flex-col gap-1.5">
                       <label className="text-[12px] font-bold text-[#3A331E] ml-1">
                         Trials
@@ -127,14 +127,14 @@ const ProgramsTab = ({ programsDataset, isLoading, onAddNote }) => {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3">
+                  {/* <div className="flex items-center gap-3">
                     <div className="flex-1 bg-[#10B981] text-white py-2.5 rounded-xl text-[14px] font-bold shadow-sm hover:bg-[#0E9F6E] transition-all flex items-center justify-center gap-2 active:scale-95">
                       <span className="text-[16px]">✓</span> Yes
                     </div>
                     <div className="flex-1 border-2 border-[#FF5C5C] text-[#FF5C5C] py-2.5 rounded-xl text-[14px] font-bold hover:bg-[#FF5C5C] hover:text-white transition-all flex items-center justify-center gap-2 active:scale-95">
                       <span className="text-[16px]">✕</span> No
                     </div>
-                  </div>
+                  </div> */}
                 </div>
               ))}
             </div>

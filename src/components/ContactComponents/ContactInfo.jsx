@@ -24,7 +24,48 @@ const contactDetails = [
   },
 ];
 
-const ContactInfo = () => {
+const ContactInfo = ({ data }) => {
+  const getIcon = (label) => {
+    const norm = label?.trim()?.toLowerCase() || '';
+    if (norm.includes('phone')) return Phone;
+    if (norm.includes('email')) return Mail;
+    if (norm.includes('hour') || norm.includes('time')) return Clock;
+    if (norm.includes('area') || norm.includes('address') || norm.includes('location')) return MapPin;
+    return Phone;
+  };
+
+  const fallbackDetails = [
+    {
+      icon: Phone,
+      title: "Phone",
+      desc: "908-342-7584",
+    },
+    {
+      icon: Mail,
+      title: "Email",
+      desc: "info@overcomersaba.com.",
+    },
+    {
+      icon: Clock,
+      title: "Office Hours",
+      desc: "Monday – Friday\n8:00 AM – 5:00 PM",
+    },
+    {
+      icon: MapPin,
+      title: "Service Area",
+      desc: "New Jersey, United States",
+    },
+  ];
+
+  const contactDetails = data?.items?.map(item => {
+    const IconComponent = getIcon(item.label);
+    return {
+      icon: IconComponent,
+      title: item.label,
+      desc: item.value
+    };
+  }) || fallbackDetails;
+
   return (
     <div className="bg-[#FAF7F2] w-full section-padding-x pt-16 md:pt-24 pb-8 flex justify-center">
       <div className="w-full border border-[#AD3946]/30 bg-transparent rounded-[12px] p-8 md:p-12 flex flex-col items-start text-left">
@@ -32,7 +73,7 @@ const ContactInfo = () => {
           Get in Touch
         </h4>
         <h2 className="text-[#76121F] text-[32px] md:text-[40px] font-bold mb-10">
-          We're here to support
+          {data?.title || "We're here to support"}
         </h2>
 
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between w-full gap-8 md:gap-4">

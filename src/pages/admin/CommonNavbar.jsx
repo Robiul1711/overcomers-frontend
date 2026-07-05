@@ -3,15 +3,18 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Bell, Menu, ChevronLeft, Home, ChevronDown, LogOut, Settings } from "lucide-react";
 import CommonButton from "@/components/common/CommonButton";
 import { useDispatch, useSelector } from "react-redux";
-import { clearAuth, selectUserType } from "@/redux/slices/authSlice";
+import { clearAuth, selectUserType, selectCurrentToken } from "@/redux/slices/authSlice";
 import { toast } from "react-toastify";
 import useClient from "@/hooks/useClient";
+import { useQueryClient } from "@tanstack/react-query";
 
 const CommonNavbar = ({ open, setOpen }) => {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const queryClient = useQueryClient();
   const userType = useSelector(selectUserType);
+  const token = useSelector(selectCurrentToken);
 
   const getNotificationsPath = (type) => {
     if (type === "parent") return "/parent-dashboard/notifications";
@@ -31,13 +34,15 @@ const CommonNavbar = ({ open, setOpen }) => {
   const userMenuRef = useRef(null);
 
   const { data: profileData } = useClient({
-    queryKey: [`${userType}Profile`],
+    queryKey: [`${userType}Profile`, token],
     url: `/${userType}/profile`,
+    enabled: !!token && !!userType,
   });
 
   const { data: notifData } = useClient({
-    queryKey: [`${userType}Notifications`],
+    queryKey: [`${userType}Notifications`, token],
     url: `/${userType}/notifications`,
+    enabled: !!token && !!userType,
   });
 
   const profile = profileData?.data?.personal_information;
@@ -49,6 +54,7 @@ const CommonNavbar = ({ open, setOpen }) => {
 
   const handleLogout = () => {
     dispatch(clearAuth());
+    queryClient.clear();
     toast.success("Logged out successfully");
     navigate("/");
   };

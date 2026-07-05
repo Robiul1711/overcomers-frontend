@@ -4,9 +4,10 @@ import { ImageProvider } from "@/utils/ImageProvider";
 import { ArrowUpRight, Menu, X, ChevronDown, LogOut, LayoutDashboard } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useSelector, useDispatch } from "react-redux";
-import { selectIsAuthenticated, selectUserType, clearAuth } from "@/redux/slices/authSlice";
+import { selectIsAuthenticated, selectUserType, clearAuth, selectCurrentToken } from "@/redux/slices/authSlice";
 import useClient from "@/hooks/useClient";
 import { toast } from "react-toastify";
+import { useQueryClient } from "@tanstack/react-query";
 
 const navLinks = [
   { name: "Home", path: "/" },
@@ -22,8 +23,10 @@ const Navbar = () => {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const queryClient = useQueryClient();
   const isAuthenticated = useSelector(selectIsAuthenticated);
   const userType = useSelector(selectUserType);
+  const token = useSelector(selectCurrentToken);
   console.log(userType)
   const getDashboardPath = (type) => {
     if (type === "parent") return "/parent-dashboard";
@@ -34,9 +37,9 @@ const Navbar = () => {
   const dashboardPath = getDashboardPath(userType);
 
   const { data: profileData } = useClient({
-    queryKey: [`${userType}Profile`],
+    queryKey: [`${userType}Profile`, token],
     url: `/${userType}/profile`,
-    enabled: isAuthenticated && !!userType,
+    enabled: isAuthenticated && !!userType && !!token,
   });
 
   const profile = userType === "parent"
@@ -54,6 +57,7 @@ const Navbar = () => {
 
   const handleLogout = () => {
     dispatch(clearAuth());
+    queryClient.clear();
     toast.success("Logged out successfully");
     navigate("/");
     setIsUserMenuOpen(false);

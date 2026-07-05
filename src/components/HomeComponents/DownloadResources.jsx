@@ -1,20 +1,28 @@
 import React from 'react';
 import { motion } from 'motion/react';
 
-const resources = [
-  {
-    id: 1,
-    title: "Dispelling ABA Myths (Dillenburger\n& Keenan, 2009) (pdf)",
-    fileUrl: "#",
-  },
-  {
-    id: 2,
-    title: "ABA on autism (Foxx,\n2008) (pdf)",
-    fileUrl: "#",
-  }
-];
+const DownloadResources = ({ data }) => {
+  const fallbackResources = [
+    {
+      id: 1,
+      title: "Dispelling ABA Myths (Dillenburger\n& Keenan, 2009) (pdf)",
+      fileUrl: "#",
+    },
+    {
+      id: 2,
+      title: "ABA on autism (Foxx,\n2008) (pdf)",
+      fileUrl: "#",
+    }
+  ];
 
-const DownloadResources = () => {
+  const resourcesList = data?.items
+    ? data.items.map((item, idx) => ({
+        id: idx + 1,
+        title: item.title,
+        fileUrl: item.full_file_url || item.file_url || "#"
+      }))
+    : fallbackResources;
+
   return (
     <div className="w-full bg-[#FAFAFA] section-padding-x section-padding-y flex justify-center items-center overflow-hidden">
       <motion.div 
@@ -31,7 +39,7 @@ const DownloadResources = () => {
         className="max-w-[1440px] w-full flex flex-col md:flex-row justify-center gap-8 md:gap-12 lg:gap-16"
       >
         
-        {resources.map((resource) => (
+        {resourcesList.map((resource) => (
           <motion.div 
             key={resource.id} 
             variants={{
@@ -47,6 +55,8 @@ const DownloadResources = () => {
             <a 
               href={resource.fileUrl}
               download
+              target="_blank"
+              rel="noopener noreferrer"
               className="bg-Primary hover:bg-Primary/90 text-Third font-bold text-[14px] px-8 py-3 rounded-[8px] transition-colors shadow-sm mb-4 inline-flex items-center justify-center cursor-pointer"
             >
               Download

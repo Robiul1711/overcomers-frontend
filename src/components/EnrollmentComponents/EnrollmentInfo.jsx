@@ -19,17 +19,45 @@ const documents = [
   "ABA Referral From Physician",
 ];
 
-const EnrollmentInfo = () => {
+const EnrollmentInfo = ({ data }) => {
+  const fallbackSteps = [
+    { num: "01", title: "Enrollment Application Submission" },
+    { num: "02", title: "We Review & Get in Touch" },
+    { num: "03", title: "Await Approvals" },
+    { num: "04", title: "Conduct Initial Assessment & Treatment Plan" },
+    {
+      num: "05",
+      title: "Services Begin",
+      desc: "We match your child with the right therapist and services begin based on the approved treatment plan and schedule.",
+    },
+  ];
+
+  const fallbackDocuments = [
+    "Front & Back Of Insurance Card",
+    "Neurological Report / Proof Of Diagnosis",
+    "ABA Referral From Physician",
+  ];
+
+  const stepsList = data?.how_it_works?.steps
+    ? data.how_it_works.steps.map((step, idx) => ({
+        num: String(idx + 1).padStart(2, '0'),
+        title: step.title,
+        desc: step.description || step.desc
+      }))
+    : fallbackSteps;
+
+  const documentsList = data?.required_documents?.documents || fallbackDocuments;
+
   return (
     <div className="bg-[#FAF7F2] w-full section-padding-x section-padding-y">
       <div className="border border-[#AD3946]/30 rounded-[12px] p-8 md:p-12 lg:p-16 flex flex-col md:flex-row gap-12 md:gap-8 lg:gap-24 relative bg-transparent">
         {/* Left Column - How It Works */}
         <div className="flex-1 flex flex-col">
           <h2 className="text-[#76121F] text-[22px] md:text-[26px] lg:text-[28px] font-bold mb-8">
-            How It Works
+            {data?.how_it_works?.title || "How It Works"}
           </h2>
           <div className="flex flex-col gap-6 md:gap-8">
-            {steps.map((step, idx) => (
+            {stepsList.map((step, idx) => (
               <div key={idx} className="flex items-start gap-4">
                 <div className="w-[34px] h-[34px] rounded-full bg-[#76121F] text-white flex items-center justify-center font-semibold text-sm shrink-0">
                   {step.num}
@@ -55,10 +83,10 @@ const EnrollmentInfo = () => {
         {/* Right Column - Required Documents */}
         <div className="flex-1 flex flex-col">
           <h2 className="text-[#76121F] text-[22px] md:text-[26px] lg:text-[28px] font-bold mb-8">
-            Required Documents
+            {data?.required_documents?.title || "Required Documents"}
           </h2>
           <div className="flex flex-col gap-6">
-            {documents.map((doc, idx) => (
+            {documentsList.map((doc, idx) => (
               <div key={idx} className="flex items-center gap-4">
                 <div className="w-6 h-6 rounded-[5px] bg-[#76121F] text-white flex items-center justify-center shrink-0">
                   <Check size={14} strokeWidth={3} />

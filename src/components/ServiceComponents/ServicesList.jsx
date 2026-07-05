@@ -38,7 +38,61 @@ const servicesData = [
   }
 ];
 
-const ServicesList = () => {
+const iconMapping = {
+  Home: Home,
+  School: GraduationCap,
+  ClipboardList: BrainCircuit,
+  Users: HeartHandshake,
+};
+
+const ServicesList = ({ data }) => {
+  const fallbackServices = [
+    {
+      num: '01',
+      title: 'In-Home ABA Therapy',
+      icon: Home,
+      desc: [
+        "Our in-home ABA therapy brings evidence-based treatment directly to your child's natural environment. Learning in familiar surroundings promotes faster generalization of skills and reduces anxiety often associated with clinical settings. Our BCBAs design individualized programs targeting communication, self-care, adaptive behavior, and social skills - all within the comfort of your home."
+      ]
+    },
+    {
+      num: '02',
+      title: 'School-Based Support',
+      icon: GraduationCap,
+      desc: [
+        "We collaborate directly with schools and educators to support your child's academic and social development. Our clinicians work alongside teachers and staff to implement behavior support plans, develop appropriate IEP goals, and foster an inclusive learning environment where every child can thrive."
+      ]
+    },
+    {
+      num: '03',
+      title: 'Behavioral Assessments',
+      icon: BrainCircuit,
+      desc: [
+        "Comprehensive assessments form the foundation of every treatment plan at Overcomers ABA. Our BCBAs conduct Functional Behavior Assessments (FBAs), VB-MAPP, and other validated tools to identify your child's strengths, needs, and the environmental factors influencing their behavior - ensuring treatment is targeted and effective.",
+        "Treatment plans may include ADL Skills training (toileting, feeding, dressing), behavior deceleration programs to reduce behaviors that may currently hinder the child's learning, and verbal and non-verbal behavior acquisition programs."
+      ]
+    },
+    {
+      num: '04',
+      title: 'Parent & Caregiver Training',
+      icon: HeartHandshake,
+      desc: [
+        "Families are the most important members of the treatment team. We provide hands-on caregiver training to ensure strategies are consistently applied throughout the day. Our parent coaching sessions equip you with the skills, confidence, and understanding to support your child's growth beyond scheduled therapy hours."
+      ]
+    }
+  ];
+
+  const services = data?.items?.map((item, index) => {
+    const IconComponent = iconMapping[item.icon] || Home;
+    const desc = item.description ? [item.description] : [];
+    return {
+      num: String(index + 1).padStart(2, '0'),
+      title: item.title,
+      icon: IconComponent,
+      desc: desc
+    };
+  }) || fallbackServices;
+
   return (
     <div className="bg-[#FAF7F2] w-full section-padding-x section-padding-y overflow-hidden">
       <motion.div 
@@ -54,7 +108,7 @@ const ServicesList = () => {
         }}
         className="flex flex-col gap-8"
       >
-        {servicesData.map((service, index) => {
+        {services.map((service, index) => {
           const Icon = service.icon;
           return (
             <motion.div 

@@ -37,10 +37,48 @@ const reviews = [
   }
 ];
 
-const ClientReviews = () => {
+const ClientReviews = ({ data }) => {
   const [isBeginning, setIsBeginning] = useState(true);
   const [isEnd, setIsEnd] = useState(false);
   const swiperRef = useRef(null);
+
+  const staticReviews = [
+    {
+      id: 1,
+      name: "Constance Akhimien",
+      time: "2 years ago",
+      content: "Hands down the best ABA agency I've worked with for my kiddos! Overcomers' dedication and commitment shine through in every aspect. Their BCBAs, like Jessica, are passionate about helping children reach their full potential. The RBTs are knowledgeable, caring, and genuinely invested in the kids' growth. Special shoutout to Stephanie for exceptional support behind the scenes! I'm forever grateful and highly recommend Overcomers to any family seeking top-notch ABA services 💕💙",
+      avatar: dummy,
+      rating: 5
+    },
+    {
+      id: 2,
+      name: "Sarah Jenkins",
+      time: "1 year ago",
+      content: "We have had a wonderful experience with Overcomers. The therapists are so patient and truly care about my son's progress. Communication with the team is excellent, and we've seen remarkable improvements in his daily living skills and communication. I highly recommend their in-home ABA services!",
+      avatar: dummy,
+      rating: 5
+    },
+    {
+      id: 3,
+      name: "Michael Thompson",
+      time: "8 months ago",
+      content: "The support our family has received from Overcomers has been incredible. Not only do they provide excellent therapy for our daughter, but their parent training sessions have empowered us with strategies we can use every day. Very grateful for this amazing team of professionals.",
+      avatar: dummy,
+      rating: 5
+    }
+  ];
+
+  const reviewsList = (data?.reviews || []).length > 0
+    ? data.reviews.map((r, i) => ({
+        id: r.id || i,
+        name: r.name,
+        time: r.time,
+        content: r.text || r.content,
+        avatar: r.avatar || dummy,
+        rating: parseInt(r.rating) || 5
+      }))
+    : staticReviews;
 
   return (
     <div className="w-full bg-[#FFFBF3] section-padding-x section-padding-y flex flex-col items-center overflow-hidden">
@@ -55,11 +93,11 @@ const ClientReviews = () => {
           className="flex flex-col items-center text-center mb-10 md:mb-16 px-4"
         >
           <h3 className="text-Third font-bold text-[13px] md:text-[15px] tracking-[2px] uppercase mb-3 relative inline-block">
-            Client Reviews
+            {data?.subtitle || "Client Reviews"}
             <span className="absolute -bottom-1.5 left-0 w-full h-[2px] bg-Primary rounded-full"></span>
           </h3>
           <h2 className="text-[28px] sm:text-[32px] md:text-[42px] font-bold text-Secondary mt-2 leading-tight">
-            What Our Clients Say
+            {data?.title || "What Our Clients Say"}
           </h2>
         </motion.div>
 
@@ -104,7 +142,7 @@ const ClientReviews = () => {
             }}
             className="w-full max-w-[700px] !pb-12 md:!pb-4"
           >
-            {reviews.map((review) => (
+            {reviewsList.map((review) => (
               <SwiperSlide key={review.id} className="py-4">
                 <div className="bg-white rounded-[16px] p-6 sm:p-8 md:p-10 shadow-[0_8px_30px_rgb(0,0,0,0.04)] h-full flex flex-col transition-all mx-2 sm:mx-0">
                   
@@ -169,7 +207,9 @@ const ClientReviews = () => {
           transition={{ duration: 0.6, delay: 0.4 }}
           className="bg-Primary hover:bg-Primary/90 text-Third font-bold text-[14px] md:text-[15px] px-6 md:px-8 py-3 md:py-3.5 rounded-[12px] flex items-center justify-center gap-2 transition-colors shadow-sm"
         >
-          <Link to="/enrollment" className="flex items-center gap-2">Enroll A Child <ArrowUpRight size={18} strokeWidth={2.5} /></Link>
+          <Link to="/enrollment" className="flex items-center gap-2">
+            {data?.button_text || "Enroll A Child"} <ArrowUpRight size={18} strokeWidth={2.5} />
+          </Link>
         </motion.button>
 
       </div>

@@ -14,7 +14,29 @@ const howToApply = [
   "Selected Recipients Are Notified By Email",
 ];
 
-const ScholarshipInfo = () => {
+const ScholarshipInfo = ({ data }) => {
+  const fallbackWhoCanApply = [
+    "Demonstrate strong personal character and perseverance",
+    "Be committed to personal growth and leadership",
+    "Be enrolled in or planning to enroll in an educational or training program",
+  ];
+
+  const fallbackHowToApply = [
+    "Complete The Application",
+    "Submit Documents",
+    "Committee Review",
+    "Selected Recipients Are Notified By Email",
+  ];
+
+  const fallbackIncludes = [
+    "Financial Assistance",
+    "Scholar Recognition"
+  ];
+
+  const whoCanApplyList = data?.who_can_apply?.items || fallbackWhoCanApply;
+  const howToApplyList = data?.how_to_apply?.steps || fallbackHowToApply;
+  const includesList = data?.scholarship_includes?.items || fallbackIncludes;
+
   return (
     <div className="bg-[#FAF7F2] w-full section-padding-x py-16 md:py-24 flex flex-col gap-8 items-center">
       {/* Top Box: What the Scholarship Includes */}
@@ -23,15 +45,14 @@ const ScholarshipInfo = () => {
           About the Scholarship
         </h4>
         <h2 className="text-[#76121F] text-[28px] md:text-[36px] lg:text-[40px] font-bold mb-8">
-          What the Scholarship Includes
+          {data?.scholarship_includes?.title || "What the Scholarship Includes"}
         </h2>
         <div className="flex flex-wrap items-center gap-4 w-full">
-          <div className="bg-white text-[#76121F] font-bold text-[14px] md:text-[15px] px-8 md:px-10 py-3.5 rounded-xl shadow-[0_2px_15px_rgba(0,0,0,0.04)]">
-            Financial Assistance
-          </div>
-          <div className="bg-white text-[#76121F] font-bold text-[14px] md:text-[15px] px-8 md:px-10 py-3.5 rounded-xl shadow-[0_2px_15px_rgba(0,0,0,0.04)]">
-            Scholar Recognition
-          </div>
+          {includesList.map((item, idx) => (
+            <div key={idx} className="bg-white text-[#76121F] font-bold text-[14px] md:text-[15px] px-8 md:px-10 py-3.5 rounded-xl shadow-[0_2px_15px_rgba(0,0,0,0.04)]">
+              {item}
+            </div>
+          ))}
         </div>
       </div>
 
@@ -40,10 +61,10 @@ const ScholarshipInfo = () => {
         {/* Left Column - Who Can Apply */}
         <div className="flex-1 flex flex-col">
           <h2 className="text-[#76121F] text-[22px] md:text-[26px] lg:text-[28px] font-bold mb-8">
-            Who Can Apply
+            {data?.who_can_apply?.title || "Who Can Apply"}
           </h2>
           <div className="flex flex-col gap-6">
-            {whoCanApply.map((text, idx) => (
+            {whoCanApplyList.map((text, idx) => (
               <div key={idx} className="flex items-center gap-4">
                 <div className="w-[32px] h-[32px] rounded-full bg-[#76121F] text-white flex items-center justify-center font-semibold text-[13px] shrink-0">
                   {String(idx + 1).padStart(2, "0")}
@@ -62,10 +83,10 @@ const ScholarshipInfo = () => {
         {/* Right Column - How to Apply */}
         <div className="flex-1 flex flex-col">
           <h2 className="text-[#76121F] text-[22px] md:text-[26px] lg:text-[28px] font-bold mb-8">
-            How to Apply
+            {data?.how_to_apply?.title || "How to Apply"}
           </h2>
           <div className="flex flex-col gap-6">
-            {howToApply.map((text, idx) => (
+            {howToApplyList.map((text, idx) => (
               <div key={idx} className="flex items-center gap-4">
                 <div className="w-6 h-6 rounded-[5px] bg-[#76121F] text-white flex items-center justify-center shrink-0">
                   <Check size={14} strokeWidth={3} />

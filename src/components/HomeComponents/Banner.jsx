@@ -4,7 +4,29 @@ import { ArrowUpRight } from 'lucide-react'
 import { motion } from 'motion/react'
 import { Link } from 'react-router-dom'
 
-const Banner = () => {
+const Banner = ({ data }) => {
+  const renderTitle = (titleText) => {
+    if (!titleText) return (
+      <>
+        Overcomers ABA Services - <br className="hidden md:block"/>
+        <span className="text-Primary">Helping children</span> overcome limitations.
+      </>
+    );
+    
+    const highlight = "Helping children";
+    if (titleText.includes(highlight)) {
+      const parts = titleText.split(highlight);
+      return (
+        <>
+          {parts[0]}
+          <span className="text-Primary">{highlight}</span>
+          {parts[1]}
+        </>
+      );
+    }
+    return titleText;
+  };
+
   return (
     <div className="relative w-full h-screen min-h-[700px] flex items-center justify-center overflow-hidden">
       {/* Background Image */}
@@ -33,8 +55,7 @@ const Banner = () => {
           transition={{ duration: 0.8, ease: "easeOut", delay: 0.3 }}
           className="text-[28px] sm:text-[46px] md:text-[56px] font-bold text-white leading-[1.15] mb-6"
         >
-          Overcomers ABA Services - <br className="hidden md:block"/>
-          <span className="text-Primary">Helping children</span> overcome limitations.
+          {renderTitle(data?.title)}
         </motion.h1>
         
         <motion.p 
@@ -43,9 +64,7 @@ const Banner = () => {
           transition={{ duration: 0.8, ease: "easeOut", delay: 0.5 }}
           className="text-[16px] md:text-[18px] text-white/95 leading-relaxed mb-10 max-w-[700px]"
         >
-          At Overcomers ABA Services, we provide compassionate, evidence-based 
-          Applied Behavior Analysis (ABA) therapy designed to support children with 
-          autism and developmental disabilities.
+          {data?.subtitle || "At Overcomers ABA Services, we provide compassionate, evidence-based Applied Behavior Analysis (ABA) therapy designed to support children with autism and developmental disabilities."}
         </motion.p>
 
         <motion.div 
@@ -54,11 +73,14 @@ const Banner = () => {
           transition={{ duration: 0.8, ease: "easeOut", delay: 0.7 }}
           className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6"
         >
-          <Link to="/enrollment" className="bg-Primary hover:bg-Primary/90 text-Third font-bold text-[15px] px-8 py-3.5 rounded-[12px] flex items-center justify-center gap-2 transition-colors w-full sm:w-auto">
-            Enroll A Child <ArrowUpRight size={18} strokeWidth={2.5} />
+          <Link 
+            to={data?.button_1?.toLowerCase().includes('services') ? '/services' : '/enrollment'} 
+            className="bg-Primary hover:bg-Primary/90 text-Third font-bold text-[15px] px-8 py-3.5 rounded-[12px] flex items-center justify-center gap-2 transition-colors w-full sm:w-auto"
+          >
+            {data?.button_1 || "Enroll A Child"} <ArrowUpRight size={18} strokeWidth={2.5} />
           </Link>
           <button onClick={() => window.location.href = ("tel:908-342-7584")} className="bg-Secondary hover:bg-Secondary/90 text-white font-bold text-[15px] px-8 py-3.5 rounded-[12px] flex items-center justify-center gap-2 transition-colors w-full sm:w-auto border border-Secondary">
-            Free ABA Consultation <ArrowUpRight size={18} strokeWidth={2.5}/>
+            {data?.button_2 || "Free ABA Consultation"} <ArrowUpRight size={18} strokeWidth={2.5}/>
           </button>
         </motion.div>
       </div>

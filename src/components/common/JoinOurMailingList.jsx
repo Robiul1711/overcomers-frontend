@@ -1,16 +1,43 @@
-import React from 'react';
-import { ArrowUpRight } from 'lucide-react';
+import React, { useState } from 'react';
+import { ArrowUpRight, Loader2 } from 'lucide-react';
 import { ImageProvider } from '@/utils/ImageProvider';
 import { motion } from 'motion/react';
+import useAxiosPublic from '@/hooks/useAxiosPublic';
+import { useMutation } from '@tanstack/react-query';
+import { toast } from 'react-toastify';
 
-const JoinOurMailingList = () => {
+const JoinOurMailingList = ({ data }) => {
+  const [email, setEmail] = useState("");
+  const axiosPublic = useAxiosPublic();
+
+  const { mutate, isPending } = useMutation({
+    mutationFn: async (emailValue) => {
+      const res = await axiosPublic.post("/cms/newsletter/subscribe", { email: emailValue });
+      return res.data;
+    },
+    onSuccess: (data) => {
+      toast.success(data?.message || "Subscribed successfully!");
+      setEmail("");
+    },
+    onError: (error) => {
+      const msg = error?.response?.data?.message || error.message || "Subscription failed";
+      toast.error(msg);
+    }
+  });
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!email) return;
+    mutate(email);
+  };
+
   return (
     <div className="relative w-full section-padding-y overflow-hidden flex items-center justify-center">
       
       {/* Background Image Setup */}
       <div className="absolute inset-0 w-full h-full">
         <img 
-          src={ImageProvider.newsletter} 
+          src={data?.image_url || ImageProvider.newsletter} 
           alt="Children running" 
           className="w-full h-full object-cover object-center"
         />
@@ -51,7 +78,7 @@ const JoinOurMailingList = () => {
           viewport={{ once: true }}
           transition={{ duration: 0.5, delay: 0.5 }}
           className="w-full max-w-[600px] flex flex-col gap-2" 
-          onSubmit={(e) => e.preventDefault()}
+          onSubmit={handleSubmit}
         >
           <div className="flex flex-col items-start w-full">
             <label className="text-white font-bold text-[13px] mb-2 px-1">
@@ -61,14 +88,22 @@ const JoinOurMailingList = () => {
               <input 
                 type="email" 
                 placeholder="Enter Email Address"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 required
+                disabled={isPending}
                 className="flex-grow bg-[#F5F5F5] rounded-[10px] px-6 py-4 text-[14px] text-gray-800 outline-none focus:ring-2 focus:ring-Primary transition-all w-full sm:w-auto"
               />
               <button 
                 type="submit"
-                className="bg-Primary hover:bg-Primary/90 text-Third font-bold text-[14px] px-8 py-4 rounded-[10px] flex items-center justify-center gap-2 transition-colors shrink-0 w-full sm:w-auto"
+                disabled={isPending}
+                className="bg-Primary hover:bg-Primary/90 disabled:bg-Primary/70 text-Third font-bold text-[14px] px-8 py-4 rounded-[10px] flex items-center justify-center gap-2 transition-colors shrink-0 w-full sm:w-auto cursor-pointer"
               >
-                Sign up <ArrowUpRight size={18} strokeWidth={2.5} />
+                {isPending ? (
+                  <>Subscribing <Loader2 className="animate-spin" size={18} /></>
+                ) : (
+                  <>Subscribe <ArrowUpRight size={18} strokeWidth={2.5} /></>
+                )}
               </button>
             </div>
           </div>

@@ -79,7 +79,7 @@ const ClockInModal = ({
             </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-4 hidden">
             <div className="flex flex-col gap-2">
               <label className="text-[13px] font-extrabold text-Third uppercase tracking-wider ml-1">
                 Latitude

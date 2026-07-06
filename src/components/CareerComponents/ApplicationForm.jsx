@@ -231,7 +231,7 @@ const ApplicationForm = () => {
               </div>
             </div>
 
-            <div className="flex flex-col gap-2">
+            {/* <div className="flex flex-col gap-2">
               <label className="text-[13px] md:text-[14px] font-bold text-[#3A331E]">
                 How did you hear about the Overcomer Scholarship Program?
               </label>
@@ -241,7 +241,8 @@ const ApplicationForm = () => {
                 {...register("howDidYouHear")}
                 className="w-full bg-[#f4f4f4] text-gray-500 p-3.5 rounded-md outline-none focus:ring-1 focus:ring-Primary transition-all text-[14px]"
               />
-            </div>            {/* Upload Resume */}
+            </div> */}
+            {/* Upload Resume */}
             <div className="flex flex-col gap-2 md:col-span-2 mt-4">
               <label className="text-[13px] md:text-[14px] font-bold text-[#3A331E]">
                 Upload Resume <span className="text-[#3A331E]">*</span>

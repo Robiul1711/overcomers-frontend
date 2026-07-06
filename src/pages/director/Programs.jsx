@@ -286,7 +286,7 @@ const Programs = () => {
           onClick={() => setIsAddModalOpen(true)}
           className="flex items-center justify-center gap-2 bg-Secondary hover:bg-Secondary/95 text-white font-bold text-xs px-5 py-3 rounded-xl transition-all shadow-md active:scale-95 shrink-0 self-stretch sm:self-auto"
         >
-          <Plus size={16} /> Create New Template
+          <Plus size={16} /> Create New Program
         </button>
       </div>
 

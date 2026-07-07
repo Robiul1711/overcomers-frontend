@@ -162,6 +162,7 @@ const Sessions = () => {
                                   : "Approve"}
                               </span>
                             </button>
+                            <button className="font-bold text-[12px] py-2 px-4 rounded-xl transition-all duration-200 shadow-sm flex items-center gap-1.5 active:scale-95 bg-Primary/10 text-Primary border border-Primary">Download PDF</button>
                           </div>
                         </td>
                       </tr>
@@ -169,8 +170,8 @@ const Sessions = () => {
                       {/* Expanded Section */}
                       {isExpanded && (
                         <tr>
-                          <td colSpan={7} className="px-8 py-6 bg-Secondary/[0.01] border-t border-gray-50">
-                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                          <td colSpan={7} className="p-4 bg-Secondary/[0.01] border-t border-gray-50">
+                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                               
                               {/* Session Notes */}
                               <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex flex-col gap-3">

@@ -8,13 +8,7 @@ const ClientDetailModal = ({ isOpen, onClose,dataCasted }) => {
   if (!isOpen) return null;
 
   const sections = [
-    { label: "Parent Name", value: sectionData?.client_name },
-    { label: "Relationship to Child", value: sectionData?.relationship || "N/A"},
-    { label: "Phone Number", value: sectionData?.phone_number || "N/A" },
-    { label: "Email Address", value: sectionData?.email || "N/A"},
-    { label: "Home Address", value: sectionData?.address || "N/A"},
-    { label: "City, State, ZIP", value: sectionData?.address || "N/A"},
-    { label: "Child Name", value: sectionData?.child_name },
+        { label: "Child Name", value: sectionData?.child_name },
     { label: "Date of Birth", value: sectionData?.child_dob },
     { label: "Age", value: sectionData?.age },
     { label: "Primary Diagnosis", value: sectionData?.primary_diagnosis || "N/A" },
@@ -22,6 +16,13 @@ const ClientDetailModal = ({ isOpen, onClose,dataCasted }) => {
     { label: "School Location", value: sectionData?.school_location || "N/A" },
     { label: "Service Location", value: sectionData?.service_location || "N/A" },
     { label: "Case Status", value: "Active" },
+    { label: "Parent Name", value: sectionData?.client_name },
+    { label: "Relationship to Child", value: sectionData?.relationship || "N/A"},
+    { label: "Phone Number", value: sectionData?.phone_number || "N/A" },
+    { label: "Email Address", value: sectionData?.email || "N/A"},
+    { label: "Home Address", value: sectionData?.address || "N/A"},
+    { label: "City, State, ZIP", value: sectionData?.address || "N/A"},
+
   ];
 
   return (

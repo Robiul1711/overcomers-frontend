@@ -560,7 +560,7 @@ const CaseDetails = () => {
                 <div>
                   <h2 className="text-xl font-bold text-Third pb-3 border-b-[3px] border-[#E4A220] tracking-tight font-poppins">
                     Client Information
-                  </h2>
+                  </h2> 
                 </div>
 
                 <div className="flex flex-col gap-4">

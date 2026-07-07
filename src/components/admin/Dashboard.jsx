@@ -1,10 +1,5 @@
 import React from "react";
-import {
-  Briefcase,
-  FileText,
-  ArrowUpRight,
-  Clock,
-} from "lucide-react";
+import { Briefcase, FileText, ArrowUpRight, Clock } from "lucide-react";
 import { Link } from "react-router-dom";
 import ClientSchedule from "./CaseDetailComponents/Modals/ClientSchedule";
 import useClient from "@/hooks/useClient";
@@ -62,7 +57,10 @@ const Dashboard = () => {
         {/* Stats Cards Skeleton */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
           {Array.from({ length: 2 }).map((_, i) => (
-            <div key={i} className="bg-white rounded-xl p-4 shadow-sm border border-gray-50 flex items-center gap-4 md:gap-6">
+            <div
+              key={i}
+              className="bg-white rounded-xl p-4 shadow-sm border border-gray-50 flex items-center gap-4 md:gap-6"
+            >
               <SkeletonBox className="w-[48px] md:w-[52px] h-[48px] md:h-[52px] rounded-xl shrink-0" />
               <div className="flex flex-col gap-2">
                 <SkeletonBox className="h-8 w-16" />
@@ -89,21 +87,48 @@ const Dashboard = () => {
             <table className="w-full text-left border-collapse min-w-[900px]">
               <thead>
                 <tr className="bg-gray-50/80">
-                  {["Client Name", "Case ID", "Date", "Time", "Location", "Status", "Action"].map((h, i) => (
-                    <th key={i} className="py-4 px-6 font-bold text-Third text-[13px] uppercase tracking-wider">{h}</th>
+                  {[
+                    "Client Name",
+                    "Case ID",
+                    "Date",
+                    "Time",
+                    "Location",
+                    "Status",
+                    "Action",
+                  ].map((h, i) => (
+                    <th
+                      key={i}
+                      className="py-4 px-6 font-bold text-Third text-[13px] uppercase tracking-wider"
+                    >
+                      {h}
+                    </th>
                   ))}
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
                 {Array.from({ length: 4 }).map((_, idx) => (
                   <tr key={idx}>
-                    <td className="py-4 md:py-5 px-6"><SkeletonBox className="h-4 w-32" /></td>
-                    <td className="py-4 md:py-5 px-6"><SkeletonBox className="h-4 w-20" /></td>
-                    <td className="py-4 md:py-5 px-6"><SkeletonBox className="h-4 w-28" /></td>
-                    <td className="py-4 md:py-5 px-6"><SkeletonBox className="h-4 w-24" /></td>
-                    <td className="py-4 md:py-5 px-6"><SkeletonBox className="h-4 w-24" /></td>
-                    <td className="py-4 md:py-5 px-6"><SkeletonBox className="h-7 w-20 rounded-full" /></td>
-                    <td className="py-4 md:py-5 px-6"><SkeletonBox className="h-8 w-28 rounded-lg" /></td>
+                    <td className="py-4 md:py-5 px-6">
+                      <SkeletonBox className="h-4 w-32" />
+                    </td>
+                    <td className="py-4 md:py-5 px-6">
+                      <SkeletonBox className="h-4 w-20" />
+                    </td>
+                    <td className="py-4 md:py-5 px-6">
+                      <SkeletonBox className="h-4 w-28" />
+                    </td>
+                    <td className="py-4 md:py-5 px-6">
+                      <SkeletonBox className="h-4 w-24" />
+                    </td>
+                    <td className="py-4 md:py-5 px-6">
+                      <SkeletonBox className="h-4 w-24" />
+                    </td>
+                    <td className="py-4 md:py-5 px-6">
+                      <SkeletonBox className="h-7 w-20 rounded-full" />
+                    </td>
+                    <td className="py-4 md:py-5 px-6">
+                      <SkeletonBox className="h-8 w-28 rounded-lg" />
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -169,9 +194,9 @@ const Dashboard = () => {
       </div>
 
       {/* Recent Cases */}
-      <div className="bg-white rounded-[24px] md:rounded-3xl shadow-sm border border-gray-50 overflow-hidden">
+      <div className="bg-white rounded-xl md:rounded-2xl shadow-sm border border-gray-50 overflow-hidden p-4">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-5 md:p-7 border-b border-gray-100 bg-[#FAFAFA]/50">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-4 ">
           <div>
             <h3 className="text-lg md:text-xl font-bold text-Third">
               Recent Case Assignments
@@ -183,7 +208,7 @@ const Dashboard = () => {
           </div>
 
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
-            <button
+            {/* <button
               onClick={() => setIsAddModalOpen(true)}
               className="w-full sm:w-auto flex items-center justify-center gap-2 bg-Primary hover:bg-Primary/90 text-Secondary font-bold text-[13px] py-2.5 px-6 rounded-xl transition duration-300 shadow-sm active:scale-95"
             >
@@ -191,8 +216,8 @@ const Dashboard = () => {
                 size={18}
                 className="group-hover/btn:-rotate-12 transition-transform hidden sm:block"
               />
-             Create Program
-            </button>
+              Create Program
+            </button> */}
 
             <Link
               to="/dashboard/cases"
@@ -243,7 +268,7 @@ const Dashboard = () => {
                 casesData.map((item) => (
                   <tr
                     key={item.id}
-                    className="hover:bg-gray-50/50 transition-colors"
+                    className="hover:bg-gray-50/50 transition-colors p-4 border border-gray-200 rounded-xl "
                   >
                     <td className="py-4 md:py-5 px-6">
                       <span className="font-bold text-Third text-[14px]">
@@ -270,7 +295,7 @@ const Dashboard = () => {
                     <td className="py-4 md:py-5 px-6">
                       <span
                         className={`px-4 py-1.5 rounded-full text-[11px] font-bold inline-block leading-none border border-transparent ${getStatusStyles(
-                          item.status
+                          item.status,
                         )}`}
                       >
                         {item.status}

@@ -94,11 +94,11 @@ const CaseDetails = () => {
                 label: "Notes & Reports",
                 icon: <FileText size={18} />,
               },
-              {
-                id: "Insurance",
-                label: "Insurance",
-                icon: <ShieldCheck size={18} />,
-              },
+              // {
+              //   id: "Insurance",
+              //   label: "Insurance",
+              //   icon: <ShieldCheck size={18} />,
+              // },
             ].map((tab) => (
               <button
                 key={tab.id}

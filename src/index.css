@@ -261,3 +261,42 @@ input::-webkit-inner-spin-button {
 input[type=number] {
   -moz-appearance: textfield;
 }
+
+/* Custom Table Styling - Unified Rounded Container with Light Maroon Borders */
+table {
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+  width: 100%;
+  border: 1px solid color-mix(in srgb, var(--color-Secondary) 12%, transparent) !important;
+  border-radius: 16px !important;
+  overflow: hidden !important;
+  background-color: #ffffff !important;
+}
+
+/* Table header cells: border-bottom separating them from data */
+table thead tr th {
+  border-bottom: 1px solid color-mix(in srgb, var(--color-Secondary) 12%, transparent) !important;
+  padding-top: 16px !important;
+  padding-bottom: 16px !important;
+}
+
+/* Table body cells: horizontal row dividers */
+table tbody tr td {
+  border-bottom: 1px solid color-mix(in srgb, var(--color-Secondary) 12%, transparent) !important;
+  transition: background-color 0.15s ease-in-out !important;
+}
+
+/* Remove Tailwind's default divide-y border-top to prevent duplicate borders */
+table tbody.divide-y > :not([hidden]) ~ :not([hidden]) {
+  border-top: none !important;
+}
+
+/* Remove the border-bottom from the last row's cells to avoid double border with the container's bottom edge */
+table tbody tr:last-child td {
+  border-bottom: none !important;
+}
+
+/* Professional row hover background (subtle light maroon tint) */
+table tbody tr:hover td {
+  background-color: color-mix(in srgb, var(--color-Secondary) 3%, transparent) !important;
+}

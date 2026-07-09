@@ -242,9 +242,9 @@ const Dashboard = () => {
                 <th className="py-4 px-6 font-bold text-Third text-[13px] uppercase tracking-wider">
                   Child Name
                 </th>
-                <th className="py-4 px-6 font-bold text-Third text-[13px] uppercase tracking-wider">
+                {/* <th className="py-4 px-6 font-bold text-Third text-[13px] uppercase tracking-wider">
                   Guardian Name
-                </th>
+                </th> */}
                 <th className="py-4 px-6 font-bold text-Third text-[13px] uppercase tracking-wider">
                   Case ID
                 </th>
@@ -278,10 +278,10 @@ const Dashboard = () => {
                         {item.child_name}
                       </span>
                     </td>
-
+{/* 
                     <td className="py-4 md:py-5 px-6 text-gray-500 text-[14px] font-medium">
                       {item.guardian_name}
-                    </td>
+                    </td> */}
 
                     <td className="py-4 md:py-5 px-6 text-gray-500 text-[14px] font-medium">
                       {item.case_id}

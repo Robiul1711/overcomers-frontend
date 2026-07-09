@@ -100,6 +100,9 @@ const CommonNavbar = ({ open, setOpen }) => {
   } else if (pathname.includes("/payroll")) {
     title = "Payroll";
     subtitle = "View and manage your payroll information.";
+  } else if (pathname.includes("/clinic-files")) {
+    title = "Clinic Files";
+    subtitle = "Access and manage clinical resources, videos, and documentation.";
   }
 
   return (

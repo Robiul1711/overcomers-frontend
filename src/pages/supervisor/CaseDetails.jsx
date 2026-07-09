@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useParams, Link } from "react-router-dom";
 import {
   ArrowLeft,
@@ -16,14 +16,103 @@ import {
   X,
   Loader2,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  ChevronDown,
+  ChevronUp,
+  ExternalLink,
+  FileText,
+  Download,
+  Activity,
+  UserCheck,
 } from "lucide-react";
 import useClient from "@/hooks/useClient";
 import useMutationClient from "@/hooks/useMutationClient";
+import useAxiosSecure from "@/hooks/useAxiosSecure";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import WeeklyCalendar from "@/components/admin/ScheduleComponents/WeeklyCalendar";
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip as RechartsTooltip,
+  ResponsiveContainer,
+} from "recharts";
+
+const DAY_NAMES = [
+  "Sunday",
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+];
+const DAY_ABBR = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const MONTH_NAMES = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
+
+// Normalize API statuses to the format WeeklyCalendar expects
+const normalizeStatus = (status) => {
+  if (!status) return "Upcoming";
+  const upper = status.toUpperCase();
+  if (upper === "UPCOMING") return "Upcoming";
+  if (upper === "IN_PROGRESS" || upper === "IN PROGRESS") return "In Progress";
+  if (upper === "COMPLETED") return "Completed";
+  return status;
+};
+
+const CustomTooltip = ({ active, payload }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-[#76121F] text-white p-2 px-4 rounded-xl text-center shadow-lg transform -translate-y-2 relative font-poppins">
+        <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-3 h-3 bg-[#76121F] rotate-45"></div>
+        <p className="text-[12px] font-medium relative z-10 leading-tight">
+          {payload[0].payload?.task_title || "Success"}
+        </p>
+        <p className="text-[18px] font-bold relative z-10 leading-tight">
+          {Math.round(payload[0].value)}%
+        </p>
+      </div>
+    );
+  }
+  return null;
+};
+
+const periodValueMap = {
+  "All time": "all_time",
+  Month: "month",
+  Year: "year",
+};
 
 const CaseDetails = () => {
   const { id } = useParams();
+  const [activeTab, setActiveTab] = useState("Profile");
+  const [isClientExpanded, setIsClientExpanded] = useState(false);
+  const [isTherapistExpanded, setIsTherapistExpanded] = useState(false);
+  const [weekOffset, setWeekOffset] = useState(0);
+  const [programView, setProgramView] = useState("list"); // 'list' or 'details'
+  const [selectedProgram, setSelectedProgram] = useState(null);
+  const [tasksState, setTasksState] = useState([]);
+  const [taskPerformanceParams, setTaskPerformanceParams] = useState({
+    period: "all_time",
+    program_id: undefined,
+  });
+
+  const axiosSecure = useAxiosSecure();
 
   // Modals state
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
@@ -33,7 +122,8 @@ const CaseDetails = () => {
   // Library program selection and search/pagination
   const [libraryPage, setLibraryPage] = useState(1);
   const [librarySearch, setLibrarySearch] = useState("");
-  const [selectedLibraryProgramId, setSelectedLibraryProgramId] = useState(null);
+  const [selectedLibraryProgramId, setSelectedLibraryProgramId] =
+    useState(null);
 
   // Custom program form state
   const [customTitle, setCustomTitle] = useState("");
@@ -59,8 +149,8 @@ const CaseDetails = () => {
   // Edit program form state
   const [editProgramId, setEditProgramId] = useState(null);
   const [editTitle, setEditTitle] = useState("");
-  const [editLevel, setEditLevel] = useState("Beginner");
   const [editDescription, setEditDescription] = useState("");
+  const [editLevel, setEditLevel] = useState("Beginner");
   const [editTasks, setEditTasks] = useState([""]);
 
   const handleEditTaskChange = (index, value) => {
@@ -75,12 +165,53 @@ const CaseDetails = () => {
   };
 
   // API Queries & Mutations
-  const { data: resData, isLoading, isError } = useClient({
+  const {
+    data: resData,
+    isLoading,
+    isError,
+  } = useClient({
     queryKey: ["supervisorCaseDetails", id],
     url: `/supervisor/cases/${id}`,
   });
 
   const caseDetails = resData?.data;
+
+  // Schedules details query
+  const { data: schedulesData, isLoading: isSchedulesLoading } = useClient({
+    queryKey: ["supervisorCaseSchedules", id],
+    url: `/supervisor/cases/${id}/schedules`,
+    enabled: activeTab === "Client Schedule",
+  });
+
+  // Programs details query
+  const { data: programsData, isLoading: isProgramsLoading } = useClient({
+    queryKey: ["supervisorCasePrograms", id],
+    url: `/supervisor/cases/${id}/programs`,
+    enabled: activeTab === "Programs",
+  });
+
+  // Notes details query
+  const { data: notesData, isLoading: isNotesLoading } = useClient({
+    queryKey: ["supervisorCaseNotes", id],
+    url: `/supervisor/cases/${id}/notes`,
+    enabled: activeTab === "Notes & Reports",
+  });
+
+  // Reports details query
+  const { data: reportsData, isLoading: isReportsLoading } = useClient({
+    queryKey: ["supervisorCaseReports", id],
+    url: `/supervisor/cases/${id}/reports`,
+    enabled: activeTab === "Notes & Reports",
+  });
+
+  // Task performance details query
+  const { data: taskPerformanceData, isLoading: isPerformanceLoading } =
+    useClient({
+      queryKey: ["supervisorCasePerformance", id, taskPerformanceParams],
+      url: `/supervisor/cases/${id}/task-performance`,
+      params: taskPerformanceParams,
+      enabled: activeTab === "Notes & Reports",
+    });
 
   const { data: libraryData, isLoading: isLoadingLibrary } = useClient({
     queryKey: ["supervisorLibraryPrograms", libraryPage],
@@ -95,23 +226,86 @@ const CaseDetails = () => {
   const { mutate: assignProgram, isPending: isAssigning } = useMutationClient({
     url: `/supervisor/cases/${id}/programs/assign`,
     method: "post",
-    invalidateKeys: [["supervisorCaseDetails", id]],
+    invalidateKeys: [
+      ["supervisorCaseDetails", id],
+      ["supervisorCasePrograms", id],
+    ],
     successMessage: "Program assigned successfully",
   });
 
-  const { mutate: createCustomProgram, isPending: isCreatingCustom } = useMutationClient({
-    url: `/supervisor/cases/${id}/programs/custom`,
+  const { mutate: createCustomProgram, isPending: isCreatingCustom } =
+    useMutationClient({
+      url: `/supervisor/cases/${id}/programs/custom`,
+      method: "post",
+      invalidateKeys: [
+        ["supervisorCaseDetails", id],
+        ["supervisorCasePrograms", id],
+      ],
+      successMessage: "Custom program created successfully",
+    });
+
+  const { mutate: updateProgram, isPending: isUpdatingProgram } =
+    useMutationClient({
+      url: (programId) => `/supervisor/programs/${programId}`,
+      method: "put",
+      invalidateKeys: [
+        ["supervisorCaseDetails", id],
+        ["supervisorCasePrograms", id],
+      ],
+      successMessage: "Program updated successfully",
+    });
+
+  const { mutate: trackTask } = useMutationClient({
+    url: (taskId) => `/supervisor/tasks/${taskId}/track`,
     method: "post",
-    invalidateKeys: [["supervisorCaseDetails", id]],
-    successMessage: "Custom program created successfully",
+    invalidateKeys: [
+      ["supervisorCaseDetails", id],
+      ["supervisorCasePrograms", id],
+    ],
+    successMessage: "Task updated successfully",
   });
 
-  const { mutate: updateProgram, isPending: isUpdatingProgram } = useMutationClient({
-    url: (programId) => `/supervisor/programs/${programId}`,
-    method: "put",
-    invalidateKeys: [["supervisorCaseDetails", id]],
-    successMessage: "Program updated successfully",
-  });
+  const handleAction = (index, type) => {
+    const task = tasksState[index];
+    if (!task) return;
+
+    // Optimistically update local state
+    const nextTasks = [...tasksState];
+    const updatedTask = { ...task };
+    updatedTask.trials = (updatedTask.trials || 0) + 1;
+    if (type === "yes") {
+      updatedTask.correct = (updatedTask.correct || 0) + 1;
+    } else {
+      updatedTask.incorrect = (updatedTask.incorrect || 0) + 1;
+    }
+    nextTasks[index] = updatedTask;
+    setTasksState(nextTasks);
+
+    // Call API (will use /supervisor/tasks/:taskId/track or similar)
+    trackTask(
+      {
+        id: task.id,
+        data: { status: type === "yes" ? "correct" : "incorrect" },
+      },
+      {
+        onSuccess: (res) => {
+          const apiData = res?.data?.data;
+          if (apiData) {
+            setTasksState((prev) => {
+              const next = [...prev];
+              next[index] = {
+                ...next[index],
+                trials: apiData.trials,
+                correct: apiData.correct,
+                incorrect: apiData.incorrect,
+              };
+              return next;
+            });
+          }
+        },
+      },
+    );
+  };
 
   const employeeId = caseDetails?.employee_id || caseDetails?.employee?.id;
 
@@ -129,16 +323,19 @@ const CaseDetails = () => {
           setIsAssignModalOpen(false);
           setSelectedLibraryProgramId(null);
         },
-      }
+      },
     );
   };
 
   const handleCustomSubmit = () => {
     if (!customTitle.trim() || !employeeId) return;
 
-    const finalCategory = customCategory === "Other" ? otherCategory : customCategory;
+    const finalCategory =
+      customCategory === "Other" ? otherCategory : customCategory;
     const finalType = customType === "Other" ? otherType : customType;
-    const filteredTasks = customTasks.map(t => t.trim()).filter(t => t !== "");
+    const filteredTasks = customTasks
+      .map((t) => t.trim())
+      .filter((t) => t !== "");
 
     createCustomProgram(
       {
@@ -164,7 +361,7 @@ const CaseDetails = () => {
           setCustomDescription("");
           setCustomTasks([""]);
         },
-      }
+      },
     );
   };
 
@@ -173,14 +370,18 @@ const CaseDetails = () => {
     setEditTitle(program.title || "");
     setEditDescription(program.description || "");
     setEditLevel(program.level || "Beginner");
-    const existingTasks = program.tasks ? program.tasks.map(t => t.title || "") : [];
+    const existingTasks = program.tasks
+      ? program.tasks.map((t) => t.title || "")
+      : [];
     setEditTasks(existingTasks.length ? existingTasks : [""]);
     setIsEditModalOpen(true);
   };
 
   const handleEditSubmit = () => {
     if (!editTitle.trim()) return;
-    const filteredTasks = editTasks.map(t => t.trim()).filter(t => t !== "");
+    const filteredTasks = editTasks
+      .map((t) => t.trim())
+      .filter((t) => t !== "");
     updateProgram(
       {
         id: editProgramId,
@@ -200,7 +401,7 @@ const CaseDetails = () => {
           setEditLevel("Beginner");
           setEditTasks([""]);
         },
-      }
+      },
     );
   };
 
@@ -209,33 +410,211 @@ const CaseDetails = () => {
     (prog) =>
       prog.title?.toLowerCase().includes(librarySearch.toLowerCase()) ||
       prog.category?.toLowerCase().includes(librarySearch.toLowerCase()) ||
-      prog.description?.toLowerCase().includes(librarySearch.toLowerCase())
+      prog.description?.toLowerCase().includes(librarySearch.toLowerCase()),
   );
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-Primary"></div>
-      </div>
-    );
-  }
+  // Extract fields from new or old structure
+  const clientInfo = caseDetails?.client_information || {};
+  const serviceDetails = caseDetails?.service_details || {};
 
-  if (isError || !caseDetails) {
-    return (
-      <div className="p-6 bg-white rounded-2xl shadow-sm border border-gray-100 font-poppins">
-        <h1 className="text-2xl font-bold text-red-500">Error</h1>
-        <p className="text-gray-500 mt-1">Failed to load case details. Please try again later.</p>
-        <Link to="/supervisor-dashboard/cases" className="mt-4 inline-flex items-center gap-2 text-Secondary hover:underline font-bold">
-          <ArrowLeft size={16} /> Back to Cases
-        </Link>
-      </div>
-    );
-  }
+  // Case meta information
+  const caseNumber = caseDetails?.case_number || "N/A";
+  const caseStatus = clientInfo?.case_status || caseDetails?.status || "Active";
+  const clientName =
+    caseDetails?.client_name ||
+    clientInfo?.client_name ||
+    caseDetails?.parent?.name ||
+    "N/A";
+  const centerType =
+    caseDetails?.center_type ||
+    caseDetails?.service?.name ||
+    "Residential Center";
+  const authValidThru = caseDetails?.auth_valid_thru || "Aug 2026";
 
-  const parent = caseDetails?.parent || {};
-  const employee = caseDetails?.employee || {};
-  const service = caseDetails?.service || {};
-  const programs = caseDetails?.programs || [];
+  // Client info tiles
+  const clientInfoName =
+    clientInfo?.client_name ||
+    caseDetails?.parent?.name ||
+    caseDetails?.client_name ||
+    "N/A";
+  const clientInfoDob = clientInfo?.date_of_birth || "N/A";
+  const clientInfoLocation =
+    clientInfo?.service_location || caseDetails?.location || "N/A";
+  const clientInfoAssignedDate =
+    clientInfo?.assigned_date || caseDetails?.start_date || "N/A";
+
+  // Service details professional
+  const assignedProfessionals = serviceDetails?.assigned_professionals || [];
+  const mainProfessional = assignedProfessionals[0] || {
+    assigned_therapist: caseDetails?.employee?.name || "Unassigned",
+    role: "Therapist",
+    phone: caseDetails?.employee?.phone_number || "N/A",
+    email: caseDetails?.employee?.email || "N/A",
+  };
+
+  const therapistName = mainProfessional.assigned_therapist;
+  const sessionFrequency =
+    serviceDetails?.session_frequency || caseDetails?.frequency || "1";
+  const serviceStartDate =
+    serviceDetails?.service_start_date || caseDetails?.start_date || "N/A";
+  const sessionTime =
+    serviceDetails?.session_time ||
+    (caseDetails?.session_start_time
+      ? `${caseDetails.session_start_time} - ${caseDetails.session_end_time}`
+      : "1:00 AM - 12:00 PM");
+
+  const programs = programsData?.data || caseDetails?.programs || [];
+
+  // Parse overall performance details
+  const overallPerformance =
+    taskPerformanceData?.data?.overall_task_performance;
+  const rawChartData = overallPerformance?.chart_data || [];
+  const availablePrograms = overallPerformance?.available_programs || [];
+  const taskResponds = taskPerformanceData?.data?.task_responds || [];
+
+  // Fallback mock chart data if performance API is empty or not implemented
+  const mockChartData = [
+    {
+      task_label: "Eye Contact",
+      task_title: "Eye Contact",
+      success_rate: 65,
+      trials: 10,
+      correct: 6,
+      incorrect: 4,
+    },
+    {
+      task_label: "Compliance",
+      task_title: "Seat Compliance",
+      success_rate: 80,
+      trials: 8,
+      correct: 6,
+      incorrect: 2,
+    },
+    {
+      task_label: "Tact Actions",
+      task_title: "Tact Actions",
+      success_rate: 45,
+      trials: 12,
+      correct: 5,
+      incorrect: 7,
+    },
+    {
+      task_label: "Imitation",
+      task_title: "Imitation",
+      success_rate: 90,
+      trials: 10,
+      correct: 9,
+      incorrect: 1,
+    },
+  ];
+
+  const chartData = rawChartData.length > 0 ? rawChartData : mockChartData;
+
+  const dynamicChartData = useMemo(() => {
+    return chartData.map((item) => ({
+      name: item.task_label,
+      task_title: item.task_title,
+      value: Math.round(item.success_rate),
+      trials: item.trials,
+      correct: item.correct,
+      incorrect: item.incorrect,
+    }));
+  }, [chartData]);
+
+  const generateWeekDays = (offset) => {
+    const today = new Date();
+    const weekStart = new Date(today);
+    weekStart.setDate(today.getDate() + offset * 7);
+    const dayOfWeek = weekStart.getDay();
+    weekStart.setDate(weekStart.getDate() - dayOfWeek);
+
+    const days = [];
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(weekStart);
+      date.setDate(weekStart.getDate() + i);
+      const dayIdx = date.getDay();
+      days.push({
+        day: DAY_ABBR[dayIdx],
+        dayFull: DAY_NAMES[dayIdx],
+        date: date.getDate(),
+        dateObj: date,
+        month: MONTH_NAMES[date.getMonth()],
+        year: date.getFullYear(),
+        isToday: date.toDateString() === new Date().toDateString(),
+        sessions: [],
+      });
+    }
+    return days;
+  };
+
+  const weeklySessions = useMemo(() => {
+    const weekDays = generateWeekDays(weekOffset);
+    const scheduleData = schedulesData?.data || caseDetails?.schedules;
+    if (!scheduleData) return weekDays;
+
+    scheduleData.forEach((item) => {
+      const itemDate = new Date(item.timestamp * 1000 || item.date);
+      const matchingDay = weekDays.find(
+        (d) =>
+          d.dateObj.getFullYear() === itemDate.getFullYear() &&
+          d.dateObj.getMonth() === itemDate.getMonth() &&
+          d.dateObj.getDate() === itemDate.getDate(),
+      );
+      if (matchingDay) {
+        matchingDay.sessions.push({
+          id: item.id,
+          client: item.client_name,
+          time: item.time_formatted || item.time,
+          type: item.session_type,
+          room: item.location,
+          status: normalizeStatus(item.status),
+        });
+      }
+    });
+
+    return weekDays;
+  }, [schedulesData, caseDetails, weekOffset]);
+
+  const weekLabel = useMemo(() => {
+    if (!weeklySessions || weeklySessions.length === 0) return "";
+    const first = weeklySessions[0];
+    const last = weeklySessions[weeklySessions.length - 1];
+    if (first.month === last.month) {
+      return `${first.month} ${first.year}`;
+    }
+    return `${first.month} - ${last.month} ${first.year}`;
+  }, [weeklySessions]);
+
+  const handlePeriodChange = (period) => {
+    setTaskPerformanceParams((prev) => ({
+      ...prev,
+      period,
+    }));
+  };
+
+  const handleProgramChange = (programId) => {
+    setTaskPerformanceParams((prev) => ({
+      ...prev,
+      program_id: programId || undefined,
+    }));
+  };
+
+  const handlePrevWeek = () => setWeekOffset((prev) => prev - 1);
+  const handleNextWeek = () => setWeekOffset((prev) => prev + 1);
+
+  const handleDownload = async (fileUrl, fileName) => {
+    try {
+      const link = document.createElement("a");
+      link.href = fileUrl;
+      link.download = fileName || "download";
+      link.target = "_blank";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (err) {
+      console.error("Failed to download file:", err);
+    }
+  };
 
   const getStatusStyles = (status) => {
     switch (status) {
@@ -263,8 +642,36 @@ const CaseDetails = () => {
     }
   };
 
+  const selectedProgramId = taskPerformanceParams?.program_id;
+  const activePeriod = taskPerformanceParams?.period || "all_time";
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-Primary"></div>
+      </div>
+    );
+  }
+
+  if (isError || !caseDetails) {
+    return (
+      <div className="p-6 bg-white rounded-2xl shadow-sm border border-gray-100 font-poppins">
+        <h1 className="text-2xl font-bold text-red-500">Error</h1>
+        <p className="text-gray-500 mt-1">
+          Failed to load case details. Please try again later.
+        </p>
+        <Link
+          to="/supervisor-dashboard/cases"
+          className="mt-4 inline-flex items-center gap-2 text-Secondary hover:underline font-bold"
+        >
+          <ArrowLeft size={16} /> Back to Cases
+        </Link>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex flex-col gap-6 md:gap-8 font-poppins text-Third  w-full">
+    <div className="flex flex-col gap-6 md:gap-8 font-poppins text-Third w-full">
       {/* Header and Back Link */}
       <div className="flex flex-col gap-4">
         <Link
@@ -274,244 +681,984 @@ const CaseDetails = () => {
           <ArrowLeft size={18} /> Back to Managed Cases
         </Link>
 
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-3xl shadow-sm border border-gray-50">
+        {/* HERO BANNER SECTION (Dark Burgundy Theme) */}
+        <div className="relative overflow-hidden bg-gradient-to-br from-[#76121F] to-[#540A13] text-white p-6 md:p-8 rounded-3xl shadow-lg border border-[#76121F]/10 flex flex-col gap-5">
+          <div className="flex flex-wrap items-center gap-3">
+            {/* Case Number Badge */}
+            <span className="px-3.5 py-1 text-xs font-bold bg-white/10 rounded-full border border-white/15 tracking-wide text-white/95">
+              {caseNumber}
+            </span>
+
+            {/* Case Active status badge */}
+            <span className="flex items-center gap-1.5 px-3 py-1 bg-emerald-500/10 text-emerald-400 text-[10px] font-extrabold rounded-full uppercase tracking-wider border border-emerald-500/25 shadow-sm">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              Case {caseStatus}
+            </span>
+          </div>
+
           <div>
-            <div className="flex items-center gap-3">
-              <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">{caseDetails?.case_number}</h1>
-              <span className={`px-3 py-1 rounded-full text-xs font-bold border ${getStatusStyles(caseDetails?.status)}`}>
-                {caseDetails?.status}
-              </span>
-            </div>
-            <p className="text-gray-500 text-sm mt-1.5 font-medium">
-              Service: <span className="text-Third font-semibold">{service?.name || "N/A"}</span>
-            </p>
+            <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight font-poppins leading-none">
+              {clientName}
+            </h1>
           </div>
 
-          <div className="flex items-center gap-3 text-sm text-gray-500 bg-[#FAF6F7] px-4 py-2.5 rounded-2xl border border-gray-50">
-            <Calendar size={18} className="text-Secondary" />
-            <span>Start Date: <strong className="text-Third">{caseDetails?.start_date}</strong></span>
-          </div>
-        </div>
-      </div>
+          <div className="flex flex-wrap items-center gap-3">
+            {/* Center Type Badge */}
+            <span className="flex items-center gap-1.5 px-3 py-1.5 bg-[#8E222D] text-[#FFDB9F] text-xs font-semibold rounded-full border border-[#A73D47]">
+              <MapPin size={13} className="shrink-0" />
+              {centerType}
+            </span>
 
-      {/* Profile and Details Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
-        
-        {/* Client (Parent) Information */}
-        <div className="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-gray-50 flex flex-col gap-6">
-          <div className="flex items-center gap-3 pb-4 border-b border-gray-50">
-            <div className="p-2.5 bg-Primary/20 text-[#76121F] rounded-2xl">
-              <User size={20} />
-            </div>
-            <div>
-              <h2 className="text-lg font-bold">Client (Parent)</h2>
-              <p className="text-xs text-gray-400">Personal & Contact Info</p>
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-4">
-            <div>
-              <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block">Full Name</label>
-              <span className="text-sm font-semibold text-Third mt-0.5 block">{parent?.name || "N/A"}</span>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <Mail size={16} className="text-gray-400 shrink-0" />
-              <div className="overflow-hidden">
-                <label className="text-[10px] font-bold text-gray-400 uppercase block">Email Address</label>
-                <span className="text-xs font-medium text-gray-600 block truncate">{parent?.email || "N/A"}</span>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <Phone size={16} className="text-gray-400 shrink-0" />
-              <div>
-                <label className="text-[10px] font-bold text-gray-400 uppercase block">Phone Number</label>
-                <span className="text-xs font-medium text-gray-600 block">{parent?.phone_number || "N/A"}</span>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <MapPin size={16} className="text-gray-400 shrink-0" />
-              <div>
-                <label className="text-[10px] font-bold text-gray-400 uppercase block">Session Location</label>
-                <span className="text-xs font-medium text-gray-600 block">{caseDetails?.location || "N/A"}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Assigned Therapist (RBT) Information */}
-        <div className="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-gray-50 flex flex-col gap-6">
-          <div className="flex items-center gap-3 pb-4 border-b border-gray-50">
-            <div className="p-2.5 bg-Primary/20 text-[#76121F] rounded-2xl">
-              <User size={20} />
-            </div>
-            <div>
-              <h2 className="text-lg font-bold">Assigned RBT</h2>
-              <p className="text-xs text-gray-400">Therapist Profile</p>
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-4">
-            <div>
-              <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block">Full Name</label>
-              <span className="text-sm font-semibold text-Third mt-0.5 block">{employee?.name || "N/A"}</span>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <Mail size={16} className="text-gray-400 shrink-0" />
-              <div className="overflow-hidden">
-                <label className="text-[10px] font-bold text-gray-400 uppercase block">Email Address</label>
-                <span className="text-xs font-medium text-gray-600 block truncate">{employee?.email || "N/A"}</span>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <Info size={16} className="text-gray-400 shrink-0" />
-              <div>
-                <label className="text-[10px] font-bold text-gray-400 uppercase block">Employment Role</label>
-                <span className="text-xs font-medium text-gray-600 block">Registered Behavior Tech</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Session Schedule Details */}
-        <div className="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-gray-50 flex flex-col gap-6">
-          <div className="flex items-center gap-3 pb-4 border-b border-gray-50">
-            <div className="p-2.5 bg-Primary/20 text-[#76121F] rounded-2xl">
-              <Clock size={20} />
-            </div>
-            <div>
-              <h2 className="text-lg font-bold">Session Hours</h2>
-              <p className="text-xs text-gray-400">Weekly Schedule & Times</p>
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-4">
-            <div>
-              <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block">Start / End Time</label>
-              <div className="flex items-center gap-2 mt-1">
-                <span className="text-sm font-semibold text-Third bg-gray-50 px-3 py-1.5 rounded-xl border border-gray-100">
-                  {caseDetails?.session_start_time || "00:00"}
-                </span>
-                <span className="text-gray-400 text-xs font-bold">to</span>
-                <span className="text-sm font-semibold text-Third bg-gray-50 px-3 py-1.5 rounded-xl border border-gray-100">
-                  {caseDetails?.session_end_time || "00:00"}
-                </span>
-              </div>
-            </div>
-
-            <div>
-              <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block">Session Frequency</label>
-              <span className="text-sm font-semibold text-Third mt-0.5 block">
-                {caseDetails?.frequency} session(s) per week
-              </span>
-            </div>
+            {/* Auth validity badge */}
+            <span className="flex items-center gap-1.5 px-3 py-1.5 bg-[#8E222D] text-[#FFDB9F] text-xs font-semibold rounded-full border border-[#A73D47]">
+              <Calendar size={13} className="shrink-0" />
+              {authValidThru}
+            </span>
           </div>
         </div>
       </div>
 
-      {/* Programs List */}
-      <div className="flex flex-col gap-6">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-Secondary/10 text-Secondary rounded-2xl">
-              <Layers size={20} />
-            </div>
-            <div>
-              <h2 className="text-xl font-bold">Assigned Programs</h2>
-              <p className="text-gray-400 text-sm mt-0.5">
-                Active learning programs & tasks assigned to this case ({programs?.length} total)
-              </p>
-            </div>
-          </div>
-          <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-            {!employeeId && (
-              <span className="text-[11px] font-semibold text-amber-600 bg-amber-50 border border-amber-100 px-3 py-2 rounded-xl">
-                No RBT assigned to this case
-              </span>
-            )}
-            <div className="flex items-center gap-2">
+      {/* Tabs Navigation */}
+      <div className="mt-2">
+        <div className="flex items-center border-b border-gray-100 overflow-x-auto custom-scrollbar no-scrollbar scroll-smooth">
+          <div className="flex items-center min-w-max gap-2">
+            {[
+              { id: "Profile", label: "Profile", icon: <User size={18} /> },
+              {
+                id: "Client Schedule",
+                label: "Client Schedule",
+                icon: <Calendar size={18} />,
+              },
+              { id: "Programs", label: "Programs", icon: <Layers size={18} /> },
+              {
+                id: "Notes & Reports",
+                label: "Notes & Reports",
+                icon: <FileText size={18} />,
+              },
+            ].map((tab) => (
               <button
-                onClick={() => {
-                  setLibraryPage(1);
-                  setLibrarySearch("");
-                  setSelectedLibraryProgramId(null);
-                  setIsAssignModalOpen(true);
-                }}
-                disabled={!employeeId}
-                className="px-4 py-2.5 bg-Primary text-[#76121F] font-bold text-xs rounded-xl hover:bg-Primary/90 transition-all shadow-sm flex items-center gap-1.5 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`px-6 md:px-8 py-4 font-bold text-[14px] transition-all relative whitespace-nowrap ${
+                  activeTab === tab.id
+                    ? "text-[#76121F] border-b-4 border-[#76121F] translate-y-[1px]"
+                    : "text-gray-400 hover:text-gray-600"
+                }`}
               >
-                <Plus size={14} /> Assign from Library
+                <div className="flex items-center gap-2.5">
+                  {tab.icon}
+                  {tab.label}
+                </div>
               </button>
-              <button
-                onClick={() => setIsCustomModalOpen(true)}
-                disabled={!employeeId}
-                className="px-4 py-2.5 bg-Secondary text-white font-bold text-xs rounded-xl hover:bg-Secondary/90 transition-all shadow-sm flex items-center gap-1.5 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <Plus size={14} /> Create Custom
-              </button>
-            </div>
+            ))}
           </div>
         </div>
 
-        {programs?.length === 0 ? (
-          <div className="bg-white rounded-3xl p-12 text-center border border-gray-50 shadow-sm">
-            <p className="text-gray-400 font-medium">No programs assigned to this case yet.</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {programs?.map((program) => (
-              <div
-                key={program.id}
-                className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between gap-4"
-              >
+        {/* Tab Contents */}
+        <div className="mt-6">
+          {/* PROFILE TAB */}
+          {activeTab === "Profile" && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Card 1: Client Information */}
+              <div className="bg-white p-6 md:p-8 rounded-3xl border border-gray-100 shadow-sm flex flex-col gap-6">
                 <div>
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <h3 className="text-base font-bold text-Third leading-snug">{program.title}</h3>
-                      <span className="text-[10px] text-gray-400 font-semibold mt-1 block">
-                        Type: {program.type || "N/A"}
+                  <h2 className="text-xl font-bold text-Third pb-3 border-b-[3px] border-[#E4A220] tracking-tight font-poppins">
+                    Client Information
+                  </h2>
+                </div>
+
+                <div className="flex flex-col gap-4">
+           
+
+                  {/* Collapsible details for client info */}
+                  {isClientExpanded && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-dashed border-gray-100 animate-in fade-in duration-200">
+                      {clientInfo.child_name && (
+                        <div className="bg-[#FFFDF6] border border-[#F7EED9] p-4 rounded-2xl flex flex-col gap-1">
+                          <span className="text-[10px] font-bold text-amber-700/60 uppercase tracking-wider">
+                            Child Name
+                          </span>
+                          <span className="text-sm font-bold text-[#76121F]">
+                            {clientInfo.child_name}
+                          </span>
+                        </div>
+                      )}
+
+                      {clientInfo.child_dob && (
+                        <div className="bg-[#FFFDF6] border border-[#F7EED9] p-4 rounded-2xl flex flex-col gap-1">
+                          <span className="text-[10px] font-bold text-amber-700/60 uppercase tracking-wider">
+                            Child DOB
+                          </span>
+                          <span className="text-sm font-bold text-[#76121F]">
+                            {clientInfo.child_dob}
+                          </span>
+                        </div>
+                      )}
+
+                      {clientInfo.age !== undefined && (
+                        <div className="bg-[#FFFDF6] border border-[#F7EED9] p-4 rounded-2xl flex flex-col gap-1">
+                          <span className="text-[10px] font-bold text-amber-700/60 uppercase tracking-wider">
+                            Age
+                          </span>
+                          <span className="text-sm font-bold text-[#76121F]">
+                            {clientInfo.age} years
+                          </span>
+                        </div>
+                      )}
+
+                      {clientInfo.relationship && (
+                        <div className="bg-[#FFFDF6] border border-[#F7EED9] p-4 rounded-2xl flex flex-col gap-1">
+                          <span className="text-[10px] font-bold text-amber-700/60 uppercase tracking-wider">
+                            Relationship
+                          </span>
+                          <span className="text-sm font-bold text-[#76121F]">
+                            {clientInfo.relationship}
+                          </span>
+                        </div>
+                      )}
+
+                      {clientInfo.phone_number && (
+                        <div className="bg-[#FFFDF6] border border-[#F7EED9] p-4 rounded-2xl flex flex-col gap-1">
+                          <span className="text-[10px] font-bold text-amber-700/60 uppercase tracking-wider">
+                            Phone Number
+                          </span>
+                          <span className="text-sm font-bold text-[#76121F]">
+                            {clientInfo.phone_number}
+                          </span>
+                        </div>
+                      )}
+
+                      {clientInfo.email && (
+                        <div className="bg-[#FFFDF6] border border-[#F7EED9] p-4 rounded-2xl flex flex-col gap-1 overflow-hidden">
+                          <span className="text-[10px] font-bold text-amber-700/60 uppercase tracking-wider">
+                            Email Address
+                          </span>
+                          <span
+                            className="text-sm font-bold text-[#76121F] truncate"
+                            title={clientInfo.email}
+                          >
+                            {clientInfo.email}
+                          </span>
+                        </div>
+                      )}
+
+                      {clientInfo.primary_diagnosis && (
+                        <div className="bg-[#FFFDF6] border border-[#F7EED9] p-4 rounded-2xl flex flex-col gap-1">
+                          <span className="text-[10px] font-bold text-amber-700/60 uppercase tracking-wider">
+                            Primary Diagnosis
+                          </span>
+                          <span className="text-sm font-bold text-[#76121F]">
+                            {clientInfo.primary_diagnosis}
+                          </span>
+                        </div>
+                      )}
+
+                      {clientInfo.school_name && (
+                        <div className="bg-[#FFFDF6] border border-[#F7EED9] p-4 rounded-2xl flex flex-col gap-1">
+                          <span className="text-[10px] font-bold text-amber-700/60 uppercase tracking-wider">
+                            School Name
+                          </span>
+                          <span className="text-sm font-bold text-[#76121F] truncate">
+                            {clientInfo.school_name}
+                          </span>
+                        </div>
+                      )}
+
+                      {clientInfo.school_location && (
+                        <div className="bg-[#FFFDF6] border border-[#F7EED9] p-4 rounded-2xl flex flex-col gap-1 sm:col-span-1">
+                          <span className="text-[10px] font-bold text-amber-700/60 uppercase tracking-wider">
+                            School Location
+                          </span>
+                          <span className="text-sm font-bold text-[#76121F]">
+                            {clientInfo.school_location}
+                          </span>
+                        </div>
+                      )}
+
+                      {clientInfo.address && (
+                        <div className="bg-[#FFFDF6] border border-[#F7EED9] p-4 rounded-2xl flex flex-col gap-1 sm:col-span-1">
+                          <span className="text-[10px] font-bold text-amber-700/60 uppercase tracking-wider">
+                            Address
+                          </span>
+                          <span className="text-sm font-bold text-[#76121F]">
+                            {clientInfo.address}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {/* Client Name */}
+                    <div className="bg-[#FFFDF6] border border-[#F7EED9] p-4 rounded-2xl flex flex-col gap-1">
+                      <span className="text-[10px] font-bold text-amber-700/60 uppercase tracking-wider">
+                        Client Name
+                      </span>
+                      <span className="text-sm font-bold text-[#76121F] truncate">
+                        {clientInfoName}
                       </span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className="bg-Primary/10 text-Secondary text-[10px] font-extrabold px-2.5 py-1 rounded-full uppercase tracking-wider">
-                        {program.category}
+
+                    {/* Date Of Birth */}
+                    <div className="bg-[#FFFDF6] border border-[#F7EED9] p-4 rounded-2xl flex flex-col gap-1">
+                      <span className="text-[10px] font-bold text-amber-700/60 uppercase tracking-wider">
+                        Date Of Birth
                       </span>
+                      <span className="text-sm font-bold text-[#76121F]">
+                        {clientInfoDob}
+                      </span>
+                    </div>
+
+                    {/* Service Location */}
+                    <div className="bg-[#FFFDF6] border border-[#F7EED9] p-4 rounded-2xl flex flex-col gap-1">
+                      <span className="text-[10px] font-bold text-amber-700/60 uppercase tracking-wider">
+                        Service Location
+                      </span>
+                      <span className="text-sm font-bold text-[#76121F]">
+                        {clientInfoLocation}
+                      </span>
+                    </div>
+
+                    {/* Assigned Date */}
+                    <div className="bg-[#FFFDF6] border border-[#F7EED9] p-4 rounded-2xl flex flex-col gap-1">
+                      <span className="text-[10px] font-bold text-amber-700/60 uppercase tracking-wider">
+                        Assigned Date
+                      </span>
+                      <span className="text-sm font-bold text-[#76121F]">
+                        {clientInfoAssignedDate}
+                      </span>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setIsClientExpanded(!isClientExpanded)}
+                    className="inline-flex items-center gap-1.5 text-xs font-bold text-[#76121F] hover:text-[#540A13] mt-2 self-start transition-all active:scale-95 duration-150"
+                  >
+                    {isClientExpanded ? (
+                      <>
+                        View Less <ChevronUp size={14} />
+                      </>
+                    ) : (
+                      <>
+                        View More <ExternalLink size={12} />
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {/* Card 2: Service Details */}
+              <div className="bg-white p-6 md:p-8 rounded-3xl border border-gray-100 shadow-sm flex flex-col gap-6">
+                <div>
+                  <h2 className="text-xl font-bold text-Third pb-3 border-b-[3px] border-[#E4A220] tracking-tight font-poppins">
+                    Service Details
+                  </h2>
+                </div>
+
+                <div className="flex flex-col gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {/* Therapist */}
+                    <div className="bg-[#FFFDF6] border border-[#F7EED9] p-4 rounded-2xl flex flex-col gap-1 sm:col-span-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-bold text-amber-700/60 uppercase tracking-wider">
+                          Therapist
+                        </span>
+                        <button
+                          onClick={() =>
+                            setIsTherapistExpanded(!isTherapistExpanded)
+                          }
+                          className="text-[10px] font-extrabold text-[#76121F] hover:underline flex items-center gap-0.5"
+                        >
+                          {isTherapistExpanded ? "View Less" : "View More"}{" "}
+                          <ExternalLink size={10} />
+                        </button>
+                      </div>
+                      <span className="text-sm font-bold text-[#76121F] mt-1">
+                        {therapistName || "Unassigned"}
+                      </span>
+
+                      {/* Expandable Therapist details */}
+                      {isTherapistExpanded && (
+                        <div className="mt-3 pt-3 border-t border-dashed border-[#F7EED9] flex flex-col gap-2.5 animate-in fade-in duration-200">
+                          {mainProfessional.role && (
+                            <div className="flex items-center gap-2 text-xs">
+                              <UserCheck
+                                size={14}
+                                className="text-amber-600 shrink-0"
+                              />
+                              <span className="text-gray-500 font-medium">
+                                Role:
+                              </span>
+                              <strong className="text-[#76121F] font-bold">
+                                {mainProfessional.role}
+                              </strong>
+                            </div>
+                          )}
+                          {mainProfessional.phone &&
+                            mainProfessional.phone !== "N/A" && (
+                              <div className="flex items-center gap-2 text-xs">
+                                <Phone
+                                  size={14}
+                                  className="text-amber-600 shrink-0"
+                                />
+                                <span className="text-gray-500 font-medium">
+                                  Phone:
+                                </span>
+                                <strong className="text-[#76121F] font-bold">
+                                  {mainProfessional.phone}
+                                </strong>
+                              </div>
+                            )}
+                          {mainProfessional.email &&
+                            mainProfessional.email !== "N/A" && (
+                              <div className="flex items-center gap-2 text-xs overflow-hidden">
+                                <Mail
+                                  size={14}
+                                  className="text-amber-600 shrink-0"
+                                />
+                                <span className="text-gray-500 font-medium">
+                                  Email:
+                                </span>
+                                <strong
+                                  className="text-[#76121F] font-bold truncate"
+                                  title={mainProfessional.email}
+                                >
+                                  {mainProfessional.email}
+                                </strong>
+                              </div>
+                            )}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Session Frequency */}
+                    <div className="bg-[#FFFDF6] border border-[#F7EED9] p-4 rounded-2xl flex flex-col gap-1">
+                      <span className="text-[10px] font-bold text-amber-700/60 uppercase tracking-wider">
+                        Session Frequency
+                      </span>
+                      <span className="text-sm font-bold text-[#76121F]">
+                        {sessionFrequency}
+                      </span>
+                    </div>
+
+                    {/* Service Start Date */}
+                    <div className="bg-[#FFFDF6] border border-[#F7EED9] p-4 rounded-2xl flex flex-col gap-1">
+                      <span className="text-[10px] font-bold text-amber-700/60 uppercase tracking-wider">
+                        Service Start Date
+                      </span>
+                      <span className="text-sm font-bold text-[#76121F]">
+                        {serviceStartDate}
+                      </span>
+                    </div>
+
+                    {/* Session Time */}
+                    <div className="bg-[#FFFDF6] border border-[#F7EED9] p-4 rounded-2xl flex flex-col gap-1 sm:col-span-2">
+                      <span className="text-[10px] font-bold text-amber-700/60 uppercase tracking-wider">
+                        Session Time
+                      </span>
+                      <span className="text-sm font-bold text-[#76121F]">
+                        {sessionTime}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* CLIENT SCHEDULE TAB */}
+          {activeTab === "Client Schedule" && (
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <WeeklyCalendar
+                weeklySessions={weeklySessions}
+                weekLabel={weekLabel}
+                isLoading={isSchedulesLoading}
+                onPrevWeek={handlePrevWeek}
+                onNextWeek={handleNextWeek}
+                hideActions={true}
+              />
+            </div>
+          )}
+
+          {/* PROGRAMS TAB */}
+          {activeTab === "Programs" && (
+            <div>
+              {isProgramsLoading ? (
+                <div className="flex items-center justify-center min-h-[250px] bg-white rounded-3xl border border-gray-100 shadow-sm">
+                  <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-Primary"></div>
+                </div>
+              ) : programView === "details" && selectedProgram ? (
+                /* Program Details View */
+                <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-gray-100 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  {/* Header Section */}
+                  <div className="mb-6 pb-4 border-b border-gray-100">
+                    <div className="flex items-center gap-3">
                       <button
-                        onClick={() => handleOpenEditModal(program)}
-                        className="p-1.5 bg-gray-50 hover:bg-gray-100 text-gray-500 hover:text-Secondary rounded-xl border border-gray-100 transition-colors"
-                        title="Edit program details"
+                        onClick={() => {
+                          setProgramView("list");
+                          setSelectedProgram(null);
+                        }}
+                        className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-[#76121F] hover:bg-[#76121F] hover:text-white transition-all active:scale-90"
                       >
-                        <Pencil size={13} />
+                        <ArrowLeft size={16} strokeWidth={3} />
+                      </button>
+                      <h2 className="text-xl md:text-2xl font-bold text-Third leading-tight">
+                        Program Details
+                      </h2>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-6">
+                    {/* Program Info Card */}
+                    <div className="bg-[#FFFDF6] border border-[#F7EED9] p-6 rounded-2xl flex flex-col gap-4">
+                      <h3 className="text-lg font-bold text-[#76121F]">
+                        {selectedProgram.title}
+                      </h3>
+
+                      <div className="flex flex-col gap-3">
+                        <div>
+                          <span className="px-3.5 py-1 bg-Primary/10 text-Secondary font-bold text-[10px] rounded-full uppercase tracking-wider">
+                            {selectedProgram.category}
+                          </span>
+                        </div>
+
+                        <div className="flex flex-col gap-1.5 mt-2">
+                          <span className="text-[10px] font-bold text-amber-700/60 uppercase tracking-wider">
+                            Description
+                          </span>
+                          <p className="text-Third/80 text-xs md:text-sm font-medium leading-relaxed font-poppins">
+                            {selectedProgram.description}
+                          </p>
+                          <div className="flex items-center gap-1.5 text-gray-400 font-bold text-[10px] uppercase tracking-wide mt-2">
+                            <span className="px-2 py-0.5 rounded border border-gray-200 bg-white text-gray-500">
+                              {selectedProgram.level}
+                            </span>
+                            <span>•</span>
+                            <span className="px-2 py-0.5 rounded border border-gray-200 bg-white text-gray-500">
+                              {selectedProgram.type}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Task List Section */}
+                    <div>
+                      <h3 className="text-lg font-bold text-Third mb-4">
+                        Task List ({selectedProgram.tasks?.length || 0})
+                      </h3>
+
+                      {!tasksState || tasksState.length === 0 ? (
+                        <div className="text-center py-8 bg-gray-50 rounded-2xl text-gray-400 text-xs font-semibold">
+                          No tasks defined for this program.
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {tasksState.map((task, index) => (
+                            <div
+                              key={task.id}
+                              className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm flex flex-col justify-between gap-4"
+                            >
+                              <h5 className="text-sm font-bold text-Third mb-4 font-poppins">
+                                {task.title}
+                              </h5>
+
+                              <div className="grid grid-cols-3 gap-3">
+                                <div className="flex flex-col gap-1">
+                                  <label className="text-[9px] font-bold text-gray-400 uppercase tracking-wider text-center">
+                                    Trials
+                                  </label>
+                                  <div className="bg-gray-50 rounded-xl py-2 px-1 text-center text-Third font-bold text-sm border border-gray-100">
+                                    {task.trials || 0}
+                                  </div>
+                                </div>
+                                <div className="flex flex-col gap-1">
+                                  <label className="text-[9px] font-bold text-gray-400 uppercase tracking-wider text-center">
+                                    Correct
+                                  </label>
+                                  <div className="bg-[#E5F9ED] rounded-xl py-2 px-1 text-center text-[#10B981] font-bold text-sm border border-[#10B981]/15">
+                                    {task.correct || 0}
+                                  </div>
+                                </div>
+                                <div className="flex flex-col gap-1">
+                                  <label className="text-[9px] font-bold text-gray-400 uppercase tracking-wider text-center">
+                                    Incorrect
+                                  </label>
+                                  <div className="bg-red-50 rounded-xl py-2 px-1 text-center text-red-500 font-bold text-sm border border-red-100">
+                                    {task.incorrect || 0}
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div className="flex gap-3 pt-2">
+                                <button
+                                  onClick={() => handleAction(index, "yes")}
+                                  className="flex-1 bg-[#10B981] text-white py-2.5 rounded-xl font-bold flex items-center justify-center gap-1.5 hover:bg-[#059669] transition-all active:scale-95 text-xs"
+                                >
+                                  ✓ Yes
+                                </button>
+                                <button
+                                  onClick={() => handleAction(index, "no")}
+                                  className="flex-1 border border-red-200 text-red-500 py-2.5 rounded-xl font-bold flex items-center justify-center gap-1.5 hover:bg-red-50 transition-all active:scale-95 text-xs"
+                                >
+                                  ✕ No
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                /* Program List View */
+                <div className="flex flex-col gap-6 bg-white p-6 md:p-8 rounded-3xl border border-gray-100 shadow-sm">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 w-full">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2.5 bg-Secondary/10 text-Secondary rounded-2xl">
+                        <Layers size={20} />
+                      </div>
+                      <div>
+                        <h2 className="text-xl font-bold">Assigned Programs</h2>
+                        <p className="text-gray-400 text-sm mt-0.5">
+                          Active learning programs & tasks assigned to this case
+                          ({programs?.length || 0} total)
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setIsAssignModalOpen(true)}
+                        disabled={!employeeId}
+                        className="px-4 py-2.5 bg-Primary text-[#76121F] font-bold text-xs rounded-xl hover:bg-Primary/90 transition-all shadow-sm flex items-center gap-1.5 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <Plus size={14} /> Assign from Library
+                      </button>
+                      <button
+                        onClick={() => setIsCustomModalOpen(true)}
+                        disabled={!employeeId}
+                        className="px-4 py-2.5 bg-Secondary text-white font-bold text-xs rounded-xl hover:bg-Secondary/90 transition-all shadow-sm flex items-center gap-1.5 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <Plus size={14} /> Create Custom
                       </button>
                     </div>
                   </div>
 
-                  <p className="text-gray-500 text-xs mt-3 leading-relaxed font-medium">
-                    {program.description}
-                  </p>
-                </div>
+                  {programs.length === 0 ? (
+                    <div className="bg-gray-50 rounded-3xl p-12 text-center border border-dashed border-gray-200">
+                      <Layers
+                        className="mx-auto text-gray-300 mb-3"
+                        size={40}
+                      />
+                      <p className="text-gray-400 font-semibold text-sm">
+                        No programs assigned to this case yet.
+                      </p>
+                      <p className="text-gray-300 text-xs mt-1">
+                        Once program modules are linked to this client, they
+                        will be listed here.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {programs.map((program) => (
+                        <div
+                          key={program.id}
+                          className="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm flex flex-col justify-between hover:shadow-md hover:border-[#76121F]/10 transition-all duration-300 gap-4"
+                        >
+                          <div>
+                            <div className="flex items-start justify-between gap-3">
+                              <h4 className="text-base font-bold text-[#76121F] leading-snug line-clamp-2">
+                                {program.title}
+                              </h4>
+                              <div className="flex items-center gap-2 shrink-0">
+                                <span className="bg-Primary/10 text-Secondary text-[9px] font-extrabold px-2.5 py-1 rounded-full uppercase tracking-wider">
+                                  {program.category}
+                                </span>
+                                <button
+                                  onClick={() => handleOpenEditModal(program)}
+                                  className="p-1.5 bg-gray-50 hover:bg-gray-100 text-gray-500 hover:text-Secondary rounded-xl border border-gray-100 transition-colors"
+                                  title="Edit program details"
+                                >
+                                  <Pencil size={13} />
+                                </button>
+                              </div>
+                            </div>
 
-                <div className="flex items-center justify-between pt-4 border-t border-gray-50 text-[11px]">
-                  <div className="flex items-center gap-2">
-                    <span className="text-gray-400 font-bold">Level:</span>
-                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold border ${getLevelStyles(program.level)}`}>
-                      {program.level}
-                    </span>
+                            <p className="text-gray-500 text-xs mt-3 leading-relaxed font-medium line-clamp-3">
+                              {program.description}
+                            </p>
+                          </div>
+
+                          <div className="mt-auto">
+                            <div className="flex items-center gap-1.5 text-gray-400 font-bold text-[10px] mb-4 uppercase tracking-wide">
+                              <span>{program.level}</span>
+                              <span className="text-[#76121F]">•</span>
+                              <span>{program.type}</span>
+                            </div>
+
+                            <div className="flex items-center gap-3">
+                              <button
+                                onClick={() => {
+                                  setSelectedProgram(program);
+                                  setTasksState(program.tasks || []);
+                                  setProgramView("details");
+                                }}
+                                className="flex-1 py-2 bg-[#FAF6F7] border border-Secondary/20 text-[#76121F] font-bold text-xs rounded-xl hover:bg-[#76121F] hover:text-white transition-all active:scale-95 text-center cursor-pointer font-poppins"
+                              >
+                                View Details
+                              </button>
+                              <div
+                                className={`capitalize flex-1 py-2 ${program.status === "active" || program.status === "Active" ? "bg-emerald-500 text-white" : program.status === "pending" || program.status === "Pending" ? "bg-[#E4A220] text-white" : "bg-[#76121F] text-white"} font-bold text-xs rounded-xl text-center shadow-sm select-none`}
+                              >
+                                {program.status || "Active"}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* NOTES & REPORTS TAB */}
+          {activeTab === "Notes & Reports" && (
+            <div className="flex flex-col gap-8">
+              {/* Overall Task Performance Section */}
+              <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 mb-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                {/* Chart Section */}
+                <div className="col-span-1 xl:col-span-2 bg-white rounded-3xl p-4 md:p-6 shadow-sm border border-gray-100 flex flex-col">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+                    <div>
+                      <h2 className="text-xl md:text-2xl font-bold text-Third tracking-tight">
+                        Overall Task Performance
+                      </h2>
+                      <div className="flex items-center gap-4 mt-1">
+                        <p className="text-gray-400 text-xs md:text-sm font-medium">
+                          Success rate (%) across sessions
+                        </p>
+                        <div className="flex bg-gray-50 p-1 rounded-lg border border-gray-100">
+                          {["Month", "Year", "All time"].map((label) => {
+                            const val = periodValueMap[label];
+                            return (
+                              <button
+                                key={label}
+                                onClick={() => handlePeriodChange(val)}
+                                className={`px-2.5 py-1 text-[10px] font-bold rounded-md transition-all ${
+                                  activePeriod === val
+                                    ? "bg-Secondary text-white shadow-sm"
+                                    : "text-gray-400 hover:text-gray-600"
+                                }`}
+                              >
+                                {label}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="relative">
+                      <select
+                        value={selectedProgramId || "all"}
+                        onChange={(e) =>
+                          handleProgramChange(
+                            e.target.value === "all"
+                              ? undefined
+                              : Number(e.target.value),
+                          )
+                        }
+                        className="appearance-none bg-[#76121F] text-white px-4 py-2.5 pr-8 rounded-xl font-bold text-xs shadow-md cursor-pointer outline-none border-none focus:ring-2 focus:ring-[#76121F]/30"
+                      >
+                        <option value="all">All Programs</option>
+                        {availablePrograms.map((prog) => (
+                          <option key={prog.id} value={prog.id}>
+                            {prog.name}
+                          </option>
+                        ))}
+                      </select>
+                      <ChevronDown
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-white pointer-events-none"
+                        size={14}
+                      />
+                    </div>
                   </div>
 
-                  <div className="text-gray-400 font-medium">
-                    Start: <strong className="text-gray-600">{program.start_date || "N/A"}</strong>
+                  {isPerformanceLoading ? (
+                    <div className="flex items-center justify-center h-[280px]">
+                      <div className="flex flex-col items-center gap-2">
+                        <div className="w-8 h-8 border-4 border-[#76121F]/20 border-t-[#76121F] rounded-full animate-spin"></div>
+                        <span className="text-gray-400 text-xs font-semibold">
+                          Loading performance...
+                        </span>
+                      </div>
+                    </div>
+                  ) : dynamicChartData.length > 0 ? (
+                    <div className="w-full h-[280px]">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart
+                          data={dynamicChartData}
+                          margin={{ top: 20, right: 10, left: -20, bottom: 0 }}
+                        >
+                          <defs>
+                            <linearGradient
+                              id="colorValue"
+                              x1="0"
+                              y1="0"
+                              x2="0"
+                              y2="1"
+                            >
+                              <stop
+                                offset="5%"
+                                stopColor="#76121F"
+                                stopOpacity={0.2}
+                              />
+                              <stop
+                                offset="95%"
+                                stopColor="#76121F"
+                                stopOpacity={0}
+                              />
+                            </linearGradient>
+                          </defs>
+                          <CartesianGrid
+                            vertical={false}
+                            strokeDasharray="3 3"
+                            stroke="#f0f0f0"
+                          />
+                          <XAxis
+                            dataKey="name"
+                            axisLine={false}
+                            tickLine={false}
+                            tick={{
+                              fill: "#9CA3AF",
+                              fontSize: 11,
+                              fontWeight: 500,
+                            }}
+                            dy={10}
+                          />
+                          <YAxis
+                            axisLine={false}
+                            tickLine={false}
+                            tick={{
+                              fill: "#9CA3AF",
+                              fontSize: 11,
+                              fontWeight: 500,
+                            }}
+                            tickFormatter={(val) => `${val}%`}
+                            domain={[0, 100]}
+                            ticks={[0, 20, 40, 60, 80, 100]}
+                          />
+                          <RechartsTooltip
+                            content={<CustomTooltip />}
+                            cursor={{
+                              stroke: "#76121F",
+                              strokeWidth: 1,
+                              strokeDasharray: "4 4",
+                            }}
+                          />
+                          <Area
+                            type="monotone"
+                            dataKey="value"
+                            stroke="#76121F"
+                            strokeWidth={3}
+                            fillOpacity={1}
+                            fill="url(#colorValue)"
+                            activeDot={{
+                              r: 5,
+                              fill: "#76121F",
+                              stroke: "#FFF",
+                              strokeWidth: 2,
+                            }}
+                          />
+                        </AreaChart>
+                      </ResponsiveContainer>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-center h-[280px] text-gray-400 text-xs font-semibold">
+                      No task performance data available.
+                    </div>
+                  )}
+                </div>
+
+                {/* Table Section */}
+                <div className="col-span-1 bg-white rounded-3xl p-4 md:p-6 shadow-sm border border-gray-100 flex flex-col">
+                  <div className="mb-6">
+                    <h2 className="text-xl md:text-2xl font-bold text-Third tracking-tight">
+                      Task Responds
+                    </h2>
+                    <p className="text-gray-400 text-xs md:text-sm font-medium">
+                      Trial data summary
+                    </p>
+                  </div>
+
+                  <div className="overflow-x-auto flex-1 max-h-[280px] custom-scrollbar">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="border-b border-gray-100">
+                          <th className="py-2.5 font-bold text-Third text-[11px] uppercase tracking-wider w-[60%]">
+                            Task Title
+                          </th>
+                          <th className="py-2.5 font-bold text-Third text-[11px] uppercase tracking-wider text-center w-[20%]">
+                            Trials
+                          </th>
+                          <th className="py-2.5 font-bold text-Third text-[11px] uppercase tracking-wider text-center w-[20%]">
+                            Success
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-50">
+                        {taskResponds.length > 0
+                          ? taskResponds.map((item, index) => (
+                              <tr key={index} className="hover:bg-gray-50/50">
+                                <td className="py-3 font-semibold text-gray-600 text-xs truncate max-w-[150px]">
+                                  {item.program_name}
+                                </td>
+                                <td className="py-3 text-center text-gray-500 font-bold text-xs">
+                                  {item.trials}
+                                </td>
+                                <td className="py-3 text-center text-emerald-600 font-bold text-xs">
+                                  {Math.round(item.success_rate)}%
+                                </td>
+                              </tr>
+                            ))
+                          : // Fallback mock responses if API is empty
+                            mockChartData.map((item, index) => (
+                              <tr key={index} className="hover:bg-gray-50/50">
+                                <td className="py-3 font-semibold text-gray-600 text-xs truncate max-w-[150px]">
+                                  {item.task_title}
+                                </td>
+                                <td className="py-3 text-center text-gray-500 font-bold text-xs">
+                                  {item.trials}
+                                </td>
+                                <td className="py-3 text-center text-emerald-600 font-bold text-xs">
+                                  {Math.round(item.success_rate)}%
+                                </td>
+                              </tr>
+                            ))}
+                      </tbody>
+                    </table>
                   </div>
                 </div>
               </div>
-            ))}
-          </div>
-        )}
+
+              {/* Notes & Reports lists */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
+                {/* Session Notes List */}
+                <div className="bg-white p-6 md:p-8 rounded-3xl border border-gray-100 shadow-sm flex flex-col gap-6">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2.5 bg-Primary/10 text-Secondary rounded-2xl">
+                      <FileText size={20} />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold">Case Notes</h3>
+                      <p className="text-gray-400 text-xs mt-0.5">
+                        Historical notes recorded by therapists
+                      </p>
+                    </div>
+                  </div>
+
+                  {isNotesLoading ? (
+                    <div className="flex items-center justify-center py-10">
+                      <Loader2
+                        className="animate-spin text-[#76121F]"
+                        size={24}
+                      />
+                    </div>
+                  ) : !notesData?.data || notesData.data.length === 0 ? (
+                    <div className="text-center py-10 bg-gray-50 rounded-2xl text-gray-400 text-xs font-semibold">
+                      No session notes recorded yet.
+                    </div>
+                  ) : (
+                    <div className="flex flex-col gap-4 max-h-[300px] overflow-y-auto pr-1">
+                      {notesData.data.map((note) => (
+                        <div
+                          key={note.id}
+                          className="p-4 bg-[#FFFDF6] border border-[#F7EED9] rounded-2xl flex flex-col gap-2"
+                        >
+                          <div className="flex items-center justify-between text-[10px] text-gray-400 font-bold">
+                            <span>By: {note.employee_name || "Therapist"}</span>
+                            <span>
+                              {note.date_formatted ||
+                                note.created_at_formatted ||
+                                note.date}
+                            </span>
+                          </div>
+                          <p className="text-Third text-xs font-medium leading-relaxed font-poppins">
+                            {note.content || note.notes || note.session_notes}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Session Reports List */}
+                <div className="bg-white p-6 md:p-8 rounded-3xl border border-gray-100 shadow-sm flex flex-col gap-6">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2.5 bg-Primary/10 text-Secondary rounded-2xl">
+                      <Activity size={20} />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold">Clinical Reports</h3>
+                      <p className="text-gray-400 text-xs mt-0.5">
+                        Downloadable clinical summaries & reports
+                      </p>
+                    </div>
+                  </div>
+
+                  {isReportsLoading ? (
+                    <div className="flex items-center justify-center py-10">
+                      <Loader2
+                        className="animate-spin text-[#76121F]"
+                        size={24}
+                      />
+                    </div>
+                  ) : !reportsData?.data || reportsData.data.length === 0 ? (
+                    <div className="text-center py-10 bg-gray-50 rounded-2xl text-gray-400 text-xs font-semibold">
+                      No clinical reports uploaded yet.
+                    </div>
+                  ) : (
+                    <div className="flex flex-col gap-4 max-h-[300px] overflow-y-auto pr-1">
+                      {reportsData.data.map((report) => (
+                        <div
+                          key={report.id}
+                          className="flex items-center justify-between p-4 bg-white border border-gray-100 rounded-2xl hover:border-gray-200 transition-colors"
+                        >
+                          <div className="flex flex-col gap-1 min-w-0">
+                            <span className="text-Third font-bold text-xs truncate max-w-[200px]">
+                              {report.title || report.report_name}
+                            </span>
+                            <span className="text-gray-400 text-[10px] font-bold uppercase tracking-wider">
+                              Uploaded:{" "}
+                              {report.date_formatted ||
+                                report.created_at_formatted ||
+                                report.date}
+                            </span>
+                          </div>
+                          <button
+                            onClick={() =>
+                              handleDownload(
+                                report.file_url || report.url,
+                                report.title || report.report_name,
+                              )
+                            }
+                            className="inline-flex items-center gap-1.5 border border-Secondary/20 text-Secondary hover:bg-Secondary hover:text-white font-bold text-[10px] py-1.5 px-3 rounded-xl transition-all"
+                          >
+                            <Download size={12} /> Download
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
+
+      {/* DIALOGS AND MODALS (Assign, Create, Edit) */}
 
       {/* DIALOG: Assign from Library */}
       <Dialog
@@ -527,7 +1674,7 @@ const CaseDetails = () => {
         <DialogContent className="max-w-[95vw] sm:max-w-[600px] p-0 rounded-[24px] overflow-hidden border-none shadow-2xl">
           <div className="p-5 sm:p-7 flex flex-col gap-5 bg-white max-h-[90vh] overflow-y-auto custom-scrollbar">
             <div>
-              <h2 className="text-[22px] font-extrabold text-Third leading-tight">
+              <h2 className="text-[22px] font-extrabold text-Third leading-tight font-poppins">
                 Assign Library Program
               </h2>
               <p className="text-gray-400 text-xs mt-1 font-medium">
@@ -536,7 +1683,10 @@ const CaseDetails = () => {
             </div>
 
             <div className="relative">
-              <Search className="absolute left-4 top-3.5 text-gray-400" size={18} />
+              <Search
+                className="absolute left-4 top-3.5 text-gray-400"
+                size={18}
+              />
               <input
                 type="text"
                 placeholder="Search programs by title or category..."
@@ -550,7 +1700,9 @@ const CaseDetails = () => {
               {isLoadingLibrary ? (
                 <div className="flex flex-col items-center justify-center py-12 gap-3">
                   <Loader2 className="animate-spin text-Secondary" size={32} />
-                  <span className="text-xs text-gray-400 font-semibold">Loading programs...</span>
+                  <span className="text-xs text-gray-400 font-semibold">
+                    Loading programs...
+                  </span>
                 </div>
               ) : filteredLibraryPrograms.length === 0 ? (
                 <div className="text-center py-12 text-gray-400 font-medium text-sm bg-gray-50 rounded-2xl border border-dashed border-gray-200">
@@ -571,22 +1723,30 @@ const CaseDetails = () => {
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div>
-                          <h4 className="text-sm font-bold text-Third">{prog.title}</h4>
+                          <h4 className="text-sm font-bold text-Third">
+                            {prog.title}
+                          </h4>
                           <div className="flex flex-wrap gap-2 mt-1.5">
                             <span className="bg-gray-100 text-gray-500 text-[9px] font-bold px-2 py-0.5 rounded-md uppercase">
                               {prog.category}
                             </span>
-                            <span className={`px-2 py-0.5 rounded-md text-[9px] font-bold border ${getLevelStyles(prog.level)}`}>
+                            <span
+                              className={`px-2 py-0.5 rounded-md text-[9px] font-bold border ${getLevelStyles(prog.level)}`}
+                            >
                               {prog.level}
                             </span>
                           </div>
                         </div>
                         <div
                           className={`w-5 h-5 rounded-full border flex items-center justify-center shrink-0 transition-colors ${
-                            isSelected ? "border-Secondary bg-Secondary" : "border-gray-200"
+                            isSelected
+                              ? "border-Secondary bg-Secondary"
+                              : "border-gray-200"
                           }`}
                         >
-                          {isSelected && <span className="w-2.5 h-2.5 rounded-full bg-white" />}
+                          {isSelected && (
+                            <span className="w-2.5 h-2.5 rounded-full bg-white" />
+                          )}
                         </div>
                       </div>
                       {prog.description && (
@@ -613,8 +1773,15 @@ const CaseDetails = () => {
                   Page {libraryPage} of {libraryPagination.last_page}
                 </span>
                 <button
-                  onClick={() => setLibraryPage((p) => Math.min(libraryPagination.last_page, p + 1))}
-                  disabled={libraryPage >= libraryPagination.last_page || isLoadingLibrary}
+                  onClick={() =>
+                    setLibraryPage((p) =>
+                      Math.min(libraryPagination.last_page, p + 1),
+                    )
+                  }
+                  disabled={
+                    libraryPage >= libraryPagination.last_page ||
+                    isLoadingLibrary
+                  }
                   className="flex items-center gap-1 text-gray-500 hover:text-Secondary disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
                 >
                   Next <ChevronRight size={16} />
@@ -668,19 +1835,22 @@ const CaseDetails = () => {
         }}
       >
         <DialogContent className="max-w-[95vw] sm:max-w-[600px] p-0 rounded-[24px] overflow-hidden border-none shadow-2xl">
-          <div className="p-5 sm:p-7 flex flex-col gap-6 bg-white max-h-[90vh] overflow-y-auto custom-scrollbar">
+          <div className="p-5 sm:p-7 flex flex-col gap-6 bg-white max-h-[90vh] overflow-y-auto custom-scrollbar font-poppins">
             <div>
               <h2 className="text-[22px] font-extrabold text-Third leading-tight">
                 Create Custom Program
               </h2>
               <p className="text-gray-400 text-xs mt-1 font-medium">
-                Design a custom, target-specific program for this client's unique therapy targets.
+                Design a custom, target-specific program for this client's
+                unique therapy targets.
               </p>
             </div>
 
             <div className="flex flex-col gap-4">
               <div className="flex flex-col gap-2">
-                <label className="text-Third font-bold text-[13px]">Program Title *</label>
+                <label className="text-Third font-bold text-[13px]">
+                  Program Title *
+                </label>
                 <input
                   type="text"
                   placeholder="e.g. Toilet Training Protocol"
@@ -693,7 +1863,9 @@ const CaseDetails = () => {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="flex flex-col gap-2">
-                  <label className="text-Third font-bold text-[13px]">Category *</label>
+                  <label className="text-Third font-bold text-[13px]">
+                    Category *
+                  </label>
                   <div className="relative">
                     <select
                       value={customCategory}
@@ -701,9 +1873,13 @@ const CaseDetails = () => {
                       className="w-full bg-[#F4F4F4] rounded-xl p-3.5 text-[13px] text-gray-700 outline-none border border-transparent focus:border-Primary transition-all font-medium appearance-none"
                     >
                       <option value="Communication">Communication</option>
-                      <option value="Daily Living Skills">Daily Living Skills</option>
+                      <option value="Daily Living Skills">
+                        Daily Living Skills
+                      </option>
                       <option value="Social Skills">Social Skills</option>
-                      <option value="Behavior Reduction">Behavior Reduction</option>
+                      <option value="Behavior Reduction">
+                        Behavior Reduction
+                      </option>
                       <option value="Cognition">Cognition</option>
                       <option value="Self-Care">Self-Care</option>
                       <option value="Academic">Academic</option>
@@ -713,18 +1889,28 @@ const CaseDetails = () => {
                 </div>
 
                 <div className="flex flex-col gap-2">
-                  <label className="text-Third font-bold text-[13px]">Program Type *</label>
+                  <label className="text-Third font-bold text-[13px]">
+                    Program Type *
+                  </label>
                   <div className="relative">
                     <select
                       value={customType}
                       onChange={(e) => setCustomType(e.target.value)}
                       className="w-full bg-[#F4F4F4] rounded-xl p-3.5 text-[13px] text-gray-700 outline-none border border-transparent focus:border-Primary transition-all font-medium appearance-none"
                     >
-                      <option value="Skill Acquisition">Skill Acquisition</option>
+                      <option value="Skill Acquisition">
+                        Skill Acquisition
+                      </option>
                       <option value="Task Analysis">Task Analysis</option>
-                      <option value="Direct Instruction">Direct Instruction</option>
-                      <option value="DTT (Discrete Trial Training)">DTT (Discrete Trial)</option>
-                      <option value="NET (Natural Environment Teaching)">NET (Natural Env)</option>
+                      <option value="Direct Instruction">
+                        Direct Instruction
+                      </option>
+                      <option value="DTT (Discrete Trial Training)">
+                        DTT (Discrete Trial)
+                      </option>
+                      <option value="NET (Natural Environment Teaching)">
+                        NET (Natural Env)
+                      </option>
                       <option value="Other">Other (Custom Type)</option>
                     </select>
                   </div>
@@ -733,7 +1919,9 @@ const CaseDetails = () => {
 
               {customCategory === "Other" && (
                 <div className="flex flex-col gap-2">
-                  <label className="text-Third font-bold text-[13px]">Specify Custom Category *</label>
+                  <label className="text-Third font-bold text-[13px]">
+                    Specify Custom Category *
+                  </label>
                   <input
                     type="text"
                     placeholder="Enter category name"
@@ -747,7 +1935,9 @@ const CaseDetails = () => {
 
               {customType === "Other" && (
                 <div className="flex flex-col gap-2">
-                  <label className="text-Third font-bold text-[13px]">Specify Custom Type *</label>
+                  <label className="text-Third font-bold text-[13px]">
+                    Specify Custom Type *
+                  </label>
                   <input
                     type="text"
                     placeholder="Enter type name"
@@ -760,7 +1950,9 @@ const CaseDetails = () => {
               )}
 
               <div className="flex flex-col gap-2">
-                <label className="text-Third font-bold text-[13px]">Target Level *</label>
+                <label className="text-Third font-bold text-[13px]">
+                  Target Level *
+                </label>
                 <div className="relative">
                   <select
                     value={customLevel}
@@ -775,7 +1967,9 @@ const CaseDetails = () => {
               </div>
 
               <div className="flex flex-col gap-2">
-                <label className="text-Third font-bold text-[13px]">Instructions & Description</label>
+                <label className="text-Third font-bold text-[13px]">
+                  Instructions & Description
+                </label>
                 <textarea
                   placeholder="Describe target instructions, prompt hierarchy, and mastery criteria..."
                   value={customDescription}
@@ -787,7 +1981,9 @@ const CaseDetails = () => {
               {/* Custom Tasks Input list */}
               <div className="flex flex-col gap-2.5">
                 <div className="flex items-center justify-between">
-                  <label className="text-Third font-bold text-[13px]">Program Tasks</label>
+                  <label className="text-Third font-bold text-[13px]">
+                    Program Tasks
+                  </label>
                   <button
                     type="button"
                     onClick={() => setCustomTasks([...customTasks, ""])}
@@ -803,7 +1999,9 @@ const CaseDetails = () => {
                         type="text"
                         placeholder={`e.g. Task ${index + 1}`}
                         value={task}
-                        onChange={(e) => handleTaskChange(index, e.target.value)}
+                        onChange={(e) =>
+                          handleTaskChange(index, e.target.value)
+                        }
                         className="flex-1 bg-[#F4F4F4] rounded-xl p-3.5 text-[13px] text-gray-700 outline-none border border-transparent focus:border-Primary transition-all font-medium"
                       />
                       {customTasks.length > 1 && (
@@ -830,7 +2028,12 @@ const CaseDetails = () => {
               </button>
               <button
                 onClick={handleCustomSubmit}
-                disabled={!customTitle.trim() || isCreatingCustom || (customCategory === "Other" && !otherCategory.trim()) || (customType === "Other" && !otherType.trim())}
+                disabled={
+                  !customTitle.trim() ||
+                  isCreatingCustom ||
+                  (customCategory === "Other" && !otherCategory.trim()) ||
+                  (customType === "Other" && !otherType.trim())
+                }
                 className="w-full sm:w-auto bg-Secondary hover:bg-Secondary/90 text-white font-bold text-xs px-6 py-3 rounded-xl transition-all shadow-md active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {isCreatingCustom ? (
@@ -860,20 +2063,23 @@ const CaseDetails = () => {
           }
         }}
       >
-        <DialogContent className="max-w-[95vw] sm:max-w-[600px] p-0 rounded-[24px] overflow-hidden border-none shadow-2xl">
+        <DialogContent className="max-w-[95vw] sm:max-w-[600px] p-0 rounded-[24px] overflow-hidden border-none shadow-2xl font-poppins">
           <div className="p-5 sm:p-7 flex flex-col gap-6 bg-white max-h-[90vh] overflow-y-auto custom-scrollbar">
             <div>
               <h2 className="text-[22px] font-extrabold text-Third leading-tight">
                 Edit Assigned Program
               </h2>
               <p className="text-gray-400 text-xs mt-1 font-medium">
-                Update details or therapist instructions for this assigned learning program.
+                Update details or therapist instructions for this assigned
+                learning program.
               </p>
             </div>
 
             <div className="flex flex-col gap-4">
               <div className="flex flex-col gap-2">
-                <label className="text-Third font-bold text-[13px]">Program Title *</label>
+                <label className="text-Third font-bold text-[13px]">
+                  Program Title *
+                </label>
                 <input
                   type="text"
                   placeholder="e.g. Expressive Language"
@@ -885,7 +2091,9 @@ const CaseDetails = () => {
               </div>
 
               <div className="flex flex-col gap-2">
-                <label className="text-Third font-bold text-[13px]">Target Level *</label>
+                <label className="text-Third font-bold text-[13px]">
+                  Target Level *
+                </label>
                 <div className="relative">
                   <select
                     value={editLevel}
@@ -900,7 +2108,9 @@ const CaseDetails = () => {
               </div>
 
               <div className="flex flex-col gap-2">
-                <label className="text-Third font-bold text-[13px]">Instructions & Description</label>
+                <label className="text-Third font-bold text-[13px]">
+                  Instructions & Description
+                </label>
                 <textarea
                   placeholder="Instructions for the therapist..."
                   value={editDescription}
@@ -912,7 +2122,9 @@ const CaseDetails = () => {
               {/* Edit Tasks Input list */}
               <div className="flex flex-col gap-2.5">
                 <div className="flex items-center justify-between">
-                  <label className="text-Third font-bold text-[13px]">Program Tasks</label>
+                  <label className="text-Third font-bold text-[13px]">
+                    Program Tasks
+                  </label>
                   <button
                     type="button"
                     onClick={() => setEditTasks([...editTasks, ""])}
@@ -928,7 +2140,9 @@ const CaseDetails = () => {
                         type="text"
                         placeholder={`e.g. Task ${index + 1}`}
                         value={task}
-                        onChange={(e) => handleEditTaskChange(index, e.target.value)}
+                        onChange={(e) =>
+                          handleEditTaskChange(index, e.target.value)
+                        }
                         className="flex-1 bg-[#F4F4F4] rounded-xl p-3.5 text-[13px] text-gray-700 outline-none border border-transparent focus:border-Primary transition-all font-medium"
                       />
                       {editTasks.length > 1 && (

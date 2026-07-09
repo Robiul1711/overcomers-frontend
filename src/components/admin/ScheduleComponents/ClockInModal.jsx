@@ -69,8 +69,8 @@ const ClockInModal = ({
               <input
                 type="text"
                 value={actualStartTime}
-                onChange={(e) => setActualStartTime(e.target.value)}
-                className="w-full bg-[#FAF9F6] border border-gray-100 px-12 py-5 rounded-2xl text-Third font-extrabold text-[16px] focus:outline-none focus:border-Primary transition-all shadow-sm"
+                readOnly
+                className="w-full bg-[#FAF9F6] border border-gray-100 px-12 py-5 rounded-2xl text-Third font-extrabold text-[16px] focus:outline-none transition-all shadow-sm cursor-not-allowed"
               />
             </div>
             <p className="text-[11px] text-gray-400 font-bold italic mt-1 px-1 flex items-center gap-1.5">

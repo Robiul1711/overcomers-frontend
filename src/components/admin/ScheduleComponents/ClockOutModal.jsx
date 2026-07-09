@@ -2,12 +2,13 @@ import React from "react";
 import { X, Clock, CheckCircle2 } from "lucide-react";
 import SignaturePad from "./SignaturePad";
 
-const ClockOutModal = ({ 
-  isOpen, 
-  onClose, 
-  selectedSession, 
-  sessionNotes, 
-  setSessionNotes, 
+const ClockOutModal = ({
+  isOpen,
+  onClose,
+  selectedSession,
+  sessionNotes,
+  setSessionNotes,
+  actualEndTime,
   latitude,
   longitude,
   confirmClockOut,
@@ -31,7 +32,7 @@ const ClockOutModal = ({
           <div className="flex items-center gap-3">
             <div className="w-1.5 h-8 bg-Secondary rounded-full"></div>
             <h2 className="text-2xl md:text-3xl font-extrabold text-Third leading-tight">
-             Clock Out
+              Clock Out
             </h2>
           </div>
           <button
@@ -41,11 +42,11 @@ const ClockOutModal = ({
             <X size={20} />
           </button>
         </div>
+        {/* {console.log(selectedSession)} */}
 
         <div className="bg-[#FAF6F7] border border-Secondary/10 rounded-2xl p-5 mb-8 shadow-inner shadow-black/[0.01]">
           <p className="text-Secondary font-extrabold text-[18px] md:text-[20px] leading-tight">
-            {selectedSession.client}{" "}
-            <span className="opacity-20 px-2">|</span>{" "}
+            {selectedSession.client} <span className="opacity-20 px-2">|</span>{" "}
             {selectedSession.type}
           </p>
           <div className="flex items-center gap-2 mt-3 text-Secondary/50 font-bold text-[13px]">
@@ -76,7 +77,25 @@ const ClockOutModal = ({
           </div> */}
           <div className="flex flex-col gap-2">
             <label className="text-[13px] font-extrabold text-Third uppercase tracking-wider ml-1">
-             Add session notes *
+              Ending Time
+            </label>
+            <div className="relative">
+              <Clock
+                size={18}
+                className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400"
+              />
+              <input
+                type="text"
+                value={actualEndTime}
+                readOnly
+                className="w-full bg-[#FAF9F6] border border-gray-100 px-12 py-5 rounded-2xl text-Third font-extrabold text-[16px] focus:outline-none transition-all shadow-sm cursor-not-allowed"
+              />
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <label className="text-[13px] font-extrabold text-Third uppercase tracking-wider ml-1">
+              Add session notes *
             </label>
             <textarea
               value={sessionNotes}
@@ -112,7 +131,7 @@ const ClockOutModal = ({
               />
             </div>
           </div>
- 
+
           {/* Signature Section */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-4 border-t border-gray-50">
             <SignaturePad
@@ -139,8 +158,13 @@ const ClockOutModal = ({
           </button>
           <button
             onClick={confirmClockOut}
-            disabled={isProcessing || !sessionNotes.trim() || parentEmpty || employeeEmpty}
-            className={`w-full sm:flex-1 py-4.5 bg-Secondary text-white font-extrabold rounded-2xl shadow-xl shadow-Secondary/20 hover:scale-[1.02] active:scale-95 transition-all text-[15px] uppercase tracking-wider ${(isProcessing || !sessionNotes.trim() || parentEmpty || employeeEmpty) ? "opacity-40 cursor-not-allowed grayscale-[0.5]" : ""}`}
+            disabled={
+              isProcessing ||
+              !sessionNotes.trim() ||
+              parentEmpty ||
+              employeeEmpty
+            }
+            className={`w-full sm:flex-1 py-4.5 bg-Secondary text-white font-extrabold rounded-2xl shadow-xl shadow-Secondary/20 hover:scale-[1.02] active:scale-95 transition-all text-[15px] uppercase tracking-wider ${isProcessing || !sessionNotes.trim() || parentEmpty || employeeEmpty ? "opacity-40 cursor-not-allowed grayscale-[0.5]" : ""}`}
           >
             {isProcessing ? "Submitting..." : "Submit & Clock Out"}
           </button>

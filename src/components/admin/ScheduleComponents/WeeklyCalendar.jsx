@@ -46,14 +46,14 @@ const WeeklyCalendar = ({
             Weekly View
           </div>
 
-          {/* {!hideActions && (
+          {!hideActions && (
             <button
               onClick={() => setShowScheduleModal(true)}
               className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 text-white bg-Secondary font-bold text-[13px] md:text-[14px] rounded-xl hover:bg-[#426c3c] transition-colors shadow-sm"
             >
-              <Calendar size={18} />
+             <Calendar size={18} /> Create Session
             </button>
-          )} */}
+          )}
         </div>
       </div>
 
@@ -177,7 +177,14 @@ const WeeklyCalendar = ({
                     .map((_, idx) => (
                       <div
                         key={`empty-${idx}`}
-                        className="h-[180px] md:h-[220px] rounded-[24px] border-2 border-dashed border-gray-100 bg-gray-50/30 flex items-center justify-center group/empty transition-colors hover:border-gray-200"
+                        onClick={() => {
+                          if (!hideActions && setShowScheduleModal) {
+                            setShowScheduleModal(dayData.dateObj);
+                          }
+                        }}
+                        className={`h-[180px] md:h-[220px] rounded-[24px] border-2 border-dashed border-gray-100 bg-gray-50/30 flex items-center justify-center group/empty transition-colors hover:border-gray-200 ${
+                          !hideActions ? "cursor-pointer" : ""
+                        }`}
                       >
                         <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-gray-200 group-hover/empty:scale-110 transition-transform">
                           <Plus size={16} />

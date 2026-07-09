@@ -12,6 +12,8 @@ import {
   ClipboardList,
   Settings,
   Bell,
+  FileText,
+  Calendar,
 } from "lucide-react";
 
 const DirectorLayout = () => {
@@ -39,6 +41,27 @@ const DirectorLayout = () => {
       activePaths: ["/director-dashboard/cases"],
     },
     {
+      id: 8,
+      icon: <FileText size={20} />,
+      text: "Documents",
+      path: "/director-dashboard/documents",
+      activePaths: ["/director-dashboard/documents"],
+    },
+    {
+      id: 9,
+      icon: <FileText size={20} />,
+      text: "Clinic Files",
+      path: "/director-dashboard/clinic-files",
+      activePaths: ["/director-dashboard/clinic-files"],
+    },
+    {
+      id: 10,
+      icon: <Calendar size={20} />,
+      text: "My Schedule",
+      path: "/director-dashboard/schedule",
+      activePaths: ["/director-dashboard/schedule"],
+    },
+    {
       id: 3,
       icon: <Layers size={20} />,
       text: "Programs",
@@ -52,13 +75,13 @@ const DirectorLayout = () => {
       path: "/director-dashboard/staff",
       activePaths: ["/director-dashboard/staff"],
     },
-    {
-      id: 5,
-      icon: <ClipboardList size={20} />,
-      text: "Audit",
-      path: "/director-dashboard/audit",
-      activePaths: ["/director-dashboard/audit"],
-    },
+    // {
+    //   id: 5,
+    //   icon: <ClipboardList size={20} />,
+    //   text: "Audit",
+    //   path: "/director-dashboard/audit",
+    //   activePaths: ["/director-dashboard/audit"],
+    // },
     {
       id: 6,
       icon: <Bell size={20} />,

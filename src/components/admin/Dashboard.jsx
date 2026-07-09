@@ -240,7 +240,10 @@ const Dashboard = () => {
             <thead>
               <tr className="bg-gray-50/80">
                 <th className="py-4 px-6 font-bold text-Third text-[13px] uppercase tracking-wider">
-                  Client Name
+                  Child Name
+                </th>
+                <th className="py-4 px-6 font-bold text-Third text-[13px] uppercase tracking-wider">
+                  Guardian Name
                 </th>
                 <th className="py-4 px-6 font-bold text-Third text-[13px] uppercase tracking-wider">
                   Case ID
@@ -272,8 +275,12 @@ const Dashboard = () => {
                   >
                     <td className="py-4 md:py-5 px-6">
                       <span className="font-bold text-Third text-[14px]">
-                        {item.client_name}
+                        {item.child_name}
                       </span>
+                    </td>
+
+                    <td className="py-4 md:py-5 px-6 text-gray-500 text-[14px] font-medium">
+                      {item.guardian_name}
                     </td>
 
                     <td className="py-4 md:py-5 px-6 text-gray-500 text-[14px] font-medium">

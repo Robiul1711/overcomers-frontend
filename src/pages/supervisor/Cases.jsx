@@ -121,10 +121,10 @@ const Cases = () => {
                     Case Number
                   </th>
                   <th className="py-4 px-6 font-bold text-Third text-[13px] uppercase tracking-wider">
-                    Service
+                    Date
                   </th>
                   <th className="py-4 px-6 font-bold text-Third text-[13px] uppercase tracking-wider">
-                    Start Date
+                   Time
                   </th>
                   <th className="py-4 px-6 font-bold text-Third text-[13px] uppercase tracking-wider">
                     Location
@@ -152,7 +152,7 @@ const Cases = () => {
                       {item?.case_number}
                     </td>
                     <td className="py-5 px-6 text-gray-500 text-[13px] md:text-[14px] font-medium">
-                      {item?.service}
+                      {item?.date}
                     </td>
                     <td className="py-5 px-6 text-gray-500 text-[13px] md:text-[14px] font-medium whitespace-nowrap">
                       <div>{item?.date}</div>

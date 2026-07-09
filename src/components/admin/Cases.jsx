@@ -101,7 +101,7 @@ const casesData = data?.data?.cases.map((item)=>{
             <thead>
               <tr className="bg-gray-50/80">
                 <th className="py-4 px-6 font-bold text-Third text-[13px] uppercase tracking-wider rounded-tl-xl">Child Name</th>
-                <th className="py-4 px-6 font-bold text-Third text-[13px] uppercase tracking-wider">Guardian Name</th>
+                {/* <th className="py-4 px-6 font-bold text-Third text-[13px] uppercase tracking-wider">Guardian Name</th> */}
                 <th className="py-4 px-6 font-bold text-Third text-[13px] uppercase tracking-wider">Case ID</th>
                 <th className="py-4 px-6 font-bold text-Third text-[13px] uppercase tracking-wider">Date</th>
                 <th className="py-4 px-6 font-bold text-Third text-[13px] uppercase tracking-wider">Time</th>
@@ -114,7 +114,7 @@ const casesData = data?.data?.cases.map((item)=>{
               {filteredData?.map((item, index) => (
                 <tr key={index} className="hover:bg-gray-50/50 transition-colors">
                   <td className="py-5 px-6 font-bold text-Third text-[14px]">{item?.name}</td>
-                  <td className="py-5 px-6 font-bold text-Third text-[14px]">{item?.guardian_name}</td>
+                  {/* <td className="py-5 px-6 font-bold text-Third text-[14px]">{item?.guardian_name}</td> */}
                   <td className="py-5 px-6 text-gray-500 text-[13px] md:text-[14px] font-medium">{item?.case_id}</td>
                   <td className="py-5 px-6 text-gray-500 text-[13px] md:text-[14px] font-medium whitespace-nowrap">{item?.date}</td>
                   <td className="py-5 px-6 text-gray-500 text-[13px] md:text-[14px] font-medium">{item?.time}</td>

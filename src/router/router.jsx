@@ -35,6 +35,9 @@ import DirectorStaff from "@/pages/director/Staff";
 import DirectorAudit from "@/pages/director/Audit";
 import DirectorProfile from "@/pages/director/Profile";
 import DirectorNotifications from "@/pages/director/Notifications";
+import DirectorDocuments from "@/pages/director/Documents";
+import DirectorClinicFiles from "@/pages/director/ClinicFiles";
+import DirectorMySchedule from "@/pages/director/MySchedule";
 
 import SupervisorLayout from "@/layout/SupervisorLayout";
 import SupervisorDashboard from "@/pages/supervisor/SupervisorDashboard";
@@ -43,7 +46,10 @@ import SupervisorCaseDetails from "@/pages/supervisor/CaseDetails";
 import SupervisorPrograms from "@/pages/supervisor/Programs";
 import SupervisorProfile from "@/pages/supervisor/Profile";
 import SupervisorSessions from "@/pages/supervisor/Sessions";
+import SupervisorDocuments from "@/pages/supervisor/Documents";
 import SupervisorNotifications from "@/pages/supervisor/Notifications";
+import SupervisorMySchedule from "@/pages/supervisor/MySchedule";
+import SupervisorClinicFiles from "@/pages/supervisor/ClinicFiles";
 
 import { createBrowserRouter } from "react-router-dom";
 import PrivateRoute from "@/components/common/PrivateRoute";
@@ -246,6 +252,18 @@ const router = createBrowserRouter([
         path: "/director-dashboard/notifications",
         element: <DirectorNotifications />,
       },
+      {
+        path: "/director-dashboard/documents",
+        element: <DirectorDocuments />,
+      },
+      {
+        path: "/director-dashboard/clinic-files",
+        element: <DirectorClinicFiles />,
+      },
+      {
+        path: "/director-dashboard/schedule",
+        element: <DirectorMySchedule />,
+      },
     ],
   },
   // Supervisor routes
@@ -262,6 +280,10 @@ const router = createBrowserRouter([
         element: <SupervisorCases />,
       },
       {
+        path: "/supervisor-dashboard/documents",
+        element: <SupervisorDocuments />,
+      },
+      {
         path: "/supervisor-dashboard/cases/:id",
         element: <SupervisorCaseDetails />,
       },
@@ -272,6 +294,14 @@ const router = createBrowserRouter([
       {
         path: "/supervisor-dashboard/sessions",
         element: <SupervisorSessions />,
+      },
+      {
+        path: "/supervisor-dashboard/schedule",
+        element: <SupervisorMySchedule />,
+      },
+      {
+        path: "/supervisor-dashboard/clinic-files",
+        element: <SupervisorClinicFiles />,
       },
       {
         path: "/supervisor-dashboard/profile",

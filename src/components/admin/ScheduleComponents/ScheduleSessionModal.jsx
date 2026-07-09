@@ -1,8 +1,115 @@
-import React from "react";
-import { X, Calendar, Clock, ChevronRight } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { X, Calendar, Clock, ChevronRight, Loader2 } from "lucide-react";
+import { useLocation } from "react-router-dom";
+import useClient from "@/hooks/useClient";
+import useMutationClient from "@/hooks/useMutationClient";
 
-const ScheduleSessionModal = ({ isOpen, onClose }) => {
+const ScheduleSessionModal = ({ isOpen, onClose, initialDate }) => {
+  const location = useLocation();
+
+  // Determine user role from url path
+  let role = "employee";
+  if (location.pathname.startsWith("/supervisor-dashboard")) {
+    role = "supervisor";
+  } else if (location.pathname.startsWith("/director-dashboard")) {
+    role = "director";
+  }
+
+  const formatDateToYYYYMMDD = (date) => {
+    if (!date) return "";
+    const d = new Date(date);
+    if (isNaN(d.getTime())) return "";
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
+  const convertDateToDDMMYYYY = (dateStr) => {
+    if (!dateStr) return "";
+    const parts = dateStr.split("-");
+    if (parts.length !== 3) return dateStr;
+    const [year, month, day] = parts;
+    return `${day}/${month}/${year}`;
+  };
+
+  const convertTime24To12 = (time24) => {
+    if (!time24) return "";
+    const [hoursStr, minutesStr] = time24.split(":");
+    let hours = parseInt(hoursStr, 10);
+    const minutes = minutesStr;
+    const ampm = hours >= 12 ? "PM" : "AM";
+    hours = hours % 12;
+    hours = hours ? hours : 12; // the hour '0' should be '12'
+    return `${hours}:${minutes} ${ampm}`;
+  };
+
+  const defaultDateValue = initialDate ? formatDateToYYYYMMDD(initialDate) : "";
+
+  // State variables for form fields
+  const [selectedCaseId, setSelectedCaseId] = useState("");
+  const [sessionType, setSessionType] = useState("");
+  const [sessionDate, setSessionDate] = useState(defaultDateValue);
+  const [startTime, setStartTime] = useState("");
+  const [endTime, setEndTime] = useState("");
+  const [locationValue, setLocationValue] = useState("");
+  const [notes, setNotes] = useState("");
+
+  // Reset fields when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setSessionDate(initialDate ? formatDateToYYYYMMDD(initialDate) : "");
+      setSelectedCaseId("");
+      setSessionType("");
+      setStartTime("");
+      setEndTime("");
+      setLocationValue("");
+      setNotes("");
+    }
+  }, [isOpen, initialDate]);
+
+  // Fetch cases based on role
+  const { data: casesResponse, isLoading: isLoadingCases } = useClient({
+    queryKey: ["scheduleCasesList", role],
+    url: `/${role}/schedules/cases`,
+    enabled: isOpen,
+  });
+
+  const casesList = casesResponse?.data || [];
+
+  // Mutation to create a schedule
+  const { mutate: createSchedule, isPending: isSubmitting } = useMutationClient({
+    url: `/${role}/schedules`,
+    method: "post",
+    invalidateKeys: [
+      [`${role}/schedules`],
+      [`${role}/schedules/overview`]
+    ],
+    successMessage: "Schedule session created successfully!",
+    onSuccess: () => {
+      onClose();
+    },
+  });
+
   if (!isOpen) return null;
+
+  const handleSubmit = () => {
+    if (!selectedCaseId || !sessionType || !sessionDate || !startTime || !endTime || !locationValue) {
+      return;
+    }
+
+    createSchedule({
+      data: {
+        clinical_case_id: Number(selectedCaseId),
+        session_type: sessionType,
+        session_date: convertDateToDDMMYYYY(sessionDate),
+        start_time: convertTime24To12(startTime),
+        end_time: convertTime24To12(endTime),
+        location: locationValue,
+        session_notes: notes,
+      },
+    });
+  };
 
   return (
     <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
@@ -27,20 +134,27 @@ const ScheduleSessionModal = ({ isOpen, onClose }) => {
         </div>
 
         <div className="flex flex-col gap-6">
-          {/* Client Selection */}
+          {/* select case  */}
           <div className="flex flex-col gap-2.5">
             <label className="text-[#3A331E] font-bold text-[14px]">
-              Select Client *
+              Select Case *
             </label>
             <div className="relative group">
-              <select className="w-full bg-[#F4F4F4] rounded-xl p-4 pr-12 text-[15px] text-[#3A331E] outline-none border border-transparent focus:border-[#FFBB03] transition-all appearance-none cursor-pointer">
+              <select
+                value={selectedCaseId}
+                onChange={(e) => setSelectedCaseId(e.target.value)}
+                className="w-full bg-[#F4F4F4] rounded-xl p-4 pr-12 text-[15px] text-[#3A331E] outline-none border border-transparent focus:border-[#FFBB03] transition-all appearance-none cursor-pointer"
+              >
                 <option value="">Select</option>
-                <option value="john">John Smith</option>
-                <option value="sarah">Sarah Johnson</option>
-                <option value="mike">Mike Wilson</option>
-                <option value="lisa">Lisa Davis</option>
-                <option value="bessie">Bessie Cooper</option>
-                <option value="robert">Robert Fox</option>
+                {isLoadingCases ? (
+                  <option disabled>Loading cases...</option>
+                ) : (
+                  casesList.map((item) => (
+                    <option key={item.id} value={item.id}>
+                      {item.client_name || item.case_number} ({item.case_number})
+                    </option>
+                  ))
+                )}
               </select>
               <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400 group-hover:text-Secondary transition-colors">
                 <ChevronRight size={18} className="rotate-90" />
@@ -54,7 +168,11 @@ const ScheduleSessionModal = ({ isOpen, onClose }) => {
               Session Type *
             </label>
             <div className="relative group">
-              <select className="w-full bg-[#F4F4F4] rounded-xl p-4 pr-12 text-[15px] text-[#3A331E] outline-none border border-transparent focus:border-[#FFBB03] transition-all appearance-none cursor-pointer">
+              <select
+                value={sessionType}
+                onChange={(e) => setSessionType(e.target.value)}
+                className="w-full bg-[#F4F4F4] rounded-xl p-4 pr-12 text-[15px] text-[#3A331E] outline-none border border-transparent focus:border-[#FFBB03] transition-all appearance-none cursor-pointer"
+              >
                 <option value="">Select type</option>
                 <option value="One-to-One">One-to-One</option>
                 <option value="Group">Group</option>
@@ -80,6 +198,8 @@ const ScheduleSessionModal = ({ isOpen, onClose }) => {
               />
               <input
                 type="date"
+                value={sessionDate}
+                onChange={(e) => setSessionDate(e.target.value)}
                 placeholder="dd/mm/yyyy"
                 className="w-full bg-[#F4F4F4] rounded-xl p-4 pl-12 text-[15px] text-[#3A331E] outline-none border border-transparent focus:border-[#FFBB03] transition-all"
               />
@@ -99,6 +219,8 @@ const ScheduleSessionModal = ({ isOpen, onClose }) => {
                 />
                 <input
                   type="time"
+                  value={startTime}
+                  onChange={(e) => setStartTime(e.target.value)}
                   placeholder="9:00 AM"
                   className="w-full bg-[#F4F4F4] rounded-xl p-4 pl-12 text-[15px] text-[#3A331E] outline-none border border-transparent focus:border-[#FFBB03] transition-all"
                 />
@@ -115,6 +237,8 @@ const ScheduleSessionModal = ({ isOpen, onClose }) => {
                 />
                 <input
                   type="time"
+                  value={endTime}
+                  onChange={(e) => setEndTime(e.target.value)}
                   placeholder="11:00 AM"
                   className="w-full bg-[#F4F4F4] rounded-xl p-4 pl-12 text-[15px] text-[#3A331E] outline-none border border-transparent focus:border-[#FFBB03] transition-all"
                 />
@@ -128,7 +252,11 @@ const ScheduleSessionModal = ({ isOpen, onClose }) => {
               Location *
             </label>
             <div className="relative group">
-              <select className="w-full bg-[#F4F4F4] rounded-xl p-4 pr-12 text-[15px] text-[#3A331E] outline-none border border-transparent focus:border-[#FFBB03] transition-all appearance-none cursor-pointer">
+              <select
+                value={locationValue}
+                onChange={(e) => setLocationValue(e.target.value)}
+                className="w-full bg-[#F4F4F4] rounded-xl p-4 pr-12 text-[15px] text-[#3A331E] outline-none border border-transparent focus:border-[#FFBB03] transition-all appearance-none cursor-pointer"
+              >
                 <option value="">Select</option>
                 <option value="home">In-Home</option>
                 <option value="school">School</option>
@@ -148,6 +276,8 @@ const ScheduleSessionModal = ({ isOpen, onClose }) => {
               Session Notes (Optional)
             </label>
             <textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
               placeholder="Any additional information..."
               className="w-full bg-[#F4F4F4] rounded-xl p-4 text-[15px] text-[#3A331E] outline-none border border-transparent focus:border-[#FFBB03] transition-all min-h-[100px] resize-none"
             />
@@ -155,10 +285,26 @@ const ScheduleSessionModal = ({ isOpen, onClose }) => {
 
           {/* Submit Button */}
           <button
-            onClick={onClose}
-            className="w-full py-4 bg-Secondary text-white font-bold rounded-xl shadow-lg shadow-Secondary/20 hover:bg-[#426c3c] transition-all active:scale-[0.98] mt-2 uppercase tracking-wider text-[15px]"
+            onClick={handleSubmit}
+            disabled={
+              isSubmitting ||
+              !selectedCaseId ||
+              !sessionType ||
+              !sessionDate ||
+              !startTime ||
+              !endTime ||
+              !locationValue
+            }
+            className="w-full py-4 bg-Secondary text-white font-bold rounded-xl shadow-lg shadow-Secondary/20 hover:bg-[#426c3c] transition-all active:scale-[0.98] mt-2 uppercase tracking-wider text-[15px] flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Create Schedule
+            {isSubmitting ? (
+              <>
+                <Loader2 className="animate-spin" size={18} />
+                Creating...
+              </>
+            ) : (
+              "Create Schedule"
+            )}
           </button>
         </div>
       </div>

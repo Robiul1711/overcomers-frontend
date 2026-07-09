@@ -3,11 +3,11 @@ import { Clock, CheckCircle2, ShieldCheck } from "lucide-react";
 import { toast } from "react-toastify";
 
 // Sub-components
-import StatsCards from "./ScheduleComponents/StatsCards";
-import WeeklyCalendar from "./ScheduleComponents/WeeklyCalendar";
-import ClockInModal from "./ScheduleComponents/ClockInModal";
-import ClockOutModal from "./ScheduleComponents/ClockOutModal";
-import ScheduleSessionModal from "./ScheduleComponents/ScheduleSessionModal";
+import StatsCards from "@/components/admin/ScheduleComponents/StatsCards";
+import WeeklyCalendar from "@/components/admin/ScheduleComponents/WeeklyCalendar";
+import ClockInModal from "@/components/admin/ScheduleComponents/ClockInModal";
+import ClockOutModal from "@/components/admin/ScheduleComponents/ClockOutModal";
+import ScheduleSessionModal from "@/components/admin/ScheduleComponents/ScheduleSessionModal";
 import useClient from "@/hooks/useClient";
 import useMutationClient from "@/hooks/useMutationClient";
 
@@ -22,8 +22,18 @@ const DAY_NAMES = [
 ];
 const DAY_ABBR = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const MONTH_NAMES = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December",
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
 ];
 
 const generateWeekDays = () => {
@@ -52,9 +62,7 @@ const mapSessionsToDays = (scheduleData, sessionStatuses) => {
   if (!scheduleData) return weekDays;
 
   scheduleData.forEach((item) => {
-    const matchingDay = weekDays.find(
-      (d) => d.dayFull === item.day_of_week,
-    );
+    const matchingDay = weekDays.find((d) => d.dayFull === item.day_of_week);
     if (matchingDay) {
       const status = sessionStatuses[item.id] || item.status || "Upcoming";
       matchingDay.sessions.push({
@@ -62,8 +70,8 @@ const mapSessionsToDays = (scheduleData, sessionStatuses) => {
         clinical_case_id: item.clinical_case_id,
         client: item.client_name,
         time: item.time,
-        start_time_raw: item.start_time_raw,
-        end_time_raw: item.end_time_raw,
+        start_time_raw: item.start_time,
+        end_time_raw: item.end_time,
         type: item.session_type,
         room: item.location,
         status,
@@ -93,7 +101,7 @@ const getWeekLabel = (weekDays) => {
   return `${first.month} - ${last.month} ${first.year}`;
 };
 
-const MySchedule = () => {
+const DirectorMySchedule = () => {
   const [showClockInModal, setShowClockInModal] = useState(false);
   const [showClockOutModal, setShowClockOutModal] = useState(false);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
@@ -106,71 +114,71 @@ const MySchedule = () => {
   const [latitude, setLatitude] = useState("");
   const [longitude, setLongitude] = useState("");
 
+  const parentSignatureRef = useRef(null);
+  const employeeSignatureRef = useRef(null);
+
   const handleOpenScheduleModal = (dateObj) => {
     setSelectedDateForModal(dateObj || null);
     setShowScheduleModal(true);
   };
 
-  const parentSignatureRef = useRef(null);
-  const employeeSignatureRef = useRef(null);
-
-  // Fetch schedule overview stats
+  // Fetch director schedule overview stats
   const { data: statsData, isLoading: statsLoading } = useClient({
-    queryKey: ["employee/schedules/overview"],
-    url: "/employee/schedules/overview",
+    queryKey: ["director/schedules/overview"],
+    url: "/director/schedules/overview",
   });
 
-  // Fetch weekly schedule
+  // Fetch weekly schedule for director
   const { data: schedulesData, isLoading: schedulesLoading } = useClient({
-    queryKey: ["employee/schedules"],
-    url: "/employee/schedules",
+    queryKey: ["director/schedules"],
+    url: "/director/schedules",
   });
 
   // Generate 7-day week and map sessions
   const weeklySessions = useMemo(
     () => mapSessionsToDays(schedulesData?.data, sessionStatuses),
-    [schedulesData, sessionStatuses],
+    [schedulesData, sessionStatuses]
   );
 
   const weekLabel = useMemo(() => getWeekLabel(weeklySessions), [weeklySessions]);
 
-  // Session start mutation
+  // Session start mutation for director
   const { mutate: startSession, isPending: isStarting } = useMutationClient({
-    url: "/employee/schedules/start",
+    url: "/director/schedules/start",
     method: "post",
     isPrivate: true,
-    invalidateKeys: [["employee/schedules"]],
+    invalidateKeys: [["director/schedules"]],
     successMessage: "Session started successfully",
   });
 
-  // Session end mutation
+  // Session end mutation for director
   const { mutate: endSession, isPending: isEnding } = useMutationClient({
-    url: (id) => `/employee/schedules/${id}/end`,
+    url: (id) => `/director/schedules/${id}/end`,
     method: "post",
     isPrivate: true,
-    invalidateKeys: [["employee/schedules"]],
+    invalidateKeys: [["director/schedules"]],
     successMessage: "Session ended successfully",
   });
 
   const stats = [
     {
-      label: "Today's Hours",
-      value: statsData?.data?.todays_hours,
-      unit: "hrs",
-      icon: <Clock size={22} className="text-blue-500" />,
-      bgColor: "bg-blue-50",
-    },
-    {
-      label: "Weekly Hours",
-      value: statsData?.data?.weekly_hours,
-      unit: "hrs",
+      label: "Completed Sessions",
+      value: statsData?.data?.completed_sessions || 0,
+      unit: "",
       icon: <CheckCircle2 size={22} className="text-green-500" />,
       bgColor: "bg-green-50",
     },
     {
-      label: "Total Hours Logged",
-      value: statsData?.data?.total_hours_logged,
-      unit: "hrs",
+      label: "Remaining Sessions",
+      value: statsData?.data?.remaining_sessions || 0,
+      unit: "",
+      icon: <Clock size={22} className="text-blue-500" />,
+      bgColor: "bg-blue-50",
+    },
+    {
+      label: "Missed Sessions",
+      value: statsData?.data?.missed_sessions || 0,
+      unit: "",
       icon: <ShieldCheck size={22} className="text-purple-500" />,
       bgColor: "bg-purple-50",
     },
@@ -189,7 +197,9 @@ const MySchedule = () => {
         },
         (error) => {
           console.error("Error obtaining geolocation:", error);
-          toast.warn("Could not retrieve current location. Please allow location permissions.");
+          toast.warn(
+            "Could not retrieve current location. Please allow location permissions."
+          );
         },
         { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
       );
@@ -198,7 +208,11 @@ const MySchedule = () => {
     }
 
     const status = session.status?.toUpperCase();
-    if (status === "PROCESSING" || status === "IN_PROGRESS" || status === "In Progress") {
+    if (
+      status === "PROCESSING" ||
+      status === "IN_PROGRESS" ||
+      status === "In Progress"
+    ) {
       setSessionNotes("");
       setActualEndTime(formatTimeForApi(new Date()));
       setShowClockOutModal(true);
@@ -216,7 +230,14 @@ const MySchedule = () => {
     formData.append("longitude", longitude);
 
     startSession(
-      { data: formData },
+      {
+        data: formData,
+        config: {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        },
+      },
       {
         onSuccess: (res) => {
           const status = res?.data?.data?.status || "PROCESSING";
@@ -226,7 +247,7 @@ const MySchedule = () => {
           }));
           setShowClockInModal(false);
         },
-      },
+      }
     );
   };
 
@@ -271,7 +292,7 @@ const MySchedule = () => {
           setShowClockOutModal(false);
           setSessionNotes("");
         },
-      },
+      }
     );
   };
 
@@ -329,4 +350,4 @@ const MySchedule = () => {
   );
 };
 
-export default MySchedule;
+export default DirectorMySchedule;

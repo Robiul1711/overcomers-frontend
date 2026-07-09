@@ -11,6 +11,8 @@ import {
   Clock,
   Settings,
   Bell,
+  FileText,
+  Calendar,
 } from "lucide-react";
 
 const SupervisorLayout = () => {
@@ -36,6 +38,27 @@ const SupervisorLayout = () => {
       text: "Cases",
       path: "/supervisor-dashboard/cases",
       activePaths: ["/supervisor-dashboard/cases"],
+    },
+    {
+      id: 7,
+      icon: <FileText size={20} />,
+      text: "Documents",
+      path: "/supervisor-dashboard/documents",
+      activePaths: ["/supervisor-dashboard/documents"],
+    },
+    {
+      id: 10,
+      icon: <Calendar size={20} />,
+      text: "My Schedule",
+      path: "/supervisor-dashboard/schedule",
+      activePaths: ["/supervisor-dashboard/schedule"],
+    },
+    {
+      id: 11,
+      icon: <FileText size={20} />,
+      text: "Clinic Files",
+      path: "/supervisor-dashboard/clinic-files",
+      activePaths: ["/supervisor-dashboard/clinic-files"],
     },
     // {
     //   id: 3,

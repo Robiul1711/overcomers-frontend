@@ -13,14 +13,16 @@ const Cases = () => {
     url: "/supervisor/cases",
   });
 
-  const casesList = data?.data?.data || [];
+  const casesList = data?.data?.cases || [];
 
   const casesData = casesList.map((item) => {
     return {
       id: item.id,
-      name: item?.parent?.name || "N/A",
-      case_number: item?.case_number || "N/A",
-      date: item?.start_date || "N/A",
+      name: item?.child_name || item?.parent?.name || "N/A",
+      guardian_name: item?.guardian_name || "N/A",
+      case_number: item?.case_id || item?.case_number || "N/A",
+      date: item?.date || item?.start_date || "N/A",
+      time: item?.time || null,
       location: item?.location || "N/A",
       service: item?.service?.name || "N/A",
       status: item?.status || "Inactive",
@@ -138,7 +140,14 @@ const Cases = () => {
               <tbody className="divide-y divide-gray-50">
                 {filteredData?.map((item, index) => (
                   <tr key={index} className="hover:bg-gray-50/50 transition-colors">
-                    <td className="py-5 px-6 font-bold text-Third text-[14px]">{item?.name}</td>
+                    <td className="py-5 px-6 font-bold text-Third text-[14px]">
+                      <div>{item?.name}</div>
+                      {item?.guardian_name && item.guardian_name !== "N/A" && (
+                        <div className="text-[11px] text-gray-400 font-normal mt-0.5">
+                          Guardian: {item.guardian_name}
+                        </div>
+                      )}
+                    </td>
                     <td className="py-5 px-6 text-gray-500 text-[13px] md:text-[14px] font-medium">
                       {item?.case_number}
                     </td>
@@ -146,7 +155,12 @@ const Cases = () => {
                       {item?.service}
                     </td>
                     <td className="py-5 px-6 text-gray-500 text-[13px] md:text-[14px] font-medium whitespace-nowrap">
-                      {item?.date}
+                      <div>{item?.date}</div>
+                      {item?.time && (
+                        <div className="text-[11px] text-gray-400 font-normal mt-0.5">
+                          {item.time}
+                        </div>
+                      )}
                     </td>
                     <td className="py-5 px-6 text-gray-500 text-[13px] md:text-[14px] font-medium">
                       {item?.location}

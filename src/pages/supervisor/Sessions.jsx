@@ -1,11 +1,15 @@
 import React, { useState } from "react";
-import { ChevronDown, ChevronUp, Check, Eye, EyeOff, Loader2, Award, MapPin, Clock as ClockIcon, FileText, User } from "lucide-react";
+import { ChevronDown, ChevronUp, Check, Eye, EyeOff, Loader2, Award, MapPin, Clock as ClockIcon, FileText, User, Trash2, Download } from "lucide-react";
 import TableSkeleton from "@/components/common/TableSkeleton";
 import useClient from "@/hooks/useClient";
 import useMutationClient from "@/hooks/useMutationClient";
+import useAxiosSecure from "@/hooks/useAxiosSecure";
+import { toast } from "react-toastify";
 
 const Sessions = () => {
   const [expandedRows, setExpandedRows] = useState({});
+  const axiosSecure = useAxiosSecure();
+  const [downloadingSessionId, setDownloadingSessionId] = useState(null);
 
   const { data, isLoading, isError } = useClient({
     queryKey: ["supervisorPendingSessions"],
@@ -19,6 +23,13 @@ const Sessions = () => {
     successMessage: "Session approved successfully",
   });
 
+  const { mutate: rejectSession, isPending: isRejecting } = useMutationClient({
+    url: (id) => `/supervisor/sessions/${id}/reject`,
+    method: "post",
+    invalidateKeys: [["supervisorPendingSessions"]],
+    successMessage: "Session rejected successfully",
+  });
+
   const sessionsList = data?.data?.data || [];
 
   const toggleRow = (id) => {
@@ -30,6 +41,35 @@ const Sessions = () => {
 
   const handleApprove = (id) => {
     approveSession(id);
+  };
+
+  const handleReject = (id) => {
+    rejectSession({ id: id, data: { id: id } });
+  };
+
+  const handleDownloadPDF = async (sessionId, clientName) => {
+    setDownloadingSessionId(sessionId);
+    try {
+      const response = await axiosSecure.get(
+        `/supervisor/sessions/${sessionId}/download-pdf`,
+        { responseType: "blob" }
+      );
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      const cleanName = clientName ? clientName.replace(/[^a-z0-9]/gi, "_").toLowerCase() : `session-${sessionId}`;
+      link.setAttribute("download", `${cleanName}_session_${sessionId}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      toast.success("PDF downloaded successfully");
+    } catch (err) {
+      console.error("Failed to download PDF:", err);
+      toast.error("Failed to download PDF");
+    } finally {
+      setDownloadingSessionId(null);
+    }
   };
 
   const formatSignatureSrc = (sig) => {
@@ -98,8 +138,14 @@ const Sessions = () => {
                   <th className="py-4 px-6 font-bold text-Third text-[13px] uppercase tracking-wider">
                     Location
                   </th>
-                  <th className="py-4 px-6 font-bold text-Third text-[13px] uppercase tracking-wider text-center rounded-tr-xl">
+                  <th className="py-4 px-6 font-bold text-Third text-[13px] uppercase tracking-wider text-center">
                     Actions
+                  </th>
+                  <th className="py-4 px-6 font-bold text-Third text-[13px] uppercase tracking-wider text-center">
+                    Download & Remove
+                  </th>
+                  <th className="py-4 px-6 font-bold text-Third text-[13px] uppercase tracking-wider text-center rounded-tr-xl">
+                    View
                   </th>
                 </tr>
               </thead>
@@ -134,23 +180,16 @@ const Sessions = () => {
                           {item?.schedule?.location || "N/A"}
                         </td>
                         <td className="py-5 px-6 text-center">
-                          <div className="flex items-center justify-center gap-2">
-                            <button
-                              onClick={() => toggleRow(item.id)}
-                              className="border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-Third font-bold text-[12px] py-2 px-4 rounded-xl transition-all duration-200 shadow-sm flex items-center gap-1.5 active:scale-95"
-                            >
-                              {isExpanded ? <EyeOff size={14} /> : <Eye size={14} />}
-                              <span>{isExpanded ? "Hide Detail" : "View Detail"}</span>
-                            </button>
+                          <div className="flex items-center justify-center">
                             <button
                               onClick={() => handleApprove(item.id)}
-                              disabled={item?.status === "in_progress" || item?.status === "Approved" || isApproving}
-                              className={`font-bold text-[12px] py-2 px-5 rounded-xl transition-all duration-200 shadow-sm flex items-center gap-1.5 active:scale-95 ${
+                              disabled={item?.status === "in_progress" || item?.status === "Approved" || isApproving || isRejecting}
+                              className={`h-9 px-4 rounded-xl font-bold text-xs transition-all shadow-sm flex items-center justify-center gap-1.5 active:scale-95 ${
                                 item?.status === "Approved"
-                                  ? "bg-green-100 text-green-700 border border-green-200 cursor-not-allowed"
+                                  ? "bg-green-50 text-green-700 border border-green-200 cursor-not-allowed"
                                   : item?.status === "in_progress"
-                                  ? "bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed"
-                                  : "bg-Secondary hover:bg-Secondary/90 text-white"
+                                  ? "bg-gray-50 text-gray-400 border border-gray-200 cursor-not-allowed"
+                                  : "bg-Secondary hover:bg-Secondary/90 text-white disabled:opacity-50"
                               }`}
                             >
                               <Check size={14} />
@@ -162,7 +201,41 @@ const Sessions = () => {
                                   : "Approve"}
                               </span>
                             </button>
-                            <button className="font-bold text-[12px] py-2 px-4 rounded-xl transition-all duration-200 shadow-sm flex items-center gap-1.5 active:scale-95 bg-Primary/10 text-Primary border border-Primary">Download PDF</button>
+                          </div>
+                        </td>
+                        <td className="py-5 px-6 text-center">
+                          <div className="flex items-center justify-center gap-2">
+                            <button
+                              onClick={() => handleDownloadPDF(item.id, client?.name)}
+                              disabled={downloadingSessionId === item.id}
+                              className="h-9 px-3 border border-Primary bg-Primary/10 hover:bg-Primary/20 text-[#B45309] rounded-xl transition-all shadow-sm flex items-center justify-center gap-1.5 active:scale-95 text-xs font-bold whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              {downloadingSessionId === item.id ? (
+                                <Loader2 size={14} className="animate-spin" />
+                              ) : (
+                                <Download size={14} />
+                              )}
+                              <span>PDF</span>
+                            </button>
+                            <button
+                              onClick={() => handleReject(item.id)}
+                              disabled={item?.status === "in_progress" || item?.status === "Approved" || isApproving || isRejecting}
+                              className="h-9 w-9 shrink-0 border border-red-200 text-red-500 hover:bg-red-50 rounded-xl transition-all shadow-sm flex items-center justify-center active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                              title="Reject/Delete Session"
+                            >
+                              {isRejecting ? <Loader2 size={14} className="animate-spin text-red-500" /> : <Trash2 size={14} />}
+                            </button>
+                          </div>
+                        </td>
+                        <td className="py-5 px-6 text-center">
+                          <div className="flex items-center justify-center">
+                            <button
+                              onClick={() => toggleRow(item.id)}
+                              className="h-9 px-3 border border-gray-200 text-gray-500 hover:bg-gray-50 rounded-xl transition-all shadow-sm flex items-center justify-center gap-1.5 active:scale-95 text-xs font-semibold whitespace-nowrap"
+                            >
+                              {isExpanded ? <EyeOff size={14} /> : <Eye size={14} />}
+                              <span>{isExpanded ? "Hide" : "View"}</span>
+                            </button>
                           </div>
                         </td>
                       </tr>
@@ -170,7 +243,7 @@ const Sessions = () => {
                       {/* Expanded Section */}
                       {isExpanded && (
                         <tr>
-                          <td colSpan={7} className="p-4 bg-Secondary/[0.01] border-t border-gray-50">
+                          <td colSpan={9} className="p-4 bg-Secondary/[0.01] border-t border-gray-50">
                             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                               
                               {/* Session Notes */}

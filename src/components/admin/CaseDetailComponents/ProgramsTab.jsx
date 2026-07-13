@@ -1,20 +1,76 @@
 import React, { useState } from "react";
 import { ArrowLeft } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
+import useMutationClient from "@/hooks/useMutationClient";
 
 const ProgramsTab = ({ programsDataset, isLoading, onAddNote }) => {
   const [view, setView] = useState("list"); // 'list' or 'details'
   const [selectedProgram, setSelectedProgram] = useState(null);
-  // console.log(programsDataset)
+  const [tasksState, setTasksState] = useState([]);
+  const { id: caseId } = useParams();
 
   const handleViewDetails = (program) => {
     setSelectedProgram(program);
+    setTasksState(program.tasks || []);
     setView("details");
   };
 
   const handleBackToList = () => {
     setView("list");
     setSelectedProgram(null);
+    setTasksState([]);
+  };
+
+  const { mutate: trackTask } = useMutationClient({
+    url: (params) => `/employee/cases/${params.caseId}/programs/tasks/${params.taskId}/track`,
+    method: "post",
+    invalidateKeys: [
+      ["employeeCaseDetails", caseId],
+      ["employeeCasePrograms"],
+    ],
+    successMessage: "Task updated successfully",
+  });
+
+  const handleAction = (index, type) => {
+    const task = tasksState[index];
+    if (!task) return;
+
+    // Optimistically update local state
+    const nextTasks = [...tasksState];
+    const updatedTask = { ...task };
+    updatedTask.trials = (updatedTask.trials || 0) + 1;
+    if (type === "yes") {
+      updatedTask.correct = (updatedTask.correct || 0) + 1;
+    } else {
+      updatedTask.incorrect = (updatedTask.incorrect || 0) + 1;
+    }
+    nextTasks[index] = updatedTask;
+    setTasksState(nextTasks);
+
+    // Call API
+    trackTask(
+      {
+        id: { caseId: caseId, taskId: task.id },
+        data: { status: type === "yes" ? "correct" : "incorrect" },
+      },
+      {
+        onSuccess: (res) => {
+          const apiData = res?.data?.data;
+          if (apiData) {
+            setTasksState((prev) => {
+              const next = [...prev];
+              next[index] = {
+                ...next[index],
+                trials: apiData.trials,
+                correct: apiData.correct,
+                incorrect: apiData.incorrect,
+              };
+              return next;
+            });
+          }
+        },
+      },
+    );
   };
 
   if (view === "details" && selectedProgram) {
@@ -81,13 +137,12 @@ const ProgramsTab = ({ programsDataset, isLoading, onAddNote }) => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {selectedProgram?.tasks?.map((task) => (
+              {tasksState?.map((task, index) => (
                 <div
                   key={task.id}
                   className="bg-white border border-gray-100 rounded-[24px] p-6 shadow-sm hover:shadow-md transition-all"
                 >
-                  {console.log(task)}
-                  <h5 className="text-[16px] font-bold text-[#3A331E] mb-6">
+                  <h5 className="text-[16px] font-bold text-[#3A331E] mb-6 font-poppins">
                     {task.title}
                   </h5>
 
@@ -96,44 +151,41 @@ const ProgramsTab = ({ programsDataset, isLoading, onAddNote }) => {
                       <label className="text-[12px] font-bold text-[#3A331E] ml-1">
                         Trials
                       </label>
-                      <div
-                       
-                        className="bg-[#F4F4F4] rounded-xl py-3 px-2   text-center text-[#3A331E] font-bold text-[16px]"
-                        value={task?.trials || 0}
-                       
-                      >{task?.trials}</div>
+                      <div className="bg-[#F4F4F4] rounded-xl py-3 px-2 text-center text-[#3A331E] font-bold text-[16px]">
+                        {task?.trials || 0}
+                      </div>
                     </div>
                     <div className="flex flex-col gap-1.5">
                       <label className="text-[12px] font-bold text-[#3A331E] ml-1">
                         Correct
                       </label>
-                      <div
-                       
-                        className="bg-[#E5F9ED] rounded-xl py-3 px-2 text-center text-[#3A331E] font-bold text-[16px] border border-[#10B981]/10"
-                        
-                        
-                      >{task?.correct}</div>
+                      <div className="bg-[#E5F9ED] rounded-xl py-3 px-2 text-center text-[#3A331E] font-bold text-[16px] border border-[#10B981]/10">
+                        {task?.correct || 0}
+                      </div>
                     </div>
                     <div className="flex flex-col gap-1.5">
                       <label className="text-[12px] font-bold text-[#3A331E] ml-1">
                         Incorrect
                       </label>
-                      <div
-                       
-                        className="bg-[#FAF6F7] rounded-xl py-3 px-2 text-center text-[#3A331E] font-bold text-[16px] border border-[#76121F]/10"
-                       
-                       
-                      >{task?.incorrect}</div>
+                      <div className="bg-[#FAF6F7] rounded-xl py-3 px-2 text-center text-[#3A331E] font-bold text-[16px] border border-[#76121F]/10">
+                        {task?.incorrect || 0}
+                      </div>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-3 mt-6">
-                    <div className="flex-1 bg-[#10B981] text-white py-2.5 rounded-xl text-[14px] font-bold shadow-sm hover:bg-[#0E9F6E] transition-all flex items-center justify-center gap-2 active:scale-95">
+                    <button
+                      onClick={() => handleAction(index, "yes")}
+                      className="flex-1 bg-[#10B981] text-white py-2.5 rounded-xl text-[14px] font-bold shadow-sm hover:bg-[#0E9F6E] transition-all flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
+                    >
                       <span className="text-[16px]">✓</span> Yes
-                    </div>
-                    <div className="flex-1 border-2 border-[#FF5C5C] text-[#FF5C5C] py-2.5 rounded-xl text-[14px] font-bold hover:bg-[#FF5C5C] hover:text-white transition-all flex items-center justify-center gap-2 active:scale-95">
+                    </button>
+                    <button
+                      onClick={() => handleAction(index, "no")}
+                      className="flex-1 border-2 border-[#FF5C5C] text-[#FF5C5C] py-2.5 rounded-xl text-[14px] font-bold hover:bg-[#FF5C5C] hover:text-white transition-all flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
+                    >
                       <span className="text-[16px]">✕</span> No
-                    </div>
+                    </button>
                   </div>
                 </div>
               ))}

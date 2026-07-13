@@ -319,7 +319,7 @@ const NotesReportsTab = ({
               >
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="text-[#76121F] font-bold text-[16px]">
-                    {note.employee_name} ({note.role})
+                    {note.employee_name} {note.role}
                   </span>
                   <span className="text-gray-400 font-bold text-[13px]">
                     {note.date_formatted}

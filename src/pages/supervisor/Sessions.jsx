@@ -220,10 +220,15 @@ const Sessions = () => {
                             <button
                               onClick={() => handleReject(item.id)}
                               disabled={item?.status === "in_progress" || item?.status === "Approved" || isApproving || isRejecting}
-                              className="h-9 w-9 shrink-0 border border-red-200 text-red-500 hover:bg-red-50 rounded-xl transition-all shadow-sm flex items-center justify-center active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                              className="h-9 px-3 border border-red-200 text-red-500 hover:bg-red-50 rounded-xl transition-all shadow-sm flex items-center justify-center gap-1.5 active:scale-95 text-xs font-bold whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
                               title="Reject/Delete Session"
                             >
-                              {isRejecting ? <Loader2 size={14} className="animate-spin text-red-500" /> : <Trash2 size={14} />}
+                              {isRejecting ? (
+                                <Loader2 size={14} className="animate-spin text-red-500" />
+                              ) : (
+                                <Trash2 size={14} />
+                              )}
+                              <span>Reject</span>
                             </button>
                           </div>
                         </td>

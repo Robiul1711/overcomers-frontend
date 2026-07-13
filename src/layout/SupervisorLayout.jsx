@@ -54,6 +54,13 @@ const SupervisorLayout = () => {
       activePaths: ["/supervisor-dashboard/schedule"],
     },
     {
+      id: 4,
+      icon: <Clock size={20} />,
+      text: "Sessions Approval",
+      path: "/supervisor-dashboard/sessions",
+      activePaths: ["/supervisor-dashboard/sessions"],
+    },
+    {
       id: 11,
       icon: <FileText size={20} />,
       text: "Clinic Files",
@@ -67,13 +74,6 @@ const SupervisorLayout = () => {
     //   path: "/supervisor-dashboard/programs",
     //   activePaths: ["/supervisor-dashboard/programs"],
     // },
-    {
-      id: 4,
-      icon: <Clock size={20} />,
-      text: "Sessions",
-      path: "/supervisor-dashboard/sessions",
-      activePaths: ["/supervisor-dashboard/sessions"],
-    },
     {
       id: 5,
       icon: <Bell size={20} />,
@@ -111,7 +111,7 @@ const SupervisorLayout = () => {
         />
         <div className="flex-1 flex flex-col overflow-y-auto h-screen w-full relative">
           <CommonNavbar open={open} setOpen={setOpen} />
-          <div className="p-4 sm:p-6 md:p-8 bg-[#FAF6F7]">
+          <div className="p-4 sm:p-6 md:p-8 bg-[#FAF6F7] h-full overflow-y-auto">
             <Outlet />
           </div>
         </div>

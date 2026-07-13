@@ -96,8 +96,12 @@ const CaseDetails = () => {
   const [weekOffset, setWeekOffset] = useState(0);
   const [programView, setProgramView] = useState("list"); // 'list' or 'details'
   const [selectedProgram, setSelectedProgram] = useState(null);
+  const [tasksState, setTasksState] = useState([]);
+  const now = new Date();
   const [taskPerformanceParams, setTaskPerformanceParams] = useState({
     period: "all_time",
+    month: now.getMonth() + 1,
+    year: now.getFullYear(),
     program_id: undefined,
   });
 
@@ -156,6 +160,58 @@ const CaseDetails = () => {
           setAssigningProgramId(null);
         },
       }
+    );
+  };
+
+  const { mutate: trackTask } = useMutationClient({
+    url: (params) => `/director/cases/${params.caseId}/programs/tasks/${params.taskId}/track`,
+    method: "post",
+    invalidateKeys: [
+      ["directorCaseDetails", id],
+      ["directorCasePrograms", id],
+    ],
+    successMessage: "Task updated successfully",
+  });
+
+  const handleAction = (index, type) => {
+    const task = tasksState[index];
+    if (!task) return;
+
+    // Optimistically update local state
+    const nextTasks = [...tasksState];
+    const updatedTask = { ...task };
+    updatedTask.trials = (updatedTask.trials || 0) + 1;
+    if (type === "yes") {
+      updatedTask.correct = (updatedTask.correct || 0) + 1;
+    } else {
+      updatedTask.incorrect = (updatedTask.incorrect || 0) + 1;
+    }
+    nextTasks[index] = updatedTask;
+    setTasksState(nextTasks);
+
+    // Call API
+    trackTask(
+      {
+        id: { caseId: id, taskId: task.id },
+        data: { status: type === "yes" ? "correct" : "incorrect" },
+      },
+      {
+        onSuccess: (res) => {
+          const apiData = res?.data?.data;
+          if (apiData) {
+            setTasksState((prev) => {
+              const next = [...prev];
+              next[index] = {
+                ...next[index],
+                trials: apiData.trials,
+                correct: apiData.correct,
+                incorrect: apiData.incorrect,
+              };
+              return next;
+            });
+          }
+        },
+      },
     );
   };
 
@@ -860,6 +916,7 @@ const CaseDetails = () => {
                         onClick={() => {
                           setProgramView("list");
                           setSelectedProgram(null);
+                          setTasksState([]);
                         }}
                         className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-[#76121F] hover:bg-[#76121F] hover:text-white transition-all active:scale-90"
                       >
@@ -908,21 +965,21 @@ const CaseDetails = () => {
                     {/* Task List Section */}
                     <div>
                       <h3 className="text-lg font-bold text-Third mb-4">
-                        Task List ({selectedProgram.tasks?.length || 0})
+                        Task List ({tasksState?.length || 0})
                       </h3>
 
-                      {(!selectedProgram.tasks || selectedProgram.tasks.length === 0) ? (
+                      {(!tasksState || tasksState.length === 0) ? (
                         <div className="text-center py-8 bg-gray-50 rounded-2xl text-gray-400 text-xs font-semibold">
                           No tasks defined for this program.
                         </div>
                       ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {selectedProgram.tasks.map((task) => (
+                          {tasksState.map((task, index) => (
                             <div
                               key={task.id}
-                              className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm flex flex-col justify-between"
+                              className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm flex flex-col justify-between gap-4"
                             >
-                              <h5 className="text-sm font-bold text-Third mb-4">
+                              <h5 className="text-sm font-bold text-Third mb-4 font-poppins">
                                 {task.title}
                               </h5>
 
@@ -951,6 +1008,21 @@ const CaseDetails = () => {
                                     {task.incorrect || 0}
                                   </div>
                                 </div>
+                              </div>
+
+                              <div className="flex gap-3 pt-2">
+                                <button
+                                  onClick={() => handleAction(index, "yes")}
+                                  className="flex-1 bg-[#10B981] text-white py-2 rounded-xl font-bold flex items-center justify-center gap-1.5 hover:bg-[#059669] transition-all active:scale-95 text-xs cursor-pointer"
+                                >
+                                  ✓ Yes
+                                </button>
+                                <button
+                                  onClick={() => handleAction(index, "no")}
+                                  className="flex-1 border border-red-200 text-red-500 py-2 rounded-xl font-bold flex items-center justify-center gap-1.5 hover:bg-red-50 transition-all active:scale-95 text-xs cursor-pointer"
+                                >
+                                  ✕ No
+                                </button>
                               </div>
                             </div>
                           ))}
@@ -1026,6 +1098,7 @@ const CaseDetails = () => {
                               <button
                                 onClick={() => {
                                   setSelectedProgram(program);
+                                  setTasksState(program.tasks || []);
                                   setProgramView("details");
                                 }}
                                 className="flex-1 py-2 bg-[#FAF6F7] border border-Secondary/20 text-[#76121F] font-bold text-xs rounded-xl hover:bg-[#76121F] hover:text-white transition-all active:scale-95 text-center cursor-pointer"

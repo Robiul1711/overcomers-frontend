@@ -107,8 +107,11 @@ const CaseDetails = () => {
   const [programView, setProgramView] = useState("list"); // 'list' or 'details'
   const [selectedProgram, setSelectedProgram] = useState(null);
   const [tasksState, setTasksState] = useState([]);
+  const now = new Date();
   const [taskPerformanceParams, setTaskPerformanceParams] = useState({
     period: "all_time",
+    month: now.getMonth() + 1,
+    year: now.getFullYear(),
     program_id: undefined,
   });
 
@@ -256,7 +259,7 @@ const CaseDetails = () => {
     });
 
   const { mutate: trackTask } = useMutationClient({
-    url: (taskId) => `/supervisor/tasks/${taskId}/track`,
+    url: (params) => `/supervisor/cases/${params.caseId}/programs/tasks/${params.taskId}/track`,
     method: "post",
     invalidateKeys: [
       ["supervisorCaseDetails", id],
@@ -281,10 +284,10 @@ const CaseDetails = () => {
     nextTasks[index] = updatedTask;
     setTasksState(nextTasks);
 
-    // Call API (will use /supervisor/tasks/:taskId/track or similar)
+    // Call API (will use /supervisor/cases/:caseId/programs/tasks/:taskId/track)
     trackTask(
       {
-        id: task.id,
+        id: { caseId: id, taskId: task.id },
         data: { status: type === "yes" ? "correct" : "incorrect" },
       },
       {

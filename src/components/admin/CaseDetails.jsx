@@ -65,7 +65,7 @@ const CaseDetails = () => {
     url: `/employee/cases/${id}/reports`,
   })
   const { data: taskPerformanceData, isLoading: taskPerformanceLoading, isError: taskPerformanceIsError } = useClient({
-    queryKey: ["employeeCaseTaskPerformance"],
+    queryKey: ["employeeCaseTaskPerformance", id, taskPerformanceParams],
     url: `/employee/cases/${id}/task-performance`,
     params: taskPerformanceParams,
   })

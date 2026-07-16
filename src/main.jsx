@@ -21,7 +21,7 @@ createRoot(document.getElementById("root")).render(
         <PersistGate loading={null} persistor={persistor}>
           <RouterProvider router={router} />
           <Toaster position="top-center" reverseOrder={false} />
-          <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
+          <ToastContainer position="top-center" autoClose={3000} hideProgressBar={false} />
           {/* <ReactQueryDevtools initialIsOpen={false} /> */}
         </PersistGate>
       </Provider>

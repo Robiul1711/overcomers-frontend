@@ -14,6 +14,7 @@ import {
   Bell,
   FileText,
   Calendar,
+  Wallet,
 } from "lucide-react";
 
 const DirectorLayout = () => {
@@ -62,6 +63,13 @@ const DirectorLayout = () => {
       activePaths: ["/director-dashboard/schedule"],
     },
     {
+      id: 12,
+      icon: <Calendar size={20} />,
+      text: "Master Schedule",
+      path: "/director-dashboard/master-schedule",
+      activePaths: ["/director-dashboard/master-schedule"],
+    },
+    {
       id: 3,
       icon: <Layers size={20} />,
       text: "Programs",
@@ -88,6 +96,13 @@ const DirectorLayout = () => {
       text: "Notifications",
       path: "/director-dashboard/notifications",
       activePaths: ["/director-dashboard/notifications"],
+    },
+    {
+      id: 13,
+      icon: <Wallet size={20} />,
+      text: "Payroll",
+      path: "/director-dashboard/payroll",
+      activePaths: ["/director-dashboard/payroll"],
     },
     {
       id: 7,

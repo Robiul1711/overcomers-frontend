@@ -38,6 +38,7 @@ import DirectorNotifications from "@/pages/director/Notifications";
 import DirectorDocuments from "@/pages/director/Documents";
 import DirectorClinicFiles from "@/pages/director/ClinicFiles";
 import DirectorMySchedule from "@/pages/director/MySchedule";
+import DirectorMasterSchedule from "@/pages/director/MasterSchedule";
 
 import SupervisorLayout from "@/layout/SupervisorLayout";
 import SupervisorDashboard from "@/pages/supervisor/SupervisorDashboard";
@@ -50,6 +51,7 @@ import SupervisorDocuments from "@/pages/supervisor/Documents";
 import SupervisorNotifications from "@/pages/supervisor/Notifications";
 import SupervisorMySchedule from "@/pages/supervisor/MySchedule";
 import SupervisorClinicFiles from "@/pages/supervisor/ClinicFiles";
+import SupervisorMasterSchedule from "@/pages/supervisor/MasterSchedule";
 
 import { createBrowserRouter } from "react-router-dom";
 import PrivateRoute from "@/components/common/PrivateRoute";
@@ -264,6 +266,14 @@ const router = createBrowserRouter([
         path: "/director-dashboard/schedule",
         element: <DirectorMySchedule />,
       },
+      {
+        path: "/director-dashboard/master-schedule",
+        element: <DirectorMasterSchedule />,
+      },
+      {
+        path: "/director-dashboard/payroll",
+        element: <Payroll userType="director" />,
+      },
     ],
   },
   // Supervisor routes
@@ -300,6 +310,10 @@ const router = createBrowserRouter([
         element: <SupervisorMySchedule />,
       },
       {
+        path: "/supervisor-dashboard/master-schedule",
+        element: <SupervisorMasterSchedule />,
+      },
+      {
         path: "/supervisor-dashboard/clinic-files",
         element: <SupervisorClinicFiles />,
       },
@@ -310,6 +324,10 @@ const router = createBrowserRouter([
       {
         path: "/supervisor-dashboard/notifications",
         element: <SupervisorNotifications />,
+      },
+      {
+        path: "/supervisor-dashboard/payroll",
+        element: <Payroll userType="supervisor" />,
       },
     ],
   },

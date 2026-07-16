@@ -82,6 +82,26 @@ const CustomTooltip = ({ active, payload }) => {
   return null;
 };
 
+const formatTime = (timeStr) => {
+  if (!timeStr) return "";
+  try {
+    const dateObj = new Date(timeStr.replace(" ", "T"));
+    if (isNaN(dateObj.getTime())) {
+      const parts = timeStr.split(" ");
+      if (parts.length > 1) {
+        const timeParts = parts[1].split(":");
+        if (timeParts.length > 1) {
+          return `${timeParts[0]}:${timeParts[1]}`;
+        }
+      }
+      return timeStr;
+    }
+    return dateObj.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: true });
+  } catch (e) {
+    return timeStr;
+  }
+};
+
 const periodValueMap = {
   "All time": "all_time",
   Month: "month",
@@ -259,6 +279,16 @@ const CaseDetails = () => {
   } = useClient({
     queryKey: ["directorCaseReports", id],
     url: `/director/cases/${id}/reports`,
+  });
+
+  // Fetch session notes details
+  const {
+    data: sessionNotesData,
+    isLoading: isSessionNotesLoading,
+    isError: isSessionNotesError,
+  } = useClient({
+    queryKey: ["directorCaseSessionNotes", id],
+    url: `/director/cases/${id}/session-notes`,
   });
 
   // Fetch task performance details
@@ -1329,10 +1359,10 @@ const CaseDetails = () => {
                 </div>
               </div>
 
-              {/* Side-by-side columns: Notes and Reports */}
-              <div className="flex flex-col lg:flex-row gap-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+              {/* Side-by-side columns: Notes, Reports and Session Notes */}
+              <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 {/* Case Notes Column */}
-                <div className="flex-1 bg-white rounded-3xl p-6 shadow-sm border border-gray-100 flex flex-col">
+                <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 flex flex-col">
                   <div className="flex items-center justify-between mb-2">
                     <h2 className="text-2xl md:text-3xl font-bold text-Third">
                       Case Notes
@@ -1376,7 +1406,7 @@ const CaseDetails = () => {
                 </div>
 
                 {/* Case Reports Column */}
-                <div className="flex-1 bg-white rounded-3xl p-6 shadow-sm border border-gray-100 flex flex-col">
+                <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 flex flex-col">
                   <div className="flex items-center justify-between mb-2">
                     <h2 className="text-2xl md:text-3xl font-bold text-Third">
                       Case Reports
@@ -1422,6 +1452,71 @@ const CaseDetails = () => {
                             <Download size={14} />
                             Download
                           </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Session Notes Column */}
+                <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 flex flex-col">
+                  <div className="flex items-center justify-between mb-2">
+                    <h2 className="text-2xl md:text-3xl font-bold text-Third">
+                      Session Notes
+                    </h2>
+                  </div>
+                  <p className="text-gray-400 text-xs md:text-sm font-medium mb-4">
+                    Recent session details and supervisor/RBT session notes.
+                  </p>
+                  <div className="w-full h-[2.5px] bg-[#E4A220] rounded-full mb-6"></div>
+
+                  {isSessionNotesLoading ? (
+                    <div className="flex justify-center py-10">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-Primary"></div>
+                    </div>
+                  ) : isSessionNotesError ? (
+                    <div className="text-center py-10 text-[#EF4444] text-sm font-semibold">
+                      Failed to load session notes.
+                    </div>
+                  ) : (!sessionNotesData?.data || sessionNotesData.data.length === 0) ? (
+                    <div className="text-center py-10 text-gray-400 text-sm font-semibold">
+                      No session notes found.
+                    </div>
+                  ) : (
+                    <div className="flex-1 overflow-y-auto max-h-[500px] pr-1 space-y-4 custom-scrollbar">
+                      {sessionNotesData.data.map((sessionNote, i) => (
+                        <div
+                          key={i}
+                          className="bg-[#FFFDF6] border border-[#F7EED9] border-l-4 border-l-[#76121F] rounded-2xl p-5 shadow-sm flex flex-col gap-2.5"
+                        >
+                          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-100 pb-2">
+                            <span className="text-[#76121F] font-bold text-sm uppercase">
+                              {sessionNote.session_name || "SESSION"}
+                            </span>
+                            <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full uppercase tracking-wider ${
+                              sessionNote.status === "approved" || sessionNote.status === "Approved"
+                                ? "bg-emerald-100 text-emerald-700"
+                                : sessionNote.status === "pending" || sessionNote.status === "Pending"
+                                ? "bg-amber-100 text-amber-700"
+                                : "bg-gray-100 text-gray-700"
+                            }`}>
+                              {sessionNote.status || "Completed"}
+                            </span>
+                          </div>
+                          <div className="flex flex-wrap items-center gap-2 text-[12px] text-gray-500 font-semibold">
+                            <span>By: <strong className="text-gray-700">{sessionNote.employee_name || "Therapist"}</strong></span>
+                            <span className="text-gray-300">•</span>
+                            <span>{sessionNote.date_formatted}</span>
+                          </div>
+                          {(sessionNote.start_time || sessionNote.end_time) && (
+                            <div className="text-[11px] text-gray-500 font-medium bg-gray-50/50 p-2 rounded-lg flex justify-between gap-2">
+                              <span>Start: {formatTime(sessionNote.start_time)}</span>
+                              <span>End: {formatTime(sessionNote.end_time)}</span>
+                            </div>
+                          )}
+                          <p className="text-[#3A331E]/80 text-xs md:text-sm leading-relaxed font-medium mt-1">
+                            {sessionNote.content || sessionNote.notes || "No content provided."}
+                          </p>
                         </div>
                       ))}
                     </div>

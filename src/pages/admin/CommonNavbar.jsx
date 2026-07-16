@@ -94,6 +94,9 @@ const CommonNavbar = ({ open, setOpen }) => {
   } else if (pathname.includes("/notifications")) {
     title = "Notifications";
     subtitle = "Stay informed about updates and important announcements.";
+  } else if (pathname.includes("/master-schedule")) {
+    title = "Master Schedule";
+    subtitle = "Monitor and track all staff sessions and client schedules.";
   } else if (pathname.includes("/schedule")) {
     title = "My Schedule";
     subtitle = "View and manage your work schedule.";

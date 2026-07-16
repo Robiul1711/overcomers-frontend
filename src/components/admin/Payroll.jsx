@@ -26,7 +26,7 @@ const formatCurrency = (val) => {
   return `$${num.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`;
 };
 
-const Payroll = () => {
+const Payroll = ({ userType = "employee" }) => {
 const [activeTab, setActiveTab] = useState('Payment History');
   const [showModal, setShowModal] = useState(false);
   const [selectedStub, setSelectedStub] = useState(null);
@@ -34,12 +34,12 @@ const [activeTab, setActiveTab] = useState('Payment History');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   const { data, isLoading, isError, refetch } = useClient({
-    queryKey: ['employeePayrolls'],
-    url: '/employee/payrolls',
+    queryKey: [`${userType}Payrolls`],
+    url: `/${userType}/payrolls`,
   });
   const { data:textDocument, isLoading:textDocumentLoading, isError:textDocumentError, refetch:textDocumentRefetch } = useClient({
-    queryKey: ['employeeTextDocumentsPayrolls'],
-    url: '/employee/payrolls/tax-documents',
+    queryKey: [`${userType}TextDocumentsPayrolls`],
+    url: `/${userType}/payrolls/tax-documents`,
   });
   const topCards = data?.data?.top_cards || {};
   const workload = data?.data?.workload_summary || {};
@@ -121,7 +121,7 @@ const [activeTab, setActiveTab] = useState('Payment History');
     if (!selectedStub) return;
     try {
       const response = await axiosSecure.get(
-        `/employee/payrolls/${selectedStub.id}/paystub/download`,
+        `/${userType}/payrolls/${selectedStub.id}/paystub/download`,
         { responseType: 'blob' }
       );
       const url = window.URL.createObjectURL(new Blob([response.data]));
@@ -139,7 +139,7 @@ const [activeTab, setActiveTab] = useState('Payment History');
 
   const handleExportStatement = async () => {
     try {
-      const response = await axiosSecure.get('/employee/payrolls/export', {
+      const response = await axiosSecure.get(`/${userType}/payrolls/export`, {
         responseType: 'blob',
       });
       const url = window.URL.createObjectURL(new Blob([response.data], { type: 'text/csv' }));

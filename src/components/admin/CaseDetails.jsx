@@ -50,6 +50,12 @@ const CaseDetails = () => {
   });
   // console.log(notesData?.data)
 
+  const { data: sessionNotesData, isLoading: sessionNotesLoading, isError: sessionNotesIsError } = useClient({
+    queryKey: ["employeeCaseSessionNotes", id],
+    url: `/employee/cases/${id}/session-notes`,
+  });
+
+
   const dataCasted = data?.data;
 
 
@@ -147,6 +153,7 @@ const CaseDetails = () => {
               }}
               notesData={notesData?.data}
               reportData={reportData?.data}
+              sessionNotesData={sessionNotesData?.data}
               taskPerformanceData={taskPerformanceData?.data}
               taskPerformanceLoading={taskPerformanceLoading}
               taskPerformanceIsError={taskPerformanceIsError}
@@ -156,6 +163,8 @@ const CaseDetails = () => {
               reportIsError={reportIsError}
               notesLoading={notesLoading}
               notesIsError={notesIsError}
+              sessionNotesLoading={sessionNotesLoading}
+              sessionNotesIsError={sessionNotesIsError}
               onAddReport={() => setIsReportModalOpen(true)}
             />
           )}

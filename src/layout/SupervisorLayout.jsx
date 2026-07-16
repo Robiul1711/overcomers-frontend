@@ -13,6 +13,7 @@ import {
   Bell,
   FileText,
   Calendar,
+  Wallet,
 } from "lucide-react";
 
 const SupervisorLayout = () => {
@@ -54,6 +55,13 @@ const SupervisorLayout = () => {
       activePaths: ["/supervisor-dashboard/schedule"],
     },
     {
+      id: 12,
+      icon: <Calendar size={20} />,
+      text: "Master Schedule",
+      path: "/supervisor-dashboard/master-schedule",
+      activePaths: ["/supervisor-dashboard/master-schedule"],
+    },
+    {
       id: 4,
       icon: <Clock size={20} />,
       text: "Sessions Approval",
@@ -80,6 +88,13 @@ const SupervisorLayout = () => {
       text: "Notifications",
       path: "/supervisor-dashboard/notifications",
       activePaths: ["/supervisor-dashboard/notifications"],
+    },
+    {
+      id: 13,
+      icon: <Wallet size={20} />,
+      text: "Payroll",
+      path: "/supervisor-dashboard/payroll",
+      activePaths: ["/supervisor-dashboard/payroll"],
     },
     {
       id: 6,

@@ -36,6 +36,9 @@ const NotesReportsTab = ({
   reportData,
   reportLoading,
   reportIsError,
+  sessionNotesData,
+  sessionNotesLoading,
+  sessionNotesIsError,
   taskPerformanceData,
   taskPerformanceLoading,
   taskPerformanceIsError,
@@ -89,6 +92,26 @@ const NotesReportsTab = ({
     link.click();
     document.body.removeChild(link);
   };
+  const formatTime = (timeStr) => {
+    if (!timeStr) return "";
+    try {
+      const dateObj = new Date(timeStr.replace(" ", "T"));
+      if (isNaN(dateObj.getTime())) {
+        const parts = timeStr.split(" ");
+        if (parts.length > 1) {
+          const timeParts = parts[1].split(":");
+          if (timeParts.length > 1) {
+            return `${timeParts[0]}:${timeParts[1]}`;
+          }
+        }
+        return timeStr;
+      }
+      return dateObj.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: true });
+    } catch (e) {
+      return timeStr;
+    }
+  };
+
   return (
     <section>
       {/* overall task performance */}
@@ -292,9 +315,9 @@ const NotesReportsTab = ({
           </div>
         </div>
       </div>
-      <div className="flex flex-col lg:flex-row gap-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
         {/* Case Notes Column */}
-        <div className="flex-1 bg-white rounded-[24px]  p-4 md:p-6 shadow-sm border border-gray-100 flex flex-col">
+        <div className="bg-white rounded-[24px]  p-4 md:p-6 shadow-sm border border-gray-100 flex flex-col">
           <div className="flex items-center justify-between mb-2">
             <h2 className="text-[28px] md:text-[32px] font-bold text-[#3A331E]">
               Case Notes
@@ -312,30 +335,46 @@ const NotesReportsTab = ({
           <div className="w-full h-[2px] bg-[#FFBB03] rounded-full mb-8"></div>
 
           <div className="flex-1 min-h-0 overflow-y-auto max-h-[500px] pr-1 space-y-5 custom-scrollbar">
-            {notesData?.map((note, i) => (
-              <div
-                key={i}
-                className="bg-[#FFFBEE] border-l-4 border-[#76121F] rounded-2xl p-6 shadow-sm flex flex-col gap-3"
-              >
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-[#76121F] font-bold text-[16px]">
-                    {note.employee_name} {note.role}
-                  </span>
-                  <span className="text-gray-400 font-bold text-[13px]">
-                    {note.date_formatted}
-                  </span>
-                  {/* {note.subAuthor && <span className="text-gray-400 font-bold text-[12px] ml-auto">{note.subAuthor}</span>} */}
+            {notesLoading ? (
+              <div className="flex items-center justify-center h-[200px]">
+                <div className="flex flex-col items-center gap-3">
+                  <div className="w-8 h-8 border-4 border-[#76121F]/20 border-t-[#76121F] rounded-full animate-spin"></div>
+                  <span className="text-gray-400 text-sm font-medium">Loading notes...</span>
                 </div>
-                <p className="text-[#3A331E]/80 text-[14px] leading-relaxed font-medium">
-                  {note.content}
-                </p>
               </div>
-            ))}
+            ) : notesIsError ? (
+              <div className="flex items-center justify-center h-[200px]">
+                <p className="text-[#EF4444] text-sm font-semibold">Failed to load notes</p>
+              </div>
+            ) : notesData && notesData.length > 0 ? (
+              notesData.map((note, i) => (
+                <div
+                  key={i}
+                  className="bg-[#FFFBEE] border-l-4 border-[#76121F] rounded-2xl p-6 shadow-sm flex flex-col gap-3"
+                >
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-[#76121F] font-bold text-[16px]">
+                      {note.employee_name} {note.role}
+                    </span>
+                    <span className="text-gray-400 font-bold text-[13px]">
+                      {note.date_formatted}
+                    </span>
+                  </div>
+                  <p className="text-[#3A331E]/80 text-[14px] leading-relaxed font-medium">
+                    {note.content}
+                  </p>
+                </div>
+              ))
+            ) : (
+              <div className="flex items-center justify-center h-[200px] text-gray-400 text-sm font-medium">
+                No notes available.
+              </div>
+            )}
           </div>
         </div>
 
         {/* Case Reports Column */}
-        <div className="flex-1 bg-white rounded-[24px]  p-4 md:p-6 shadow-sm border border-gray-100 flex flex-col">
+        <div className="bg-white rounded-[24px]  p-4 md:p-6 shadow-sm border border-gray-100 flex flex-col">
           <div className="flex items-center justify-between mb-2">
             <h2 className="text-[28px] md:text-[32px] font-bold text-[#3A331E]">
               Case Reports
@@ -353,35 +392,123 @@ const NotesReportsTab = ({
           <div className="w-full h-[2px] bg-[#FFBB03] rounded-full mb-8"></div>
 
           <div className="flex-1 min-h-0 overflow-y-auto max-h-[500px] pr-1 space-y-4 custom-scrollbar">
-            {reportData?.map((report, i) => (
-              <div
-                key={i}
-                className="bg-white border border-gray-100 rounded-2xl p-6 flex items-center justify-between group hover:border-[#76121F]/30 hover:shadow-md transition-all"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-[#FAF6F7] flex items-center justify-center text-[#76121F] border border-gray-50">
-                    <FileText size={20} />
-                  </div>
-                  <div className="flex flex-col gap-0.5">
-                    <h4 className="text-[17px] font-bold text-[#76121F]">
-                      {report?.title}
-                    </h4>
-                    <p className="text-gray-400 text-[12px] font-bold uppercase tracking-wider">
-                      {report?.type} • Uploaded {report?.date}
-                    </p>
-                  </div>
+            {reportLoading ? (
+              <div className="flex items-center justify-center h-[200px]">
+                <div className="flex flex-col items-center gap-3">
+                  <div className="w-8 h-8 border-4 border-[#76121F]/20 border-t-[#76121F] rounded-full animate-spin"></div>
+                  <span className="text-gray-400 text-sm font-medium">Loading reports...</span>
                 </div>
-                <button
-                  onClick={() =>
-                    handleDownload(report?.file_url, report?.file_name)
-                  }
-                  className="flex items-center gap-2 border-2 border-[#76121F] text-[#76121F] px-4 py-2 rounded-xl font-bold text-[13px] hover:bg-[#76121F] hover:text-white transition-all active:scale-95"
-                >
-                  <Download size={16} />
-                  Download
-                </button>
               </div>
-            ))}
+            ) : reportIsError ? (
+              <div className="flex items-center justify-center h-[200px]">
+                <p className="text-[#EF4444] text-sm font-semibold">Failed to load reports</p>
+              </div>
+            ) : reportData && reportData.length > 0 ? (
+              reportData.map((report, i) => (
+                <div
+                  key={i}
+                  className="bg-white border border-gray-100 rounded-2xl p-6 flex items-center justify-between group hover:border-[#76121F]/30 hover:shadow-md transition-all"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-[#FAF6F7] flex items-center justify-center text-[#76121F] border border-gray-50">
+                      <FileText size={20} />
+                    </div>
+                    <div className="flex flex-col gap-0.5">
+                      <h4 className="text-[17px] font-bold text-[#76121F]">
+                        {report?.title}
+                      </h4>
+                      <p className="text-gray-400 text-[12px] font-bold uppercase tracking-wider">
+                        {report?.type} • Uploaded {report?.date}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() =>
+                      handleDownload(report?.file_url, report?.file_name)
+                    }
+                    className="flex items-center gap-2 border-2 border-[#76121F] text-[#76121F] px-4 py-2 rounded-xl font-bold text-[13px] hover:bg-[#76121F] hover:text-white transition-all active:scale-95"
+                  >
+                    <Download size={16} />
+                    Download
+                  </button>
+                </div>
+              ))
+            ) : (
+              <div className="flex items-center justify-center h-[200px] text-gray-400 text-sm font-medium">
+                No reports available.
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Session Notes Column */}
+        <div className="bg-white rounded-[24px] p-4 md:p-6 shadow-sm border border-gray-100 flex flex-col">
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="text-[28px] md:text-[32px] font-bold text-[#3A331E]">
+              Session Notes
+            </h2>
+          </div>
+          <p className="text-[#6B7280] text-[14px] font-medium mb-4">
+            Recent session details and supervisor/RBT session notes.
+          </p>
+          <div className="w-full h-[2px] bg-[#FFBB03] rounded-full mb-8"></div>
+
+          <div className="flex-1 min-h-0 overflow-y-auto max-h-[500px] pr-1 space-y-5 custom-scrollbar">
+            {sessionNotesLoading ? (
+              <div className="flex items-center justify-center h-[200px]">
+                <div className="flex flex-col items-center gap-3">
+                  <div className="w-8 h-8 border-4 border-[#76121F]/20 border-t-[#76121F] rounded-full animate-spin"></div>
+                  <span className="text-gray-400 text-sm font-medium">Loading session notes...</span>
+                </div>
+              </div>
+            ) : sessionNotesIsError ? (
+              <div className="flex items-center justify-center h-[200px]">
+                <div className="text-center">
+                  <p className="text-[#EF4444] text-sm font-semibold">Failed to load session notes</p>
+                  <p className="text-gray-400 text-xs mt-1">Please try again later.</p>
+                </div>
+              </div>
+            ) : sessionNotesData && sessionNotesData.length > 0 ? (
+              sessionNotesData.map((sessionNote, i) => (
+                <div
+                  key={i}
+                  className="bg-[#FFFDF6] border border-[#F7EED9] border-l-4 border-l-[#76121F] rounded-2xl p-6 shadow-sm flex flex-col gap-3"
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-100 pb-2">
+                    <span className="text-[#76121F] font-bold text-[15px] uppercase">
+                      {sessionNote.session_name || "SESSION"}
+                    </span>
+                    <span className={`px-2.5 py-1 text-[11px] font-bold rounded-full uppercase tracking-wider ${
+                      sessionNote.status === "approved" || sessionNote.status === "Approved"
+                        ? "bg-emerald-100 text-emerald-700"
+                        : sessionNote.status === "pending" || sessionNote.status === "Pending"
+                        ? "bg-amber-100 text-amber-700"
+                        : "bg-gray-100 text-gray-700"
+                    }`}>
+                      {sessionNote.status || "Completed"}
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2 text-[13px] text-gray-500 font-medium">
+                    <span>By: <strong className="text-gray-700">{sessionNote.employee_name || "Therapist"}</strong></span>
+                    <span className="text-gray-300">•</span>
+                    <span>{sessionNote.date_formatted}</span>
+                  </div>
+                  {(sessionNote.start_time || sessionNote.end_time) && (
+                    <div className="text-[12px] text-gray-500 font-medium bg-gray-50/50 p-2 rounded-lg flex justify-between gap-2">
+                      <span>Start: {formatTime(sessionNote.start_time)}</span>
+                      <span>End: {formatTime(sessionNote.end_time)}</span>
+                    </div>
+                  )}
+                  <p className="text-[#3A331E]/80 text-[14px] leading-relaxed font-medium mt-1">
+                    {sessionNote.content || sessionNote.notes || "No content provided."}
+                  </p>
+                </div>
+              ))
+            ) : (
+              <div className="flex items-center justify-center h-[200px] text-gray-400 text-sm font-medium">
+                No session notes available.
+              </div>
+            )}
           </div>
         </div>
       </div>

@@ -17,6 +17,7 @@ const WeeklyCalendar = ({
   onPrevWeek,
   onNextWeek,
   hideActions = false,
+  onCancelSchedule,
 }) => {
   return (
     <div className="bg-white rounded-[32px] md:rounded-[40px] p-5 md:p-8 shadow-sm border border-gray-100">
@@ -86,7 +87,11 @@ const WeeklyCalendar = ({
                 {dayData.sessions.map((session) => (
                   <div
                     key={session.id}
-                    className="bg-white rounded-[24px] p-4 border border-gray-100 shadow-[0_4px_15px_-4px_rgba(0,0,0,0.05)] flex flex-col gap-4 group hover:border-Secondary/30 hover:shadow-md transition-all duration-300 relative overflow-hidden"
+                    className={`rounded-[24px] p-4 border shadow-[0_4px_15px_-4px_rgba(0,0,0,0.05)] flex flex-col gap-4 group hover:shadow-md transition-all duration-300 relative overflow-hidden ${
+                      session.status === "CANCELED" || session.status === "Canceled" || session.status === "Cancelled"
+                        ? "bg-red-50/20 border-red-100 hover:border-red-200"
+                        : "bg-white border-gray-100 hover:border-Secondary/30"
+                    }`}
                   >
                     <div className="flex flex-col gap-1 relative z-10">
                       <h4 className="font-extrabold text-Third text-[14px] md:text-[15px] leading-tight line-clamp-1">
@@ -99,7 +104,9 @@ const WeeklyCalendar = ({
                               ? "bg-green-500"
                               : session.status === "COMPLETED" || session.status === "Completed"
                                 ? "bg-gray-300"
-                                : "bg-blue-400"
+                                : session.status === "CANCELED" || session.status === "Canceled" || session.status === "Cancelled"
+                                  ? "bg-red-500"
+                                  : "bg-blue-400"
                           }`}
                         ></div>
                         <span
@@ -108,7 +115,9 @@ const WeeklyCalendar = ({
                               ? "text-green-600"
                               : session.status === "COMPLETED" || session.status === "Completed"
                                 ? "text-gray-400"
-                                : "text-blue-500"
+                                : session.status === "CANCELED" || session.status === "Canceled" || session.status === "Cancelled"
+                                  ? "text-red-500"
+                                  : "text-blue-500"
                           }`}
                         >
                           {session.status}
@@ -138,7 +147,11 @@ const WeeklyCalendar = ({
                     </div>
 
                     {!hideActions &&
-                      (session.status !== "Completed" && session.status !== "COMPLETED" ? (
+                      (session.status === "CANCELED" || session.status === "Canceled" || session.status === "Cancelled" ? (
+                        <div className="w-full py-3 rounded-xl font-bold text-[12px] text-center bg-red-50 border border-red-100 text-red-400 pointer-events-none mt-1 uppercase tracking-wider z-10">
+                          Cancelled
+                        </div>
+                      ) : session.status !== "Completed" && session.status !== "COMPLETED" ? (
                         <button
                           onClick={() => handleClockAction(session)}
                           className={`w-full py-3 rounded-xl font-bold text-[12px] md:text-[13px] transition-all duration-300 shadow-sm active:scale-95 z-10 mt-1 uppercase tracking-wider ${
@@ -156,6 +169,20 @@ const WeeklyCalendar = ({
                           Archived
                         </div>
                       ))}
+
+                    {onCancelSchedule &&
+                      session.status !== "CANCELED" &&
+                      session.status !== "Canceled" &&
+                      session.status !== "Cancelled" &&
+                      session.status !== "COMPLETED" &&
+                      session.status !== "Completed" && (
+                        <button
+                          onClick={() => onCancelSchedule(session.id)}
+                          className="w-full py-2.5 bg-red-50 hover:bg-red-100 text-red-600 border border-red-100 rounded-xl font-bold text-[12px] md:text-[13px] transition-all active:scale-95 z-10 mt-1 uppercase tracking-wider"
+                        >
+                          Cancel Session
+                        </button>
+                      )}
 
                     {/* Subtle Decoration */}
                     <div

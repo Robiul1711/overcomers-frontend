@@ -1,5 +1,8 @@
 import React from "react";
-import { PlusCircle, FileText, Download, ChevronDown } from "lucide-react";
+import { toast } from "react-toastify";
+import { PlusCircle, FileText, Download, ChevronDown, Loader2 } from "lucide-react";
+import { jsPDF } from "jspdf";
+import html2canvas from "html2canvas";
 import {
   AreaChart,
   Area,
@@ -12,11 +15,12 @@ import {
 
 const CustomTooltip = ({ active, payload }) => {
   if (active && payload && payload.length) {
+    const label = payload[0].payload?.name || payload[0].payload?.task_title || "Success";
     return (
       <div className="bg-[#76121F] text-white p-2 px-4 rounded-xl text-center shadow-lg transform -translate-y-2 relative">
         <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-3 h-3 bg-[#76121F] rotate-45"></div>
         <p className="text-[12px] font-medium relative z-10 leading-tight">
-          {payload[0].payload?.task_title || "Success"}
+          {label}
         </p>
         <p className="text-[18px] font-bold relative z-10 leading-tight">
           {Math.round(payload[0].value)}%
@@ -44,6 +48,7 @@ const NotesReportsTab = ({
   taskPerformanceIsError,
   taskPerformanceParams,
   setTaskPerformanceParams,
+  clientName,
 }) => {
   const overallPerformance = taskPerformanceData?.overall_task_performance;
   const chartData = overallPerformance?.chart_data || [];
@@ -52,16 +57,64 @@ const NotesReportsTab = ({
 
   const selectedProgramId = taskPerformanceParams?.program_id;
   const activePeriod = taskPerformanceParams?.period || "all_time";
+  const [isDownloadingGraph, setIsDownloadingGraph] = React.useState(false);
 
   // Build chart data from API response
-  const dynamicChartData = chartData.map((item) => ({
-    name: item.task_label,
-    task_title: item.task_title,
-    value: Math.round(item.success_rate),
-    trials: item.trials,
-    correct: item.correct,
-    incorrect: item.incorrect,
-  }));
+  const dynamicChartData = React.useMemo(() => {
+    const hasHistory = chartData.some(
+      (item) => Array.isArray(item.history) && item.history.length > 0
+    );
+
+    if (hasHistory) {
+      const dateMap = {};
+      chartData.forEach((item) => {
+        if (Array.isArray(item.history)) {
+          item.history.forEach((hist) => {
+            const d = hist.date;
+            if (!dateMap[d]) {
+              dateMap[d] = {
+                date: d,
+                date_formatted: hist.date_formatted || d,
+                trials: 0,
+                correct: 0,
+                incorrect: 0,
+              };
+            }
+            dateMap[d].trials += hist.trials || 0;
+            dateMap[d].correct += hist.correct || 0;
+            dateMap[d].incorrect += hist.incorrect || 0;
+          });
+        }
+      });
+
+      const sortedDates = Object.keys(dateMap).sort(
+        (a, b) => new Date(a) - new Date(b)
+      );
+
+      return sortedDates.map((d) => {
+        const dayData = dateMap[d];
+        const successRate =
+          dayData.trials > 0 ? (dayData.correct / dayData.trials) * 100 : 0;
+        return {
+          name: dayData.date_formatted,
+          date: dayData.date,
+          value: Math.round(successRate),
+          trials: dayData.trials,
+          correct: dayData.correct,
+          incorrect: dayData.incorrect,
+        };
+      });
+    }
+
+    return chartData.map((item) => ({
+      name: item.task_label,
+      task_title: item.task_title,
+      value: Math.round(item.success_rate),
+      trials: item.trials,
+      correct: item.correct,
+      incorrect: item.incorrect,
+    }));
+  }, [chartData]);
 
   const handlePeriodChange = (period) => {
     setTaskPerformanceParams((prev) => ({
@@ -75,6 +128,110 @@ const NotesReportsTab = ({
       ...prev,
       program_id: programId || undefined,
     }));
+  };
+
+  const handleDownloadGraph = async () => {
+    const chartElement = document.getElementById("overall-performance-chart-container-admin");
+    if (!chartElement) {
+      toast.error("Performance chart element not found.");
+      return;
+    }
+
+    setIsDownloadingGraph(true);
+    try {
+      const canvas = await html2canvas(chartElement, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: "#ffffff",
+        width: chartElement.offsetWidth,
+        height: chartElement.offsetHeight,
+        onclone: (clonedDoc) => {
+          // Remove stylesheet links to prevent html2canvas parsing oklch from Tailwind v4
+          const stylesheets = clonedDoc.querySelectorAll('link[rel="stylesheet"]');
+          stylesheets.forEach(el => el.remove());
+
+          // Replace oklch in inline style tags
+          const styleTags = clonedDoc.querySelectorAll('style');
+          styleTags.forEach(style => {
+            try {
+              style.innerHTML = style.innerHTML.replace(/oklch\([^)]+\)/g, "rgb(118, 18, 31)");
+            } catch (e) {}
+          });
+
+          const clonedElement = clonedDoc.getElementById("overall-performance-chart-container-admin");
+          if (clonedElement) {
+            clonedElement.style.width = `${chartElement.offsetWidth}px`;
+            clonedElement.style.height = `${chartElement.offsetHeight}px`;
+            clonedElement.style.backgroundColor = "#ffffff";
+            
+            // Clean inline oklch styles on all children
+            const allElements = clonedElement.getElementsByTagName("*");
+            for (let el of allElements) {
+              const styleAttr = el.getAttribute("style");
+              if (styleAttr && styleAttr.includes("oklch")) {
+                el.setAttribute("style", styleAttr.replace(/oklch\([^)]+\)/g, "rgb(118, 18, 31)"));
+              }
+            }
+
+            const svgs = clonedElement.getElementsByTagName("svg");
+            for (let svg of svgs) {
+              svg.setAttribute("width", chartElement.offsetWidth.toString());
+              svg.setAttribute("height", chartElement.offsetHeight.toString());
+              svg.style.width = `${chartElement.offsetWidth}px`;
+              svg.style.height = `${chartElement.offsetHeight}px`;
+            }
+          }
+        }
+      });
+      const imgData = canvas.toDataURL("image/png");
+
+      const pdf = new jsPDF("l", "mm", "a4");
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+
+      pdf.setFillColor(118, 18, 31);
+      pdf.rect(0, 0, pageWidth, 20, "F");
+
+      pdf.setTextColor(255, 255, 255);
+      pdf.setFont("helvetica", "bold");
+      pdf.setFontSize(16);
+      pdf.text("OVERALL TASK PERFORMANCE REPORT", 15, 13);
+
+      pdf.setTextColor(60, 60, 60);
+      pdf.setFont("helvetica", "bold");
+      pdf.setFontSize(12);
+      
+      pdf.text(`Client Name: ${clientName || "N/A"}`, 15, 32);
+      
+      const selectedProg = availablePrograms.find(p => p.id === selectedProgramId);
+      pdf.text(`Program/Task: ${selectedProg ? selectedProg.name : "All Programs"}`, 15, 40);
+      
+      const periodLabel = activePeriod === "month" ? "Month" : activePeriod === "year" ? "Year" : "All Time";
+      pdf.text(`Period: ${periodLabel}`, 15, 48);
+      
+      const todayStr = new Date().toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
+      pdf.text(`Report Date: ${todayStr}`, 15, 56);
+
+      pdf.setDrawColor(220, 220, 220);
+      pdf.line(15, 62, pageWidth - 15, 62);
+
+      const imgWidth = pageWidth - 30;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      
+      pdf.addImage(imgData, "PNG", 15, 68, imgWidth, Math.min(imgHeight, pageHeight - 80));
+
+      pdf.save(`Performance_Report_${(clientName || "Client").replace(/\s+/g, "_")}.pdf`);
+      toast.success("Performance report downloaded successfully!");
+    } catch (error) {
+      console.error("Error downloading graph:", error);
+      toast.error(`Failed to download report: ${error.message || error}`);
+    } finally {
+      setIsDownloadingGraph(false);
+    }
   };
 
   const periodValueMap = {
@@ -147,27 +304,42 @@ const NotesReportsTab = ({
                 </div>
               </div>
             </div>
-            <div className="relative">
-              <select
-                value={selectedProgramId || "all"}
-                onChange={(e) =>
-                  handleProgramChange(
-                    e.target.value === "all" ? undefined : Number(e.target.value),
-                  )
-                }
-                className="appearance-none bg-[#76121F] text-white px-5 py-3 pr-10 rounded-xl font-bold text-[13px] md:text-[14px] shadow-md cursor-pointer outline-none focus:ring-2 focus:ring-[#76121F]/50"
+            <div className="flex items-center gap-2">
+              <div className="relative">
+                <select
+                  value={selectedProgramId || "all"}
+                  onChange={(e) =>
+                    handleProgramChange(
+                      e.target.value === "all" ? undefined : Number(e.target.value),
+                    )
+                  }
+                  className="appearance-none bg-[#76121F] text-white px-5 py-3 pr-10 rounded-xl font-bold text-[13px] md:text-[14px] shadow-md cursor-pointer outline-none focus:ring-2 focus:ring-[#76121F]/50"
+                >
+                  <option value="all">All Programs</option>
+                  {availablePrograms.map((prog) => (
+                    <option key={prog.id} value={prog.id}>
+                      {prog.name}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-white pointer-events-none"
+                  size={18}
+                />
+              </div>
+              <button
+                onClick={handleDownloadGraph}
+                disabled={isDownloadingGraph || dynamicChartData.length === 0}
+                className="flex items-center gap-2 bg-[#76121F] hover:bg-[#600000] text-white px-5 py-3 rounded-xl font-bold text-[13px] md:text-[14px] shadow-md cursor-pointer transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Download report PDF"
               >
-                <option value="all">All Programs</option>
-                {availablePrograms.map((prog) => (
-                  <option key={prog.id} value={prog.id}>
-                    {prog.name}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-white pointer-events-none"
-                size={18}
-              />
+                {isDownloadingGraph ? (
+                  <Loader2 className="animate-spin" size={18} />
+                ) : (
+                  <Download size={18} />
+                )}
+                <span>{isDownloadingGraph ? "Downloading..." : "Download Report"}</span>
+              </button>
             </div>
           </div>
 
@@ -186,7 +358,7 @@ const NotesReportsTab = ({
               </div>
             </div>
           ) : dynamicChartData.length > 0 ? (
-            <div className="w-full h-[300px]">
+            <div id="overall-performance-chart-container-admin" className="w-full h-[300px] bg-white">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart
                   data={dynamicChartData}

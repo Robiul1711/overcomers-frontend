@@ -166,6 +166,7 @@ const CaseDetails = () => {
               sessionNotesLoading={sessionNotesLoading}
               sessionNotesIsError={sessionNotesIsError}
               onAddReport={() => setIsReportModalOpen(true)}
+              clientName={dataCasted?.client_name}
             />
           )}
 

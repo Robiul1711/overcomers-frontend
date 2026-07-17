@@ -152,7 +152,7 @@ const Navbar = () => {
               <div className="relative hidden lg:block" ref={userMenuRef}>
                 <button
                   onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                  className={`flex items-center gap-2 rounded-lg px-3 py-1 transition-all group ${
+                  className={`flex items-center gap-2 rounded-lg px-2 py-1 transition-all group ${
                     isScrolled
                       ? "bg-gray-100 hover:bg-gray-200 border border-gray-200"
                       : "bg-white/10 hover:bg-white/20 border border-white/20"
@@ -176,7 +176,7 @@ const Navbar = () => {
                   <span className={`hidden md:block text-sm font-medium max-w-[100px] truncate ${
                     isScrolled ? "text-gray-700" : "text-white"
                   }`}>
-                    {profile?.full_name || profile?.name || "User"}
+                    {profile?.full_name || profile?.name || "Users Role......"}
                   </span>
                   <ChevronDown
                     size={14}

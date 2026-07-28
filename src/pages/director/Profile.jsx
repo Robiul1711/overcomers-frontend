@@ -13,6 +13,13 @@ const Profile = () => {
   const [editName, setEditName] = useState("");
   const [editPhone, setEditPhone] = useState("");
   const [editAddress, setEditAddress] = useState("");
+  const [editBankName, setEditBankName] = useState("");
+  const [editBankAccountNo, setEditBankAccountNo] = useState("");
+  const [editBankRoutingNo, setEditBankRoutingNo] = useState("");
+  const [editDob, setEditDob] = useState("");
+  const [editAddressCity, setEditAddressCity] = useState("");
+  const [editAddressState, setEditAddressState] = useState("");
+  const [editAddressZip, setEditAddressZip] = useState("");
   const [editFile, setEditFile] = useState(null);
   const [editPreview, setEditPreview] = useState("");
   const fileInputRef = useRef(null);
@@ -30,6 +37,7 @@ const Profile = () => {
   const profile = data?.data;
   const personal = profile?.personal_information || {};
   const professional = profile?.professional_information || {};
+  const financial = profile?.financial_information || {};
 
   const { mutate: updateProfile, isPending: isUpdating } = useMutationClient({
     url: "/director/profile",
@@ -50,10 +58,17 @@ const Profile = () => {
       setEditName(personal.full_name || "");
       setEditPhone(personal.phone_number || "");
       setEditAddress(personal.address || "");
+      setEditBankName(financial.bank_name || "");
+      setEditBankAccountNo(financial.bank_account_no || "");
+      setEditBankRoutingNo(financial.bank_routing_no || "");
+      setEditDob(financial.dob ? financial.dob.split("T")[0] : "");
+      setEditAddressCity(financial.address_city || "");
+      setEditAddressState(financial.address_state || "");
+      setEditAddressZip(financial.address_zip || "");
       setEditFile(null);
       setEditPreview("");
     }
-  }, [isEditModalOpen, personal]);
+  }, [isEditModalOpen, personal, financial]);
 
   // Cleanup preview URL
   useEffect(() => {
@@ -82,6 +97,13 @@ const Profile = () => {
     formData.append("name", editName);
     formData.append("phone_number", editPhone);
     formData.append("address", editAddress);
+    formData.append("bank_name", editBankName);
+    formData.append("bank_account_no", editBankAccountNo);
+    formData.append("bank_routing_no", editBankRoutingNo);
+    formData.append("dob", editDob);
+    formData.append("address_city", editAddressCity);
+    formData.append("address_state", editAddressState);
+    formData.append("address_zip", editAddressZip);
     if (editFile) {
       formData.append("profile_picture", editFile);
     }
@@ -100,6 +122,13 @@ const Profile = () => {
 
   const resetEditModal = () => {
     setIsEditModalOpen(false);
+    setEditBankName("");
+    setEditBankAccountNo("");
+    setEditBankRoutingNo("");
+    setEditDob("");
+    setEditAddressCity("");
+    setEditAddressState("");
+    setEditAddressZip("");
     setEditFile(null);
     setEditPreview("");
   };
@@ -222,6 +251,25 @@ const Profile = () => {
     { label: "Latest Credentials", value: professional.certification },
   ];
 
+  const formattedDob = financial.dob ? (() => {
+    try {
+      const d = new Date(financial.dob);
+      return isNaN(d.getTime()) ? financial.dob : d.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+    } catch {
+      return financial.dob;
+    }
+  })() : "";
+
+  const financialInfo = [
+    { label: "Bank Name", value: financial.bank_name },
+    { label: "Bank Account No", value: financial.bank_account_no },
+    { label: "Bank Routing No", value: financial.bank_routing_no },
+    { label: "Date of Birth", value: formattedDob },
+    { label: "City", value: financial.address_city },
+    { label: "State", value: financial.address_state },
+    { label: "Zip Code", value: financial.address_zip },
+  ];
+
   const profilePictureUrl = personal.profile_picture;
 
   return (
@@ -331,6 +379,24 @@ const Profile = () => {
               </div>
             ))}
           </div>
+        </div>
+      </div>
+
+      {/* Financial Information */}
+      <div className="bg-white rounded-[24px] p-6 md:p-8 shadow-sm border border-gray-50 mt-6 md:mt-8">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-2 h-8 bg-Primary rounded-full"></div>
+          <h3 className="text-[20px] md:text-[24px] font-bold text-Third">Financial Information</h3>
+        </div>
+        <div className="w-full h-px bg-gray-100 mb-8"></div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {financialInfo.map((item, idx) => (
+            <div key={idx} className="bg-[#FAF9F6] p-4 md:p-5 rounded-2xl flex flex-col gap-1 border border-gray-100/50">
+              <span className="text-gray-400 text-[12px] font-bold uppercase tracking-wider">{item.label}</span>
+              <span className="text-Third font-bold text-[14px] md:text-[15px] truncate">{item.value || "—"}</span>
+            </div>
+          ))}
         </div>
       </div>
 
@@ -539,6 +605,97 @@ const Profile = () => {
                   onChange={(e) => setEditAddress(e.target.value)}
                   className="w-full bg-[#F4F4F4] rounded-xl p-3 sm:p-4 text-sm sm:text-[15px] text-[#3A331E] outline-none border border-transparent focus:border-[#FFBB03] transition-all"
                 />
+              </div>
+
+              {/* Financial Section */}
+              <div className="bg-[#FAF9F6] border border-[#FFBB03]/10 rounded-2xl sm:rounded-3xl p-4 sm:p-6 flex flex-col gap-4 sm:gap-5 mt-2">
+                <h4 className="text-[#3A331E] font-extrabold text-base sm:text-lg tracking-wide">
+                  Financial Information
+                </h4>
+
+                <div className="flex flex-col gap-2">
+                  <label className="text-[#3A331E] font-bold text-[13px]">
+                    Bank Name
+                  </label>
+                  <input
+                    type="text"
+                    value={editBankName}
+                    onChange={(e) => setEditBankName(e.target.value)}
+                    className="w-full bg-white rounded-xl p-3 sm:p-4 text-sm text-[#3A331E] font-semibold border border-[#FFBB03]/20 focus:border-[#FFBB03] outline-none transition-all"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <label className="text-[#3A331E] font-bold text-[13px]">
+                    Bank Account Number
+                  </label>
+                  <input
+                    type="text"
+                    value={editBankAccountNo}
+                    onChange={(e) => setEditBankAccountNo(e.target.value)}
+                    className="w-full bg-white rounded-xl p-3 sm:p-4 text-sm text-[#3A331E] font-semibold border border-[#FFBB03]/20 focus:border-[#FFBB03] outline-none transition-all"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <label className="text-[#3A331E] font-bold text-[13px]">
+                    Bank Routing Number
+                  </label>
+                  <input
+                    type="text"
+                    value={editBankRoutingNo}
+                    onChange={(e) => setEditBankRoutingNo(e.target.value)}
+                    className="w-full bg-white rounded-xl p-3 sm:p-4 text-sm text-[#3A331E] font-semibold border border-[#FFBB03]/20 focus:border-[#FFBB03] outline-none transition-all"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <label className="text-[#3A331E] font-bold text-[13px]">
+                    Date of Birth
+                  </label>
+                  <input
+                    type="date"
+                    value={editDob}
+                    onChange={(e) => setEditDob(e.target.value)}
+                    className="w-full bg-white rounded-xl p-3 sm:p-4 text-sm text-[#3A331E] font-semibold border border-[#FFBB03]/20 focus:border-[#FFBB03] outline-none transition-all"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <label className="text-[#3A331E] font-bold text-[13px]">
+                    City
+                  </label>
+                  <input
+                    type="text"
+                    value={editAddressCity}
+                    onChange={(e) => setEditAddressCity(e.target.value)}
+                    className="w-full bg-white rounded-xl p-3 sm:p-4 text-sm text-[#3A331E] font-semibold border border-[#FFBB03]/20 focus:border-[#FFBB03] outline-none transition-all"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <label className="text-[#3A331E] font-bold text-[13px]">
+                    State
+                  </label>
+                  <input
+                    type="text"
+                    value={editAddressState}
+                    onChange={(e) => setEditAddressState(e.target.value)}
+                    className="w-full bg-white rounded-xl p-3 sm:p-4 text-sm text-[#3A331E] font-semibold border border-[#FFBB03]/20 focus:border-[#FFBB03] outline-none transition-all"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <label className="text-[#3A331E] font-bold text-[13px]">
+                    Zip Code
+                  </label>
+                  <input
+                    type="text"
+                    value={editAddressZip}
+                    onChange={(e) => setEditAddressZip(e.target.value)}
+                    className="w-full bg-white rounded-xl p-3 sm:p-4 text-sm text-[#3A331E] font-semibold border border-[#FFBB03]/20 focus:border-[#FFBB03] outline-none transition-all"
+                  />
+                </div>
               </div>
 
               {/* Professional Section */}

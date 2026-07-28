@@ -20,6 +20,10 @@ const ProfileSettings = () => {
   const [editBankName, setEditBankName] = useState('');
   const [editBankAccountNo, setEditBankAccountNo] = useState('');
   const [editBankRoutingNo, setEditBankRoutingNo] = useState('');
+  const [editDob, setEditDob] = useState('');
+  const [editAddressCity, setEditAddressCity] = useState('');
+  const [editAddressState, setEditAddressState] = useState('');
+  const [editAddressZip, setEditAddressZip] = useState('');
   const [editFile, setEditFile] = useState(null);
   const [editPreview, setEditPreview] = useState('');
   const fileInputRef = useRef(null);
@@ -62,6 +66,10 @@ const ProfileSettings = () => {
       setEditBankName(payroll.bank_name || '');
       setEditBankAccountNo(payroll.bank_account_no || '');
       setEditBankRoutingNo(payroll.bank_routing_no || '');
+      setEditDob(payroll.dob || '');
+      setEditAddressCity(payroll.address_city || '');
+      setEditAddressState(payroll.address_state || '');
+      setEditAddressZip(payroll.address_zip || '');
       setEditFile(null);
       setEditPreview('');
     }
@@ -98,6 +106,10 @@ const ProfileSettings = () => {
     formData.append('bank_name', editBankName);
     formData.append('bank_account_no', editBankAccountNo);
     formData.append('bank_routing_no', editBankRoutingNo);
+    formData.append('dob', editDob);
+    formData.append('address_city', editAddressCity);
+    formData.append('address_state', editAddressState);
+    formData.append('address_zip', editAddressZip);
     if (editFile) {
       formData.append('profile_picture', editFile);
     }
@@ -117,6 +129,10 @@ const ProfileSettings = () => {
     setEditBankName('');
     setEditBankAccountNo('');
     setEditBankRoutingNo('');
+    setEditDob('');
+    setEditAddressCity('');
+    setEditAddressState('');
+    setEditAddressZip('');
     setEditFile(null);
     setEditPreview('');
   };
@@ -230,6 +246,10 @@ const ProfileSettings = () => {
     { label: "Bank Name", value: payroll.bank_name },
     { label: "Bank Account No", value: payroll.bank_account_no },
     { label: "Bank Routing No", value: payroll.bank_routing_no },
+    { label: "Date of Birth", value: payroll.dob },
+    { label: "City", value: payroll.address_city },
+    { label: "State", value: payroll.address_state },
+    { label: "Zip Code", value: payroll.address_zip },
   ];
 
   const profilePictureUrl = personal.profile_picture;
@@ -337,7 +357,7 @@ const ProfileSettings = () => {
           </div>
           <div className="w-full h-px bg-gray-100 mb-8"></div>
           
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {payrollInfo.map((item, idx) => (
               <div key={idx} className="bg-[#FAF9F6] p-4 md:p-5 rounded-2xl flex flex-col gap-1 border border-gray-100/50">
                 <span className="text-gray-400 text-[12px] font-bold uppercase tracking-wider">{item.label}</span>
@@ -559,7 +579,7 @@ const ProfileSettings = () => {
               <div className="bg-[#FAF9F6] border border-[#FFBB03]/10 rounded-2xl sm:rounded-3xl p-4 sm:p-6 flex flex-col gap-4 sm:gap-5 mt-2">
                 <h4 className="text-[#3A331E] font-extrabold text-base sm:text-lg tracking-wide">
                   Payroll Information
-                </h4>
+                </h4> 
 
                 <div className="flex flex-col gap-2">
                   <label className="text-[#3A331E] font-bold text-[13px]">
@@ -593,6 +613,54 @@ const ProfileSettings = () => {
                     type="text"
                     value={editBankRoutingNo}
                     onChange={(e) => setEditBankRoutingNo(e.target.value)}
+                    className="w-full bg-white rounded-xl p-3 sm:p-4 text-sm text-[#3A331E] font-semibold border border-[#FFBB03]/20 focus:border-[#FFBB03] outline-none transition-all"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <label className="text-[#3A331E] font-bold text-[13px]">
+                    Date of Birth
+                  </label>
+                  <input
+                    type="date"
+                    value={editDob}
+                    onChange={(e) => setEditDob(e.target.value)}
+                    className="w-full bg-white rounded-xl p-3 sm:p-4 text-sm text-[#3A331E] font-semibold border border-[#FFBB03]/20 focus:border-[#FFBB03] outline-none transition-all"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <label className="text-[#3A331E] font-bold text-[13px]">
+                    City
+                  </label>
+                  <input
+                    type="text"
+                    value={editAddressCity}
+                    onChange={(e) => setEditAddressCity(e.target.value)}
+                    className="w-full bg-white rounded-xl p-3 sm:p-4 text-sm text-[#3A331E] font-semibold border border-[#FFBB03]/20 focus:border-[#FFBB03] outline-none transition-all"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <label className="text-[#3A331E] font-bold text-[13px]">
+                    State
+                  </label>
+                  <input
+                    type="text"
+                    value={editAddressState}
+                    onChange={(e) => setEditAddressState(e.target.value)}
+                    className="w-full bg-white rounded-xl p-3 sm:p-4 text-sm text-[#3A331E] font-semibold border border-[#FFBB03]/20 focus:border-[#FFBB03] outline-none transition-all"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <label className="text-[#3A331E] font-bold text-[13px]">
+                    Zip Code
+                  </label>
+                  <input
+                    type="text"
+                    value={editAddressZip}
+                    onChange={(e) => setEditAddressZip(e.target.value)}
                     className="w-full bg-white rounded-xl p-3 sm:p-4 text-sm text-[#3A331E] font-semibold border border-[#FFBB03]/20 focus:border-[#FFBB03] outline-none transition-all"
                   />
                 </div>

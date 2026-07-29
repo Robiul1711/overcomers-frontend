@@ -4,7 +4,7 @@ import { Bell, Menu, ChevronLeft, Home, ChevronDown, LogOut, Settings } from "lu
 import CommonButton from "@/components/common/CommonButton";
 import { useDispatch, useSelector } from "react-redux";
 import { clearAuth, selectUserType, selectCurrentToken } from "@/redux/slices/authSlice";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 import useClient from "@/hooks/useClient";
 import { useQueryClient } from "@tanstack/react-query";
 

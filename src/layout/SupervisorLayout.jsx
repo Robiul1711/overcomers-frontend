@@ -64,7 +64,7 @@ const SupervisorLayout = () => {
     {
       id: 4,
       icon: <Clock size={20} />,
-      text: "Sessions Approval",
+      text: "Session Notes Approval",
       path: "/supervisor-dashboard/sessions",
       activePaths: ["/supervisor-dashboard/sessions"],
     },

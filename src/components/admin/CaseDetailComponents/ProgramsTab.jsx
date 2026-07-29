@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { ArrowLeft } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { ArrowLeft, RotateCcw } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
 import useMutationClient from "@/hooks/useMutationClient";
 
@@ -7,7 +7,18 @@ const ProgramsTab = ({ programsDataset, isLoading, onAddNote }) => {
   const [view, setView] = useState("list"); // 'list' or 'details'
   const [selectedProgram, setSelectedProgram] = useState(null);
   const [tasksState, setTasksState] = useState([]);
+  const [ticker, setTicker] = useState(0);
   const { id: caseId } = useParams();
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (tasksState?.some((t) => t.undoAction)) {
+        setTicker((t) => t + 1);
+      }
+    }, 250);
+
+    return () => clearInterval(interval);
+  }, [tasksState]);
 
   const handleViewDetails = (program) => {
     setSelectedProgram(program);
@@ -31,9 +42,24 @@ const ProgramsTab = ({ programsDataset, isLoading, onAddNote }) => {
     successMessage: "Task updated successfully",
   });
 
+  const pendingTimersRef = React.useRef({});
+
+  useEffect(() => {
+    return () => {
+      Object.values(pendingTimersRef.current).forEach((timerObj) => {
+        if (timerObj?.timerId) clearTimeout(timerObj.timerId);
+      });
+    };
+  }, []);
+
   const handleAction = (index, type) => {
     const task = tasksState[index];
     if (!task) return;
+
+    if (pendingTimersRef.current[task.id]) {
+      clearTimeout(pendingTimersRef.current[task.id].timerId);
+      delete pendingTimersRef.current[task.id];
+    }
 
     // Optimistically update local state
     const nextTasks = [...tasksState];
@@ -44,33 +70,75 @@ const ProgramsTab = ({ programsDataset, isLoading, onAddNote }) => {
     } else {
       updatedTask.incorrect = (updatedTask.incorrect || 0) + 1;
     }
+    updatedTask.undoAction = {
+      type,
+      expiresAt: Date.now() + 3000,
+    };
     nextTasks[index] = updatedTask;
     setTasksState(nextTasks);
 
-    // Call API
-    trackTask(
-      {
-        id: { caseId: caseId, taskId: task.id },
-        data: { status: type === "yes" ? "correct" : "incorrect" },
-      },
-      {
-        onSuccess: (res) => {
-          const apiData = res?.data?.data;
-          if (apiData) {
-            setTasksState((prev) => {
-              const next = [...prev];
-              next[index] = {
-                ...next[index],
-                trials: apiData.trials,
-                correct: apiData.correct,
-                incorrect: apiData.incorrect,
-              };
-              return next;
-            });
-          }
+    // Delay API call by 3 seconds (after undo button expires)
+    const timerId = setTimeout(() => {
+      setTasksState((prev) => {
+        if (!prev) return prev;
+        return prev.map((t) => (t.id === task.id ? { ...t, undoAction: null } : t));
+      });
+
+      trackTask(
+        {
+          id: { caseId: caseId, taskId: task.id },
+          data: { status: type === "yes" ? "correct" : "incorrect" },
         },
-      },
-    );
+        {
+          onSuccess: (res) => {
+            const apiData = res?.data?.data;
+            if (apiData) {
+              setTasksState((prev) => {
+                if (!prev) return prev;
+                return prev.map((t) =>
+                  t.id === task.id
+                    ? {
+                        ...t,
+                        trials: apiData.trials,
+                        correct: apiData.correct,
+                        incorrect: apiData.incorrect,
+                      }
+                    : t
+                );
+              });
+            }
+          },
+        }
+      );
+
+      delete pendingTimersRef.current[task.id];
+    }, 3000);
+
+    pendingTimersRef.current[task.id] = { timerId, type };
+  };
+
+  const handleUndo = (index) => {
+    const task = tasksState[index];
+    if (!task || !task.undoAction) return;
+
+    if (pendingTimersRef.current[task.id]) {
+      clearTimeout(pendingTimersRef.current[task.id].timerId);
+      delete pendingTimersRef.current[task.id];
+    }
+
+    const prevType = task.undoAction.type;
+    const nextTasks = [...tasksState];
+    const updatedTask = { ...task };
+
+    updatedTask.trials = Math.max(0, (updatedTask.trials || 0) - 1);
+    if (prevType === "yes") {
+      updatedTask.correct = Math.max(0, (updatedTask.correct || 0) - 1);
+    } else {
+      updatedTask.incorrect = Math.max(0, (updatedTask.incorrect || 0) - 1);
+    }
+    updatedTask.undoAction = null;
+    nextTasks[index] = updatedTask;
+    setTasksState(nextTasks);
   };
 
   if (view === "details" && selectedProgram) {
@@ -174,18 +242,30 @@ const ProgramsTab = ({ programsDataset, isLoading, onAddNote }) => {
                   </div>
 
                   <div className="flex items-center gap-3 mt-6">
-                    <button
-                      onClick={() => handleAction(index, "yes")}
-                      className="flex-1 bg-[#10B981] text-white py-2.5 rounded-xl text-[14px] font-bold shadow-sm hover:bg-[#0E9F6E] transition-all flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
-                    >
-                      <span className="text-[16px]">✓</span> Yes
-                    </button>
-                    <button
-                      onClick={() => handleAction(index, "no")}
-                      className="flex-1 border-2 border-[#FF5C5C] text-[#FF5C5C] py-2.5 rounded-xl text-[14px] font-bold hover:bg-[#FF5C5C] hover:text-white transition-all flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
-                    >
-                      <span className="text-[16px]">✕</span> No
-                    </button>
+                    {task.undoAction ? (
+                      <button
+                        onClick={() => handleUndo(index)}
+                        className="flex-1 bg-[#4B5563] text-white py-2.5 rounded-xl text-[14px] font-bold shadow-sm hover:bg-[#374151] transition-all flex items-center justify-center gap-2 active:scale-95 cursor-pointer animate-in fade-in duration-200"
+                      >
+                        <RotateCcw size={16} />
+                        Undo ({Math.max(1, Math.ceil((task.undoAction.expiresAt - Date.now()) / 1000))}s)
+                      </button>
+                    ) : (
+                      <>
+                        <button
+                          onClick={() => handleAction(index, "yes")}
+                          className="flex-1 bg-[#10B981] text-white py-2.5 rounded-xl text-[14px] font-bold shadow-sm hover:bg-[#0E9F6E] transition-all flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
+                        >
+                          <span className="text-[16px]">✓</span> Yes
+                        </button>
+                        <button
+                          onClick={() => handleAction(index, "no")}
+                          className="flex-1 border-2 border-[#FF5C5C] text-[#FF5C5C] py-2.5 rounded-xl text-[14px] font-bold hover:bg-[#FF5C5C] hover:text-white transition-all flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
+                        >
+                          <span className="text-[16px]">✕</span> No
+                        </button>
+                      </>
+                    )}
                   </div>
                 </div>
               ))}

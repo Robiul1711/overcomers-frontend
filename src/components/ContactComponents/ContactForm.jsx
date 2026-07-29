@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { ArrowUpRight, Loader2 } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import useAxiosPublic from "@/hooks/useAxiosPublic";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 
 const ContactForm = () => {
   const { register, handleSubmit, reset } = useForm();

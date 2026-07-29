@@ -4,7 +4,7 @@ import { ImageProvider } from '@/utils/ImageProvider';
 import { motion } from 'motion/react';
 import useAxiosPublic from '@/hooks/useAxiosPublic';
 import { useMutation } from '@tanstack/react-query';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 
 const JoinOurMailingList = ({ data }) => {
   const [email, setEmail] = useState("");

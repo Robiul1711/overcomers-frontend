@@ -1,5 +1,5 @@
 import React from "react";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 import { PlusCircle, FileText, Download, ChevronDown, Loader2 } from "lucide-react";
 import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
@@ -12,6 +12,31 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+
+const formatTime = (timeStr, customTz) => {
+  if (!timeStr) return "—";
+  try {
+    const dateStr = timeStr.includes("T") ? timeStr : timeStr.replace(" ", "T");
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return timeStr;
+
+    const options = {
+      hour: "numeric",
+      minute: "2-digit",
+      timeZoneName: "short",
+    };
+
+    if (customTz) {
+      try {
+        options.timeZone = customTz;
+      } catch {}
+    }
+
+    return date.toLocaleString("en-US", options);
+  } catch (e) {
+    return timeStr;
+  }
+};
 
 const CustomTooltip = ({ active, payload }) => {
   if (active && payload && payload.length) {
@@ -667,8 +692,8 @@ const NotesReportsTab = ({
                   </div>
                   {(sessionNote.start_time || sessionNote.end_time) && (
                     <div className="text-[12px] text-gray-500 font-medium bg-gray-50/50 p-2 rounded-lg flex justify-between gap-2">
-                      <span>Start: {formatTime(sessionNote.start_time)}</span>
-                      <span>End: {formatTime(sessionNote.end_time)}</span>
+                      <span>Start: {formatTime(sessionNote.start_time, sessionNote.time_zone || sessionNote.timezone)}</span>
+                      <span>End: {formatTime(sessionNote.end_time, sessionNote.time_zone || sessionNote.timezone)}</span>
                     </div>
                   )}
                   <p className="text-[#3A331E]/80 text-[14px] leading-relaxed font-medium mt-1">

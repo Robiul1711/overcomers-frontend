@@ -4,7 +4,7 @@ import { LogOut, ChevronLeft, ChevronRight } from "lucide-react";
 import { ImageProvider } from "@/utils/ImageProvider";
 import { useDispatch } from "react-redux";
 import { clearAuth } from "@/redux/slices/authSlice";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 
 const SideBar = ({ sidebar, open, setOpen, isCollapsed, setIsCollapsed }) => {
   const location = useLocation();

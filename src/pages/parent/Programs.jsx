@@ -41,6 +41,16 @@ const ProgramDetailsView = ({ program, onBack }) => {
     successMessage: "Task updated!",
   });
 
+  const pendingTimersRef = useRef({});
+
+  useEffect(() => {
+    return () => {
+      Object.values(pendingTimersRef.current).forEach((timerObj) => {
+        if (timerObj?.timerId) clearTimeout(timerObj.timerId);
+      });
+    };
+  }, []);
+
   const handleAction = (index, type) => {
     let taskId;
     setTaskData((prev) => {
@@ -48,6 +58,11 @@ const ProgramDetailsView = ({ program, onBack }) => {
       const task = { ...next[index] };
       taskId = task.id;
       
+      if (pendingTimersRef.current[taskId]) {
+        clearTimeout(pendingTimersRef.current[taskId].timerId);
+        delete pendingTimersRef.current[taskId];
+      }
+
       task.trials += 1;
       if (type === "yes") {
         task.correct += 1;
@@ -56,50 +71,69 @@ const ProgramDetailsView = ({ program, onBack }) => {
       }   
       task.undoAction = {
         type,
-        expiresAt: Date.now() + 5000,
+        expiresAt: Date.now() + 3000,
       };
       
       next[index] = task;
       return next;
     });
 
-    // Call API to persist the tracking
     if (taskId) {
-      trackTask({
-        id: taskId,
-        data: { status: type === "yes" ? "correct" : "incorrect" },
-      }, {
-        onSuccess: (res) => {
-          const apiData = res?.data?.data;
-          if (apiData) {
-            setTaskData((prev) => {
-              const next = [...prev];
-              next[index] = {
-                ...next[index],
-                trials: apiData.trials,
-                correct: apiData.correct,
-                incorrect: apiData.incorrect,
-              };
-              return next;
-            });
-          }
-        },
-      });
+      const timerId = setTimeout(() => {
+        setTaskData((prev) =>
+          prev.map((t) => (t.id === taskId ? { ...t, undoAction: null } : t))
+        );
+
+        trackTask({
+          id: taskId,
+          data: { status: type === "yes" ? "correct" : "incorrect" },
+        }, {
+          onSuccess: (res) => {
+            const apiData = res?.data?.data;
+            if (apiData) {
+              setTaskData((prev) => {
+                const next = [...prev];
+                const itemIndex = next.findIndex((t) => t.id === taskId);
+                if (itemIndex !== -1) {
+                  next[itemIndex] = {
+                    ...next[itemIndex],
+                    trials: apiData.trials,
+                    correct: apiData.correct,
+                    incorrect: apiData.incorrect,
+                  };
+                }
+                return next;
+              });
+            }
+          },
+        });
+
+        delete pendingTimersRef.current[taskId];
+      }, 3000);
+
+      pendingTimersRef.current[taskId] = { timerId, type };
     }
   };
 
   const handleUndo = (index) => {
+    let taskId;
     setTaskData((prev) => {
       const next = [...prev];
       const task = { ...next[index] };
       
       if (!task.undoAction) return prev;
+      taskId = task.id;
 
-      task.trials -= 1;
+      if (pendingTimersRef.current[taskId]) {
+        clearTimeout(pendingTimersRef.current[taskId].timerId);
+        delete pendingTimersRef.current[taskId];
+      }
+
+      task.trials = Math.max(0, task.trials - 1);
       if (task.undoAction.type === "yes") {
-        task.correct -= 1;
+        task.correct = Math.max(0, task.correct - 1);
       } else {
-        task.incorrect -= 1;
+        task.incorrect = Math.max(0, task.incorrect - 1);
       }
       
       task.undoAction = null;
@@ -108,33 +142,18 @@ const ProgramDetailsView = ({ program, onBack }) => {
     });
   };
 
-  // Background timer to clear expired undo actions and force re-renders for the countdown
+  const [ticker, setTicker] = useState(0);
+
+  // Background timer to trigger re-render for 3, 2, 1s countdown display
   useEffect(() => {
     const interval = setInterval(() => {
-      setTaskData((prev) => {
-        const now = Date.now();
-        let changed = false;
-        const next = prev.map((task) => {
-          if (task.undoAction && now > task.undoAction.expiresAt) {
-            changed = true;
-            return { ...task, undoAction: null, isLocked: true };
-          }
-          return task;
-        });
-        
-        // Also trigger a re-render even if nothing "changed" to update the countdown text
-        // We do this by always returning a new array if any undo is active
-        const anyUndoActive = prev.some(t => t.undoAction);
-        if (anyUndoActive && !changed) {
-          return [...prev]; 
-        }
-
-        return changed ? next : prev;
-      });
-    }, 100);
+      if (taskData?.some((t) => t.undoAction)) {
+        setTicker((t) => t + 1);
+      }
+    }, 250);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [taskData]);
 
   // Clear "Locked" state after a short delay
   useEffect(() => {

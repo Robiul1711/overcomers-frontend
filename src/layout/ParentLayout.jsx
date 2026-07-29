@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { Link, useLocation, Outlet, ScrollRestoration, useNavigate, Navigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { selectCurrentToken, clearAuth } from "@/redux/slices/authSlice";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 import { 
   LayoutDashboard, 
   User, 

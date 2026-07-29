@@ -5,7 +5,7 @@ import { ImageProvider } from '@/utils/ImageProvider';
 import { ArrowUpRight, Loader2 } from 'lucide-react';
 import OTPInput from 'otp-input-react';
 import useMutationClient from '@/hooks/useMutationClient';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 
 const VerifyOtp = () => {
   const { control, handleSubmit, formState: { errors } } = useForm();

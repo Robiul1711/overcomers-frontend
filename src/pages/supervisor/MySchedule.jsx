@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useRef } from "react";
 import { Clock, CheckCircle2, ShieldCheck } from "lucide-react";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 
 // Sub-components
 import StatsCards from "@/components/admin/ScheduleComponents/StatsCards";

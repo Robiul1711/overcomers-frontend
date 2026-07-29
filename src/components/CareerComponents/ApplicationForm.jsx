@@ -2,7 +2,7 @@ import React from "react";
 import { useForm } from "react-hook-form";
 import { Upload, ChevronDown, ArrowUpRight, Loader2 } from "lucide-react";
 import useMutationClient from "@/hooks/useMutationClient";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 
 
 const ApplicationForm = () => {

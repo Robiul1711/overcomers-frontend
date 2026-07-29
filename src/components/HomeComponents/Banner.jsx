@@ -71,15 +71,30 @@ const Banner = ({ data }) => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: "easeOut", delay: 0.7 }}
-          className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6"
+          className="flex flex-col items-center gap-4"
         >
-          <Link 
-            to={data?.button_1?.toLowerCase().includes('services') ? '/services' : '/enrollment'} 
-            className="bg-Primary hover:bg-Primary/90 text-Third font-bold text-[15px] px-8 py-3.5 rounded-[12px] flex items-center justify-center gap-2 transition-colors w-full sm:w-auto"
+          {/* Top Row: Services & Enrollment */}
+          <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 justify-center w-full">
+            <Link 
+              to="/services" 
+              className="bg-Primary hover:bg-Primary/90 text-Third font-bold text-[15px] px-8 py-3.5 rounded-[12px] flex items-center justify-center gap-2 transition-colors w-full sm:w-auto"
+            >
+              {data?.button_1 || "Our Services"} <ArrowUpRight size={18} strokeWidth={2.5} />
+            </Link>
+
+            <Link 
+              to="/enrollment" 
+              className="bg-Primary hover:bg-Primary/90 text-Third font-bold text-[15px] px-8 py-3.5 rounded-[12px] flex items-center justify-center gap-2 transition-colors w-full sm:w-auto"
+            >
+              Enrollment <ArrowUpRight size={18} strokeWidth={2.5} />
+            </Link>
+          </div>
+
+          {/* Bottom Row: Free ABA Consultation (Red Marked Spot) */}
+          <button 
+            onClick={() => window.location.href = ("tel:908-342-7584")} 
+            className="bg-Secondary hover:bg-Secondary/90 text-white font-bold text-[15px] px-8 py-3.5 rounded-[12px] flex items-center justify-center gap-2 transition-colors w-full sm:w-auto border border-Secondary min-w-[200px]"
           >
-            {data?.button_1 || "Enroll A Child"} <ArrowUpRight size={18} strokeWidth={2.5} />
-          </Link>
-          <button onClick={() => window.location.href = ("tel:908-342-7584")} className="bg-Secondary hover:bg-Secondary/90 text-white font-bold text-[15px] px-8 py-3.5 rounded-[12px] flex items-center justify-center gap-2 transition-colors w-full sm:w-auto border border-Secondary">
             {data?.button_2 || "Free ABA Consultation"} <ArrowUpRight size={18} strokeWidth={2.5}/>
           </button>
         </motion.div>

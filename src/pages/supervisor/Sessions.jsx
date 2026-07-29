@@ -4,7 +4,7 @@ import TableSkeleton from "@/components/common/TableSkeleton";
 import useClient from "@/hooks/useClient";
 import useMutationClient from "@/hooks/useMutationClient";
 import useAxiosSecure from "@/hooks/useAxiosSecure";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 
 const Sessions = () => {
   const [expandedRows, setExpandedRows] = useState({});
@@ -78,17 +78,31 @@ const Sessions = () => {
     return `data:image/jpeg;base64,${sig}`;
   };
 
-  const formatTime = (timeStr) => {
+  const formatTime = (timeStr, customTz) => {
     if (!timeStr) return "—";
     try {
-      const date = new Date(timeStr.replace(" ", "T"));
-      return date.toLocaleString("en-US", {
+      const dateStr = timeStr.includes("T") ? timeStr : timeStr.replace(" ", "T");
+      const date = new Date(dateStr);
+      if (isNaN(date.getTime())) return timeStr;
+
+      const options = {
         month: "short",
         day: "numeric",
         year: "numeric",
         hour: "numeric",
         minute: "2-digit",
-      });
+        timeZoneName: "short",
+      };
+
+      if (customTz) {
+        try {
+          options.timeZone = customTz;
+        } catch {
+          // fallback if invalid timezone string
+        }
+      }
+
+      return date.toLocaleString("en-US", options);
     } catch (e) {
       return timeStr;
     }
@@ -174,7 +188,7 @@ const Sessions = () => {
                           {item?.schedule?.clinical_case?.case_number || "N/A"}
                         </td>
                         <td className="py-5 px-6 text-gray-500 text-[13px] md:text-[14px] font-medium whitespace-nowrap">
-                          {formatTime(item?.start_time)}
+                          {formatTime(item?.start_time, item?.schedule?.time_zone || item?.time_zone || item?.timezone)}
                         </td>
                         <td className="py-5 px-6 text-gray-500 text-[13px] md:text-[14px] font-medium whitespace-nowrap">
                           {item?.schedule?.location || "N/A"}
@@ -268,12 +282,26 @@ const Sessions = () => {
                                 </span>
                                 <div className="flex flex-col gap-3 text-xs text-gray-600">
                                   <div className="flex items-center justify-between border-b border-gray-50 pb-2">
+                                    <span className="font-bold text-gray-400">Clock-In Time:</span>
+                                    <span className="font-semibold text-Third">{formatTime(item?.start_time, item?.schedule?.time_zone || item?.time_zone || item?.timezone)}</span>
+                                  </div>
+                                  <div className="flex items-center justify-between border-b border-gray-50 pb-2">
+                                    <span className="font-bold text-gray-400">Clock-Out Time:</span>
+                                    <span className="font-semibold text-Third">{formatTime(item?.end_time, item?.schedule?.time_zone || item?.time_zone || item?.timezone)}</span>
+                                  </div>
+                                  <div className="flex items-center justify-between border-b border-gray-50 pb-2">
                                     <span className="font-bold text-gray-400">Clock-In Location:</span>
                                     <span className="font-semibold text-Third">{item?.clock_in_location || "N/A"}</span>
                                   </div>
                                   <div className="flex items-center justify-between border-b border-gray-50 pb-2">
                                     <span className="font-bold text-gray-400">Clock-Out Location:</span>
                                     <span className="font-semibold text-Third">{item?.clock_out_location || "N/A"}</span>
+                                  </div>
+                                  <div className="flex items-center justify-between border-b border-gray-50 pb-2">
+                                    <span className="font-bold text-gray-400">Timezone:</span>
+                                    <span className="font-bold text-Secondary bg-Secondary/10 px-2 py-0.5 rounded-md text-[11px]">
+                                      {item?.schedule?.time_zone || item?.time_zone || item?.timezone || item?.schedule?.clinical_case?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone}
+                                    </span>
                                   </div>
                                   <div className="flex items-center justify-between">
                                     <span className="font-bold text-gray-400">Session Type:</span>

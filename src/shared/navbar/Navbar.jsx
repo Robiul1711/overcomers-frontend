@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { useSelector, useDispatch } from "react-redux";
 import { selectIsAuthenticated, selectUserType, clearAuth, selectCurrentToken } from "@/redux/slices/authSlice";
 import useClient from "@/hooks/useClient";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 
 const navLinks = [

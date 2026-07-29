@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import useAxiosSecure from "./useAxiosSecure";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 
 const useMutationClient = ({
   url,
@@ -9,6 +9,8 @@ const useMutationClient = ({
   invalidateKeys = [],
   successMessage = "Success",
   redirectTo,
+  onSuccess,
+  onError,
 }) => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
@@ -31,7 +33,7 @@ const useMutationClient = ({
       return await client[method](finalUrl, data, config);
     },
 
-    onSuccess: (res) => {
+    onSuccess: (res, variables, context) => {
       const data = res?.data || res;
       toast.success(data?.message || successMessage);
 
@@ -41,11 +43,13 @@ const useMutationClient = ({
       });
 
       if (redirectTo) navigate(redirectTo);
+      if (onSuccess) onSuccess(res, variables, context);
     },
 
-    onError: (error) => {
+    onError: (error, variables, context) => {
       const msg = error?.response?.data?.message || error.message || "Something went wrong";
       toast.error(msg);
+      if (onError) onError(error, variables, context);
     },
   });
 };

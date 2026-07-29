@@ -58,8 +58,8 @@ const WeeklyCalendar = ({
         </div>
       </div>
 
-      {/* Weekly Grid Container with Horizontal Scroll */}
-      <div className="overflow-x-auto custom-scrollbar pb-4 -mx-1 px-1">
+      {/* Weekly Grid Container with Horizontal & Vertical Scroll */}
+      <div className="overflow-x-auto max-h-[520px] md:max-h-[620px] lg:max-h-[720px] overflow-y-auto custom-scrollbar pb-4 -mx-1 px-1">
         <div className="flex gap-4 min-w-max xl:grid xl:grid-cols-7 xl:min-w-0">
           {weeklySessions.map((dayData, i) => (
             <div
@@ -68,7 +68,11 @@ const WeeklyCalendar = ({
             >
               {/* Day Header */}
               <div
-                className={`rounded-2xl p-4 text-center border-2 transition-colors ${dayData.isToday ? "bg-Primary/10 border-Primary" : "bg-gray-50 border-transparent"}`}
+                className={`sticky top-0 z-20 rounded-2xl p-4 text-center border-2 transition-colors shadow-sm ${
+                  dayData.isToday 
+                    ? "bg-[#FFF9EA] border-Primary" 
+                    : "bg-gray-50 border-gray-200"
+                }`}
               >
                 <p
                   className={`text-[12px] font-bold uppercase tracking-widest leading-none mb-1.5 ${dayData.isToday ? "text-Secondary" : "text-gray-400"}`}

@@ -39,6 +39,7 @@ import DirectorDocuments from "@/pages/director/Documents";
 import DirectorClinicFiles from "@/pages/director/ClinicFiles";
 import DirectorMySchedule from "@/pages/director/MySchedule";
 import DirectorMasterSchedule from "@/pages/director/MasterSchedule";
+import DirectorSessions from "@/pages/director/Sessions";
 
 import SupervisorLayout from "@/layout/SupervisorLayout";
 import SupervisorDashboard from "@/pages/supervisor/SupervisorDashboard";
@@ -269,6 +270,10 @@ const router = createBrowserRouter([
       {
         path: "/director-dashboard/master-schedule",
         element: <DirectorMasterSchedule />,
+      },
+      {
+        path: "/director-dashboard/sessions",
+        element: <DirectorSessions />,
       },
       {
         path: "/director-dashboard/payroll",

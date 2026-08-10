@@ -15,6 +15,7 @@ import {
   FileText,
   Calendar,
   Wallet,
+  Clock,
 } from "lucide-react";
 
 const DirectorLayout = () => {
@@ -68,6 +69,13 @@ const DirectorLayout = () => {
       text: "Master Schedule",
       path: "/director-dashboard/master-schedule",
       activePaths: ["/director-dashboard/master-schedule"],
+    },
+    {
+      id: 14,
+      icon: <Clock size={20} />,
+      text: "Session Approval",
+      path: "/director-dashboard/sessions",
+      activePaths: ["/director-dashboard/sessions"],
     },
     {
       id: 3,

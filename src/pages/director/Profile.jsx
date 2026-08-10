@@ -386,7 +386,7 @@ const Profile = () => {
       <div className="bg-white rounded-[24px] p-6 md:p-8 shadow-sm border border-gray-50 mt-6 md:mt-8">
         <div className="flex items-center gap-3 mb-4">
           <div className="w-2 h-8 bg-Primary rounded-full"></div>
-          <h3 className="text-[20px] md:text-[24px] font-bold text-Third">Financial Information</h3>
+          <h3 className="text-[20px] md:text-[24px] font-bold text-Third">Payroll Information</h3>
         </div>
         <div className="w-full h-px bg-gray-100 mb-8"></div>
 

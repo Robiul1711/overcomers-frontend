@@ -295,14 +295,14 @@ const DirectorDashboard = () => {
               <p className="text-gray-400 text-xs mt-1 font-medium">Quick link routes to director management components.</p>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <Link
                 to="/director-dashboard/cases"
                 className="p-4 bg-[#FFFDF6] hover:bg-[#FAF6F7] border border-[#F7EED9] hover:border-Secondary/30 rounded-2xl transition-all flex flex-col gap-2 group shadow-xs"
               >
                 <Users size={20} className="text-Secondary group-hover:scale-110 transition-transform" />
                 <span className="font-bold text-sm text-[#76121F]">Manage Cases</span>
-                <span className="text-[11px] text-gray-400 font-semibold leading-tight">Assign supervisor caseloads</span>
+                <span className="text-[11px] text-gray-400 font-semibold leading-tight">Assign caseloads</span>
               </Link>
               <Link
                 to="/director-dashboard/staff"
@@ -310,7 +310,15 @@ const DirectorDashboard = () => {
               >
                 <UserCheck size={20} className="text-Secondary group-hover:scale-110 transition-transform" />
                 <span className="font-bold text-sm text-[#76121F]">Staff Directory</span>
-                <span className="text-[11px] text-gray-400 font-semibold leading-tight">View RBTs & BCBAs registry</span>
+                <span className="text-[11px] text-gray-400 font-semibold leading-tight">RBTs & BCBAs</span>
+              </Link>
+              <Link
+                to="/director-dashboard/sessions"
+                className="p-4 bg-[#FFFDF6] hover:bg-[#FAF6F7] border border-[#F7EED9] hover:border-Secondary/30 rounded-2xl transition-all flex flex-col gap-2 group shadow-xs"
+              >
+                <Clock size={20} className="text-Secondary group-hover:scale-110 transition-transform" />
+                <span className="font-bold text-sm text-[#76121F]">Session Notes</span>
+                <span className="text-[11px] text-gray-400 font-semibold leading-tight">Validate session logs</span>
               </Link>
             </div>
           </div>

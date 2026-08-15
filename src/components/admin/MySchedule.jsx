@@ -47,7 +47,11 @@ const generateWeekDays = () => {
   return days;
 };
 
-const mapSessionsToDays = (scheduleData, sessionStatuses) => {
+const mapSessionsToDays = (
+  scheduleData,
+  sessionStatuses,
+  sessionSubmittedAts = {}
+) => {
   const weekDays = generateWeekDays();
   if (!scheduleData) return weekDays;
 
@@ -57,16 +61,21 @@ const mapSessionsToDays = (scheduleData, sessionStatuses) => {
     );
     if (matchingDay) {
       const status = sessionStatuses[item.id] || item.status || "Upcoming";
+      const submitted_at =
+        sessionSubmittedAts[item.id] || item.submitted_at || null;
       matchingDay.sessions.push({
         id: item.id,
         clinical_case_id: item.clinical_case_id,
         client: item.client_name,
+        guardian_name: item.guardian_name,
         time: item.time,
-        start_time_raw: item.start_time_raw,
-        end_time_raw: item.end_time_raw,
+        start_time_raw: item.start_time || item.start_time_raw,
+        end_time_raw: item.end_time || item.end_time_raw,
         type: item.session_type,
         room: item.location,
         status,
+        submitted_at,
+        raw: item,
       });
     }
   });
@@ -74,14 +83,7 @@ const mapSessionsToDays = (scheduleData, sessionStatuses) => {
   return weekDays;
 };
 
-const formatTimeForApi = (date) => {
-  let hours = date.getHours();
-  const minutes = String(date.getMinutes()).padStart(2, "0");
-  const ampm = hours >= 12 ? "pm" : "am";
-  hours = hours % 12;
-  if (hours === 0) hours = 12;
-  return `${hours}:${minutes} ${ampm}`;
-};
+import { getCurrentFormattedTime, formatTo12Hour } from "@/utils/timeUtils";
 
 const getWeekLabel = (weekDays) => {
   if (!weekDays || weekDays.length === 0) return "";
@@ -104,6 +106,7 @@ const MySchedule = () => {
   const [actualEndTime, setActualEndTime] = useState("");
   const [sessionNotes, setSessionNotes] = useState("");
   const [sessionStatuses, setSessionStatuses] = useState({});
+  const [sessionSubmittedAts, setSessionSubmittedAts] = useState({});
   const [latitude, setLatitude] = useState("");
   const [longitude, setLongitude] = useState("");
 
@@ -129,8 +132,13 @@ const MySchedule = () => {
 
   // Generate 7-day week and map sessions
   const weeklySessions = useMemo(
-    () => mapSessionsToDays(schedulesData?.data, sessionStatuses),
-    [schedulesData, sessionStatuses],
+    () =>
+      mapSessionsToDays(
+        schedulesData?.data,
+        sessionStatuses,
+        sessionSubmittedAts
+      ),
+    [schedulesData, sessionStatuses, sessionSubmittedAts],
   );
 
   const weekLabel = useMemo(() => getWeekLabel(weeklySessions), [weeklySessions]);
@@ -199,44 +207,66 @@ const MySchedule = () => {
     }
 
     const status = session.status?.toUpperCase();
-    if (status === "PROCESSING" || status === "IN_PROGRESS" || status === "In Progress") {
+    if (
+      status === "PROCESSING" ||
+      status === "IN_PROGRESS" ||
+      status === "In Progress" ||
+      status === "IN PROGRESS"
+    ) {
       setSessionNotes("");
-      const now = new Date();
-      const currentFormattedTime = formatTimeForApi(now);
-      setSubmissionTime(currentFormattedTime);
+      const currentFormattedTime = getCurrentFormattedTime();
+
+      const rawSubmittedTime =
+        session.submitted_at || sessionSubmittedAts[session.id] || "";
+      const submittedTime = formatTo12Hour(rawSubmittedTime);
+      setSubmissionTime(submittedTime || currentFormattedTime);
 
       // Pre-fill actual session times from scheduled session window if available
       let defaultStart = "";
       let defaultEnd = "";
       if (session.time && session.time.includes("-")) {
         const parts = session.time.split("-").map((t) => t.trim());
-        defaultStart = parts[0] || "";
-        defaultEnd = parts[1] || "";
+        defaultStart = formatTo12Hour(parts[0]) || "";
+        defaultEnd = formatTo12Hour(parts[1]) || "";
       }
-      setActualStartTime(defaultStart || currentFormattedTime);
+      setActualStartTime(submittedTime || defaultStart || currentFormattedTime);
       setActualEndTime(defaultEnd || currentFormattedTime);
       setShowClockOutModal(true);
     } else {
-      setActualStartTime(formatTimeForApi(new Date()));
+      setActualStartTime(getCurrentFormattedTime());
       setShowClockInModal(true);
     }
   };
 
   const confirmClockIn = () => {
+    const clockInTime = actualStartTime;
     const formData = new FormData();
     formData.append("clinical_case_schedule_id", selectedSession.id);
-    formData.append("time", actualStartTime);
+    formData.append("time", clockInTime);
     formData.append("latitude", latitude);
     formData.append("longitude", longitude);
 
     startSession(
-      { data: formData },
+      {
+        data: formData,
+        config: {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        },
+      },
       {
         onSuccess: (res) => {
           const status = res?.data?.data?.status || "PROCESSING";
+          const returnedSubmittedAt =
+            res?.data?.data?.submitted_at || clockInTime;
           setSessionStatuses((prev) => ({
             ...prev,
             [selectedSession.id]: status,
+          }));
+          setSessionSubmittedAts((prev) => ({
+            ...prev,
+            [selectedSession.id]: returnedSubmittedAt,
           }));
           setShowClockInModal(false);
         },

@@ -8,7 +8,11 @@ const ClockOutModal = ({
   selectedSession,
   sessionNotes,
   setSessionNotes,
+  submissionTime,
+  actualStartTime,
+  setActualStartTime,
   actualEndTime,
+  setActualEndTime,
   latitude,
   longitude,
   confirmClockOut,
@@ -28,68 +32,102 @@ const ClockOutModal = ({
         onClick={onClose}
       ></div>
       <div className="bg-white rounded-[32px] w-full max-w-[95vw] sm:max-w-xl max-h-[90vh] overflow-y-auto relative z-10 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.3)] p-6 sm:p-10 animate-in fade-in slide-in-from-bottom-8 duration-300 custom-scrollbar">
-        <div className="flex justify-between items-center mb-8">
+        {/* Modal Header */}
+        <div className="flex flex-wrap justify-between items-center mb-6 gap-3">
           <div className="flex items-center gap-3">
             <div className="w-1.5 h-8 bg-Secondary rounded-full"></div>
             <h2 className="text-2xl md:text-3xl font-extrabold text-Third leading-tight">
               Clock Out
             </h2>
           </div>
-          <button
-            onClick={onClose}
-            className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all active:scale-90"
-          >
-            <X size={20} />
-          </button>
-        </div>
-        {/* {console.log(selectedSession)} */}
 
-        <div className="bg-[#FAF6F7] border border-Secondary/10 rounded-2xl p-5 mb-8 shadow-inner shadow-black/[0.01]">
+          <div className="flex items-center gap-3 ml-auto">
+            {submissionTime && (
+              <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 border border-gray-100 rounded-xl text-gray-500 font-semibold text-[11px] sm:text-[12px] shadow-sm">
+                <Clock size={13} className="text-Secondary/60 shrink-0" />
+                <span>
+                  Submitted at:{" "}
+                  <strong className="text-Third font-bold">
+                    {submissionTime}
+                  </strong>
+                </span>
+              </div>
+            )}
+            <button
+              onClick={onClose}
+              className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all active:scale-90"
+            >
+              <X size={20} />
+            </button>
+          </div>
+        </div>
+
+        {/* Protocol / Session Details */}
+        <div className="bg-[#FAF6F7] border border-Secondary/10 rounded-2xl p-5 mb-6 shadow-inner shadow-black/[0.01]">
           <p className="text-Secondary font-extrabold text-[18px] md:text-[20px] leading-tight">
             {selectedSession.client} <span className="opacity-20 px-2">|</span>{" "}
             {selectedSession.type}
           </p>
-          <div className="flex items-center gap-2 mt-3 text-Secondary/50 font-bold text-[13px]">
+          <div className="flex items-center gap-2 mt-3 text-Secondary/60 font-bold text-[13px]">
             <CheckCircle2 size={14} className="text-green-500" />
             <span className="text-Secondary/80 font-extrabold">
-              {selectedSession.time}
+              Scheduled Window: {selectedSession.time}
             </span>
           </div>
         </div>
 
         <div className="flex flex-col gap-6 mb-10">
-          {/* <div className="flex flex-col gap-2">
-            <label className="text-[13px] font-extrabold text-Third uppercase tracking-wider ml-1">
-              Ending Time
-            </label>
-            <div className="relative">
-              <Clock
-                size={18}
-                className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400"
-              />
-              <input
-                type="time"
-                value={actualEndTime}
-                onChange={(e) => setActualEndTime(e.target.value)}
-                className="w-full bg-[#FAF9F6] border border-gray-100 px-12 py-5 rounded-2xl text-Third font-extrabold text-[16px] focus:outline-none focus:border-Secondary transition-all shadow-sm"
-              />
+          {/* Actual Session Time Section */}
+          <div className="flex flex-col gap-2.5 bg-[#FAF9F6] border border-gray-100 rounded-2xl p-4 sm:p-5">
+            <div className="flex items-center justify-between">
+              <label className="text-[13px] font-extrabold text-Third uppercase tracking-wider">
+                Actual Session Time *
+              </label>
             </div>
-          </div> */}
-          <div className="flex flex-col gap-2">
-            <label className="text-[13px] font-extrabold text-Third uppercase tracking-wider ml-1">
-              Ending Time
-            </label>
-            <div className="relative">
-              <Clock
-                size={18}
-                className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400"
-              />
-              <input
-                type="text"
-                value={actualEndTime}
-                readOnly
-                className="w-full bg-[#FAF9F6] border border-gray-100 px-12 py-5 rounded-2xl text-Third font-extrabold text-[16px] focus:outline-none transition-all shadow-sm cursor-not-allowed"
-              />
+            <p className="text-[12px] text-gray-400">
+              Confirm your actual session start and end time.
+            </p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
+              {/* Actual Start Time */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[12px] font-bold text-gray-500 uppercase tracking-wider">
+                  Start Time *
+                </label>
+                <div className="relative">
+                  <Clock
+                    size={16}
+                    className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
+                  />
+                  <input
+                    type="text"
+                    value={actualStartTime || ""}
+                    onChange={(e) => setActualStartTime?.(e.target.value)}
+                    placeholder="e.g. 9:00 AM"
+                    className="w-full bg-white border border-gray-200 pl-11 pr-4 py-3.5 rounded-xl text-Third font-bold text-[15px] focus:outline-none focus:border-Secondary transition-all shadow-sm"
+                  />
+                </div>
+              </div>
+
+              {/* Actual End Time */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[12px] font-bold text-gray-500 uppercase tracking-wider">
+                  End Time *
+                </label>
+                <div className="relative">
+                  <Clock
+                    size={16}
+                    className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
+                  />
+                  <input
+                    type="text"
+                    value={actualEndTime || ""}
+                    onChange={(e) => setActualEndTime?.(e.target.value)}
+                    placeholder="e.g. 10:00 AM"
+                    className="w-full bg-white border border-gray-200 pl-11 pr-4 py-3.5 rounded-xl text-Third font-bold text-[15px] focus:outline-none focus:border-Secondary transition-all shadow-sm"
+                  />
+                </div>
+              </div>
             </div>
           </div>
 
@@ -161,10 +199,21 @@ const ClockOutModal = ({
             disabled={
               isProcessing ||
               !sessionNotes.trim() ||
+              !actualStartTime?.trim() ||
+              !actualEndTime?.trim() ||
               parentEmpty ||
               employeeEmpty
             }
-            className={`w-full sm:flex-1 py-4.5 bg-Secondary text-white font-extrabold rounded-2xl shadow-xl shadow-Secondary/20 hover:scale-[1.02] active:scale-95 transition-all text-[15px] uppercase tracking-wider ${isProcessing || !sessionNotes.trim() || parentEmpty || employeeEmpty ? "opacity-40 cursor-not-allowed grayscale-[0.5]" : ""}`}
+            className={`w-full sm:flex-1 py-4.5 bg-Secondary text-white font-extrabold rounded-2xl shadow-xl shadow-Secondary/20 hover:scale-[1.02] active:scale-95 transition-all text-[15px] uppercase tracking-wider ${
+              isProcessing ||
+              !sessionNotes.trim() ||
+              !actualStartTime?.trim() ||
+              !actualEndTime?.trim() ||
+              parentEmpty ||
+              employeeEmpty
+                ? "opacity-40 cursor-not-allowed grayscale-[0.5]"
+                : ""
+            }`}
           >
             {isProcessing ? "Submitting..." : "Submit & Clock Out"}
           </button>

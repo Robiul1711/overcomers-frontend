@@ -107,6 +107,7 @@ const DirectorMySchedule = () => {
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [selectedDateForModal, setSelectedDateForModal] = useState(null);
   const [selectedSession, setSelectedSession] = useState(null);
+  const [submissionTime, setSubmissionTime] = useState("");
   const [actualStartTime, setActualStartTime] = useState("");
   const [actualEndTime, setActualEndTime] = useState("");
   const [sessionNotes, setSessionNotes] = useState("");
@@ -214,7 +215,20 @@ const DirectorMySchedule = () => {
       status === "In Progress"
     ) {
       setSessionNotes("");
-      setActualEndTime(formatTimeForApi(new Date()));
+      const now = new Date();
+      const currentFormattedTime = formatTimeForApi(now);
+      setSubmissionTime(currentFormattedTime);
+
+      // Pre-fill actual session times from scheduled session window if available
+      let defaultStart = "";
+      let defaultEnd = "";
+      if (session.time && session.time.includes("-")) {
+        const parts = session.time.split("-").map((t) => t.trim());
+        defaultStart = parts[0] || "";
+        defaultEnd = parts[1] || "";
+      }
+      setActualStartTime(defaultStart || currentFormattedTime);
+      setActualEndTime(defaultEnd || currentFormattedTime);
       setShowClockOutModal(true);
     } else {
       setActualStartTime(formatTimeForApi(new Date()));
@@ -261,6 +275,10 @@ const DirectorMySchedule = () => {
       toast.error("Please add session notes");
       return;
     }
+    if (!actualStartTime?.trim() || !actualEndTime?.trim()) {
+      toast.error("Please provide actual session start and end times");
+      return;
+    }
     if (parentEmpty !== false) {
       toast.error("Please provide parent signature");
       return;
@@ -280,6 +298,9 @@ const DirectorMySchedule = () => {
           latitude: latitude,
           longitude: longitude,
           time: actualEndTime,
+          actual_start_time: actualStartTime,
+          actual_end_time: actualEndTime,
+          submission_time: submissionTime,
         },
       },
       {
@@ -329,7 +350,11 @@ const DirectorMySchedule = () => {
         selectedSession={selectedSession}
         sessionNotes={sessionNotes}
         setSessionNotes={setSessionNotes}
+        submissionTime={submissionTime}
+        actualStartTime={actualStartTime}
+        setActualStartTime={setActualStartTime}
         actualEndTime={actualEndTime}
+        setActualEndTime={setActualEndTime}
         latitude={latitude}
         longitude={longitude}
         confirmClockOut={confirmClockOut}

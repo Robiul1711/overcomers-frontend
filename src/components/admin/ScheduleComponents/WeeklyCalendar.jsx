@@ -19,6 +19,12 @@ const WeeklyCalendar = ({
   hideActions = false,
   onCancelSchedule,
 }) => {
+  // Calculate maximum sessions in any day so all columns have matching rows/placeholders
+  const maxSessions = Math.max(
+    ...(weeklySessions?.map((d) => d.sessions?.length || 0) || []),
+    1
+  );
+
   return (
     <div className="bg-white rounded-[32px] md:rounded-[40px] p-5 md:p-8 shadow-sm border border-gray-100">
       {/* Calendar Header */}
@@ -88,9 +94,9 @@ const WeeklyCalendar = ({
 
               {/* Sessions List */}
               <div className="flex flex-col gap-3">
-                {dayData.sessions.map((session) => (
+                {dayData.sessions.map((session, sIdx) => (
                   <div
-                    key={session.id}
+                    key={`session-${session.id || "item"}-${dayData.day || i}-${sIdx}`}
                     className={`rounded-[24px] p-4 border shadow-[0_4px_15px_-4px_rgba(0,0,0,0.05)] flex flex-col gap-4 group hover:shadow-md transition-all duration-300 relative overflow-hidden ${
                       session.status === "CANCELED" || session.status === "Canceled" || session.status === "Cancelled"
                         ? "bg-red-50/20 border-red-100 hover:border-red-200"
@@ -201,13 +207,13 @@ const WeeklyCalendar = ({
                   </div>
                 ))}
 
-                {/* Empty placeholders if less than 3 sessions */}
-                {dayData.sessions.length < 3 &&
-                  Array(3 - dayData.sessions.length)
+                {/* Empty placeholders to match maximum sessions across all days */}
+                {dayData.sessions.length < maxSessions &&
+                  Array(maxSessions - dayData.sessions.length)
                     .fill(0)
                     .map((_, idx) => (
                       <div
-                        key={`empty-${idx}`}
+                        key={`empty-${dayData.day || i}-${idx}`}
                         onClick={() => {
                           if (!hideActions && setShowScheduleModal) {
                             setShowScheduleModal(dayData.dateObj);

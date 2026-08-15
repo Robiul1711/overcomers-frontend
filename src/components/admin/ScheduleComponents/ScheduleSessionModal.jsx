@@ -4,6 +4,12 @@ import { useLocation } from "react-router-dom";
 import useClient from "@/hooks/useClient";
 import useMutationClient from "@/hooks/useMutationClient";
 
+import {
+  formatDateToYYYYMMDD,
+  formatDateToDDMMYYYY,
+  formatTo12Hour,
+} from "@/utils/timeUtils";
+
 const ScheduleSessionModal = ({ isOpen, onClose, initialDate }) => {
   const location = useLocation();
 
@@ -14,35 +20,6 @@ const ScheduleSessionModal = ({ isOpen, onClose, initialDate }) => {
   } else if (location.pathname.startsWith("/director-dashboard")) {
     role = "director";
   }
-
-  const formatDateToYYYYMMDD = (date) => {
-    if (!date) return "";
-    const d = new Date(date);
-    if (isNaN(d.getTime())) return "";
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, "0");
-    const day = String(d.getDate()).padStart(2, "0");
-    return `${year}-${month}-${day}`;
-  };
-
-  const convertDateToDDMMYYYY = (dateStr) => {
-    if (!dateStr) return "";
-    const parts = dateStr.split("-");
-    if (parts.length !== 3) return dateStr;
-    const [year, month, day] = parts;
-    return `${day}/${month}/${year}`;
-  };
-
-  const convertTime24To12 = (time24) => {
-    if (!time24) return "";
-    const [hoursStr, minutesStr] = time24.split(":");
-    let hours = parseInt(hoursStr, 10);
-    const minutes = minutesStr;
-    const ampm = hours >= 12 ? "PM" : "AM";
-    hours = hours % 12;
-    hours = hours ? hours : 12; // the hour '0' should be '12'
-    return `${hours}:${minutes} ${ampm}`;
-  };
 
   const defaultDateValue = initialDate ? formatDateToYYYYMMDD(initialDate) : "";
 
@@ -102,9 +79,9 @@ const ScheduleSessionModal = ({ isOpen, onClose, initialDate }) => {
       data: {
         clinical_case_id: Number(selectedCaseId),
         session_type: sessionType,
-        session_date: convertDateToDDMMYYYY(sessionDate),
-        start_time: convertTime24To12(startTime),
-        end_time: convertTime24To12(endTime),
+        session_date: formatDateToDDMMYYYY(sessionDate),
+        start_time: formatTo12Hour(startTime),
+        end_time: formatTo12Hour(endTime),
         location: locationValue,
         session_notes: notes,
       },
@@ -215,14 +192,15 @@ const ScheduleSessionModal = ({ isOpen, onClose, initialDate }) => {
               <div className="relative">
                 <Clock
                   size={18}
-                  className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400"
+                  className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
                 />
                 <input
                   type="time"
                   value={startTime}
                   onChange={(e) => setStartTime(e.target.value)}
+                  onClick={(e) => e.target.showPicker?.()}
                   placeholder="9:00 AM"
-                  className="w-full bg-[#F4F4F4] rounded-xl p-4 pl-12 text-[15px] text-[#3A331E] outline-none border border-transparent focus:border-[#FFBB03] transition-all"
+                  className="w-full bg-[#F4F4F4] rounded-xl p-4 pl-12 text-[15px] text-[#3A331E] outline-none border border-transparent focus:border-[#FFBB03] transition-all cursor-pointer"
                 />
               </div>
             </div>
@@ -233,14 +211,15 @@ const ScheduleSessionModal = ({ isOpen, onClose, initialDate }) => {
               <div className="relative">
                 <Clock
                   size={18}
-                  className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400"
+                  className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
                 />
                 <input
                   type="time"
                   value={endTime}
                   onChange={(e) => setEndTime(e.target.value)}
+                  onClick={(e) => e.target.showPicker?.()}
                   placeholder="11:00 AM"
-                  className="w-full bg-[#F4F4F4] rounded-xl p-4 pl-12 text-[15px] text-[#3A331E] outline-none border border-transparent focus:border-[#FFBB03] transition-all"
+                  className="w-full bg-[#F4F4F4] rounded-xl p-4 pl-12 text-[15px] text-[#3A331E] outline-none border border-transparent focus:border-[#FFBB03] transition-all cursor-pointer"
                 />
               </div>
             </div>

@@ -1,6 +1,7 @@
 import React from "react";
 import { X, Clock, CheckCircle2 } from "lucide-react";
 import SignaturePad from "./SignaturePad";
+import { formatTo24Hour, formatTo12Hour } from "@/utils/timeUtils";
 
 const ClockOutModal = ({
   isOpen,
@@ -97,14 +98,16 @@ const ClockOutModal = ({
                 <div className="relative">
                   <Clock
                     size={16}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
+                    className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
                   />
                   <input
-                    type="text"
-                    value={actualStartTime || ""}
-                    onChange={(e) => setActualStartTime?.(e.target.value)}
-                    placeholder="e.g. 9:00 AM"
-                    className="w-full bg-white border border-gray-200 pl-11 pr-4 py-3.5 rounded-xl text-Third font-bold text-[15px] focus:outline-none focus:border-Secondary transition-all shadow-sm"
+                    type="time"
+                    value={formatTo24Hour(actualStartTime)}
+                    onChange={(e) =>
+                      setActualStartTime?.(formatTo12Hour(e.target.value))
+                    }
+                    onClick={(e) => e.target.showPicker?.()}
+                    className="w-full bg-white border border-gray-200 pl-11 pr-4 py-3.5 rounded-xl text-Third font-bold text-[15px] focus:outline-none focus:border-Secondary transition-all shadow-sm cursor-pointer"
                   />
                 </div>
               </div>
@@ -117,14 +120,16 @@ const ClockOutModal = ({
                 <div className="relative">
                   <Clock
                     size={16}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
+                    className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
                   />
                   <input
-                    type="text"
-                    value={actualEndTime || ""}
-                    onChange={(e) => setActualEndTime?.(e.target.value)}
-                    placeholder="e.g. 10:00 AM"
-                    className="w-full bg-white border border-gray-200 pl-11 pr-4 py-3.5 rounded-xl text-Third font-bold text-[15px] focus:outline-none focus:border-Secondary transition-all shadow-sm"
+                    type="time"
+                    value={formatTo24Hour(actualEndTime)}
+                    onChange={(e) =>
+                      setActualEndTime?.(formatTo12Hour(e.target.value))
+                    }
+                    onClick={(e) => e.target.showPicker?.()}
+                    className="w-full bg-white border border-gray-200 pl-11 pr-4 py-3.5 rounded-xl text-Third font-bold text-[15px] focus:outline-none focus:border-Secondary transition-all shadow-sm cursor-pointer"
                   />
                 </div>
               </div>

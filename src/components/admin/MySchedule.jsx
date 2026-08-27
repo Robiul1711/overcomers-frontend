@@ -22,8 +22,18 @@ const DAY_NAMES = [
 ];
 const DAY_ABBR = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const MONTH_NAMES = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December",
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
 ];
 
 const generateWeekDays = () => {
@@ -50,15 +60,13 @@ const generateWeekDays = () => {
 const mapSessionsToDays = (
   scheduleData,
   sessionStatuses,
-  sessionSubmittedAts = {}
+  sessionSubmittedAts = {},
 ) => {
   const weekDays = generateWeekDays();
   if (!scheduleData) return weekDays;
 
   scheduleData.forEach((item) => {
-    const matchingDay = weekDays.find(
-      (d) => d.dayFull === item.day_of_week,
-    );
+    const matchingDay = weekDays.find((d) => d.dayFull === item.day_of_week);
     if (matchingDay) {
       const status = sessionStatuses[item.id] || item.status || "Upcoming";
       const submitted_at =
@@ -136,12 +144,15 @@ const MySchedule = () => {
       mapSessionsToDays(
         schedulesData?.data,
         sessionStatuses,
-        sessionSubmittedAts
+        sessionSubmittedAts,
       ),
     [schedulesData, sessionStatuses, sessionSubmittedAts],
   );
 
-  const weekLabel = useMemo(() => getWeekLabel(weeklySessions), [weeklySessions]);
+  const weekLabel = useMemo(
+    () => getWeekLabel(weeklySessions),
+    [weeklySessions],
+  );
 
   // Session start mutation
   const { mutate: startSession, isPending: isStarting } = useMutationClient({
@@ -198,9 +209,11 @@ const MySchedule = () => {
         },
         (error) => {
           console.error("Error obtaining geolocation:", error);
-          toast.warn("Could not retrieve current location. Please allow location permissions.");
+          toast.warn(
+            "Could not retrieve current location. Please allow location permissions.",
+          );
         },
-        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
       );
     } else {
       toast.warn("Geolocation is not supported by this browser.");

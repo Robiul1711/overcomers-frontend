@@ -57,7 +57,11 @@ const generateWeekDays = () => {
   return days;
 };
 
-const mapSessionsToDays = (scheduleData, sessionStatuses, sessionSubmittedAts = {}) => {
+const mapSessionsToDays = (
+  scheduleData,
+  sessionStatuses,
+  sessionSubmittedAts = {},
+) => {
   const weekDays = generateWeekDays();
   if (!scheduleData) return weekDays;
 
@@ -140,12 +144,15 @@ const SupervisorMySchedule = () => {
       mapSessionsToDays(
         schedulesData?.data,
         sessionStatuses,
-        sessionSubmittedAts
+        sessionSubmittedAts,
       ),
-    [schedulesData, sessionStatuses, sessionSubmittedAts]
+    [schedulesData, sessionStatuses, sessionSubmittedAts],
   );
 
-  const weekLabel = useMemo(() => getWeekLabel(weeklySessions), [weeklySessions]);
+  const weekLabel = useMemo(
+    () => getWeekLabel(weeklySessions),
+    [weeklySessions],
+  );
 
   // Session start mutation for supervisor
   const { mutate: startSession, isPending: isStarting } = useMutationClient({
@@ -205,10 +212,10 @@ const SupervisorMySchedule = () => {
         (error) => {
           console.error("Error obtaining geolocation:", error);
           toast.warn(
-            "Could not retrieve current location. Please allow location permissions."
+            "Could not retrieve current location. Please allow location permissions.",
           );
         },
-        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
       );
     } else {
       toast.warn("Geolocation is not supported by this browser.");
@@ -278,7 +285,7 @@ const SupervisorMySchedule = () => {
           }));
           setShowClockInModal(false);
         },
-      }
+      },
     );
   };
 
@@ -330,7 +337,7 @@ const SupervisorMySchedule = () => {
           setShowClockOutModal(false);
           setSessionNotes("");
         },
-      }
+      },
     );
   };
 

@@ -1,4 +1,5 @@
 import React from "react";
+import dayjs from "dayjs";
 import { X, Clock, CheckCircle2 } from "lucide-react";
 import SignaturePad from "./SignaturePad";
 import { formatTo24Hour, formatTo12Hour } from "@/utils/timeUtils";
@@ -43,17 +44,15 @@ const ClockOutModal = ({
           </div>
 
           <div className="flex items-center gap-3 ml-auto">
-            {submissionTime && (
-              <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 border border-gray-100 rounded-xl text-gray-500 font-semibold text-[11px] sm:text-[12px] shadow-sm">
-                <Clock size={13} className="text-Secondary/60 shrink-0" />
-                <span>
-                  Submitted at:{" "}
-                  <strong className="text-Third font-bold">
-                    {submissionTime}
-                  </strong>
-                </span>
-              </div>
-            )}
+            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 border border-gray-100 rounded-xl text-gray-500 font-semibold text-[11px] sm:text-[12px] shadow-sm">
+              <Clock size={13} className="text-Secondary/60 shrink-0" />
+              <span>
+                Submitted at:{" "}
+                <strong className="text-Third font-bold">
+                  {dayjs().format("h:mm A")}
+                </strong>
+              </span>
+            </div>
             <button
               onClick={onClose}
               className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all active:scale-90"

@@ -12,30 +12,10 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+import { formatTimeWithZone, formatTimeOnlyWithZone } from "@/utils/timeUtils";
 
 const formatTime = (timeStr, customTz) => {
-  if (!timeStr) return "—";
-  try {
-    const dateStr = timeStr.includes("T") ? timeStr : timeStr.replace(" ", "T");
-    const date = new Date(dateStr);
-    if (isNaN(date.getTime())) return timeStr;
-
-    const options = {
-      hour: "numeric",
-      minute: "2-digit",
-      timeZoneName: "short",
-    };
-
-    if (customTz) {
-      try {
-        options.timeZone = customTz;
-      } catch {}
-    }
-
-    return date.toLocaleString("en-US", options);
-  } catch (e) {
-    return timeStr;
-  }
+  return formatTimeWithZone(timeStr, customTz);
 };
 
 const CustomTooltip = ({ active, payload }) => {
@@ -275,23 +255,7 @@ const NotesReportsTab = ({
     document.body.removeChild(link);
   };
   const formatTime = (timeStr) => {
-    if (!timeStr) return "";
-    try {
-      const dateObj = new Date(timeStr.replace(" ", "T"));
-      if (isNaN(dateObj.getTime())) {
-        const parts = timeStr.split(" ");
-        if (parts.length > 1) {
-          const timeParts = parts[1].split(":");
-          if (timeParts.length > 1) {
-            return `${timeParts[0]}:${timeParts[1]}`;
-          }
-        }
-        return timeStr;
-      }
-      return dateObj.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: true });
-    } catch (e) {
-      return timeStr;
-    }
+    return formatTimeOnlyWithZone(timeStr);
   };
 
   return (

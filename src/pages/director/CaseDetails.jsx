@@ -43,6 +43,7 @@ import {
 } from "recharts";
 import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
+import { formatTimeOnlyWithZone } from "@/utils/timeUtils";
 
 const DAY_NAMES = [
   "Sunday",
@@ -88,23 +89,7 @@ const CustomTooltip = ({ active, payload }) => {
 };
 
 const formatTime = (timeStr) => {
-  if (!timeStr) return "";
-  try {
-    const dateObj = new Date(timeStr.replace(" ", "T"));
-    if (isNaN(dateObj.getTime())) {
-      const parts = timeStr.split(" ");
-      if (parts.length > 1) {
-        const timeParts = parts[1].split(":");
-        if (timeParts.length > 1) {
-          return `${timeParts[0]}:${timeParts[1]}`;
-        }
-      }
-      return timeStr;
-    }
-    return dateObj.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: true });
-  } catch (e) {
-    return timeStr;
-  }
+  return formatTimeOnlyWithZone(timeStr);
 };
 
 const periodValueMap = {

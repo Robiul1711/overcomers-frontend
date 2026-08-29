@@ -3,6 +3,7 @@ import { Search, ChevronDown, Check, Calendar, MapPin, Clock, FileText } from "l
 import { Link } from "react-router-dom";
 import TableSkeleton from "@/components/common/TableSkeleton";
 import useClient from "@/hooks/useClient";
+import { formatTimeOnlyWithZone } from "@/utils/timeUtils";
 
 const DirectorMasterSchedule = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -59,23 +60,7 @@ const DirectorMasterSchedule = () => {
   };
 
   const formatTime = (timeStr) => {
-    if (!timeStr) return "";
-    try {
-      const dateObj = new Date(timeStr.replace(" ", "T"));
-      if (isNaN(dateObj.getTime())) {
-        const parts = timeStr.split(" ");
-        if (parts.length > 1) {
-          const timeParts = parts[1].split(":");
-          if (timeParts.length > 1) {
-            return `${timeParts[0]}:${timeParts[1]}`;
-          }
-        }
-        return timeStr;
-      }
-      return dateObj.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: true });
-    } catch (e) {
-      return timeStr;
-    }
+    return formatTimeOnlyWithZone(timeStr);
   };
 
   return (

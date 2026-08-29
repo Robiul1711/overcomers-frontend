@@ -36,7 +36,7 @@ const Navbar = () => {
   };
   const dashboardPath = getDashboardPath(userType);
 
-  const { data: profileData } = useClient({
+  const { data: profileData, isLoading: isProfileLoading } = useClient({
     queryKey: [`${userType}Profile`, token],
     url: `/${userType}/profile`,
     enabled: isAuthenticated && !!userType && !!token,
@@ -44,10 +44,11 @@ const Navbar = () => {
 
   const profile = userType === "parent"
     ? profileData?.data
-    : profileData?.data?.personal_information;
+    : (profileData?.data?.personal_information || profileData?.data);
 
-  const initials = profile?.full_name || profile?.name
-    ? (profile?.full_name || profile?.name).split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()
+  const fullName = profile?.full_name || profile?.name || "";
+  const initials = fullName
+    ? fullName.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()
     : "U";
 
   const [isScrolled, setIsScrolled] = useState(false);
@@ -150,48 +151,58 @@ const Navbar = () => {
             {isAuthenticated ? (
               /* User Dropdown when logged in */
               <div className="relative hidden lg:block" ref={userMenuRef}>
-                <button
-                  onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                  className={`flex items-center gap-2 rounded-lg px-2 py-1 transition-all group ${
-                    isScrolled
-                      ? "bg-gray-100 hover:bg-gray-200 border border-gray-200"
-                      : "bg-white/10 hover:bg-white/20 border border-white/20"
-                  }`}
-                >
-                  {profile?.profile_picture ? (
-                    <img
-                      src={profile.profile_picture}
-                      alt={profile?.full_name || profile?.name || "User"}
-                      className="w-7 h-7 md:w-8 md:h-8 rounded-full object-cover border-2 border-white shadow-sm"
-                    />
-                  ) : (
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
-                      isScrolled
-                        ? "bg-[#800000] text-white"
-                        : "bg-white/20 text-white"
-                    }`}>
-                      {initials}
-                    </div>
-                  )}
-                  <span className={`hidden md:block text-sm font-medium max-w-[100px] truncate ${
-                    isScrolled ? "text-gray-700" : "text-white"
+                {isProfileLoading || !profile ? (
+                  <div className={`flex items-center gap-2 rounded-lg px-2.5 py-1.5 animate-pulse ${
+                    isScrolled ? "bg-gray-100 border border-gray-200" : "bg-white/10 border border-white/20"
                   }`}>
-                    {profile?.full_name || profile?.name || "Users Role......"}
-                  </span>
-                  <ChevronDown
-                    size={14}
-                    className={`transition-transform duration-200 ${
-                      isScrolled ? "text-gray-500" : "text-white/70"
-                    } ${isUserMenuOpen ? "rotate-180" : ""}`}
-                  />
-                </button>
+                    <div className={`w-7 h-7 md:w-8 md:h-8 rounded-full ${isScrolled ? "bg-gray-300" : "bg-white/20"}`} />
+                    <div className={`hidden md:block w-20 h-4 rounded ${isScrolled ? "bg-gray-300" : "bg-white/20"}`} />
+                    <div className={`w-3.5 h-3.5 rounded ${isScrolled ? "bg-gray-300" : "bg-white/20"}`} />
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                    className={`flex items-center gap-2 rounded-lg px-2 py-1 transition-all group ${
+                      isScrolled
+                        ? "bg-gray-100 hover:bg-gray-200 border border-gray-200"
+                        : "bg-white/10 hover:bg-white/20 border border-white/20"
+                    }`}
+                  >
+                    {profile?.profile_picture ? (
+                      <img
+                        src={profile.profile_picture}
+                        alt={fullName}
+                        className="w-7 h-7 md:w-8 md:h-8 rounded-full object-cover border-2 border-white shadow-sm"
+                      />
+                    ) : (
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
+                        isScrolled
+                          ? "bg-[#800000] text-white"
+                          : "bg-white/20 text-white"
+                      }`}>
+                        {initials}
+                      </div>
+                    )}
+                    <span className={`hidden md:block text-sm font-medium max-w-[100px] truncate ${
+                      isScrolled ? "text-gray-700" : "text-white"
+                    }`}>
+                      {fullName}
+                    </span>
+                    <ChevronDown
+                      size={14}
+                      className={`transition-transform duration-200 ${
+                        isScrolled ? "text-gray-500" : "text-white/70"
+                      } ${isUserMenuOpen ? "rotate-180" : ""}`}
+                    />
+                  </button>
+                )}
 
-                {isUserMenuOpen && (
+                {isUserMenuOpen && profile && (
                   <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-100 py-2 animate-in fade-in zoom-in-95 duration-200 origin-top-right">
                     {/* User Info */}
                     <div className="px-4 py-3 border-b border-gray-100">
                       <p className="text-sm font-bold text-[#2D2D2D] truncate">
-                        {profile?.full_name || profile?.name || "User"}
+                        {fullName}
                       </p>
                       <p className="text-xs text-[#9CA3AF] truncate mt-0.5">
                         {profile?.email || ""}

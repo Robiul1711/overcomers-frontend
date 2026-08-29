@@ -77,12 +77,13 @@ const ParentSidebar = ({ open, setOpen, isCollapsed, setIsCollapsed }) => {
         </button>
 
         {/* Logo */}
-        <Link to={"/"} className="flex justify-center items-center mt-4 mb-2 transition-all duration-300">
+        <Link to={"/"} className="flex justify-center items-center mt-2 mb-2 shrink-0 h-28 md:h-36 w-full transition-all duration-300">
           {!isCollapsed ? (
              <img 
                src={ImageProvider.Logo} 
                alt="Overcomers Logo" 
-               className="md:w-36 w-[80px] sm:w-24 h-auto object-contain transition-all duration-300" 
+               className="w-24 h-24 md:w-36 md:h-36 object-contain transition-all duration-300" 
+               loading="eager"
              />
           ) : (
             <div className="w-11 h-11 bg-Primary rounded-xl flex items-center justify-center text-Third font-bold text-xl shadow-sm">
@@ -138,7 +139,7 @@ const ParentNavbar = ({ setOpen }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const { data: profileData } = useClient({
+  const { data: profileData, isLoading: isProfileLoading } = useClient({
     queryKey: ["parentProfile"],
     url: "/parent/profile",
   });
@@ -151,8 +152,9 @@ const ParentNavbar = ({ setOpen }) => {
   const profile = profileData?.data;
   const unreadCount = notifData?.data?.unread_count ?? 0;
 
-  const initials = profile?.name
-    ? profile.name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()
+  const fullName = profile?.name || "";
+  const initials = fullName
+    ? fullName.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()
     : "U";
 
   const handleLogout = () => {
@@ -268,40 +270,47 @@ const ParentNavbar = ({ setOpen }) => {
 
         {/* User Avatar Dropdown */}
         <div className="relative" ref={userMenuRef}>
-          
-          <button
-            onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-            className="flex items-center gap-2 bg-white border border-[#E5E7EB] hover:border-[#800000]/30 hover:shadow-sm rounded-lg px-2 py-1  transition-all group"
-          >
-            {profile?.profile_picture ? (
-              <img
-                src={profile.profile_picture}
-                alt={profile.name}
-                className="w-7 h-7 md:w-8 md:h-8 rounded-full object-cover border-2 border-white shadow-sm"
+          {isProfileLoading || !profile ? (
+            <div className="flex items-center gap-2 bg-white border border-[#E5E7EB] rounded-lg px-2 py-1.5 animate-pulse shadow-sm">
+              <div className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-gray-200" />
+              <div className="hidden md:block w-20 h-4 bg-gray-200 rounded-md" />
+              <div className="w-3.5 h-3.5 bg-gray-100 rounded" />
+            </div>
+          ) : (
+            <button
+              onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+              className="flex items-center gap-2 bg-white border border-[#E5E7EB] hover:border-[#800000]/30 hover:shadow-sm rounded-lg px-2 py-1 transition-all group"
+            >
+              {profile?.profile_picture ? (
+                <img
+                  src={profile.profile_picture}
+                  alt={fullName}
+                  className="w-7 h-7 md:w-8 md:h-8 rounded-full object-cover border-2 border-white shadow-sm"
+                />
+              ) : (
+                <div className="w-7 h-7 md:w-8 md:h-8 bg-[#800000] rounded-full flex items-center justify-center text-white text-xs md:text-sm font-bold shadow-sm">
+                  {initials}
+                </div>
+              )}
+              <span className="hidden md:block text-sm font-medium text-[#2D2D2D] max-w-[100px] truncate group-hover:text-[#800000] transition-colors">
+                {fullName}
+              </span>
+              <ChevronDown
+                size={14}
+                className={`text-[#9CA3AF] transition-transform duration-200 ${
+                  isUserMenuOpen ? "rotate-180" : ""
+                }`}
               />
-            ) : (
-              <div className="w-7 h-7 md:w-8 md:h-8 bg-[#800000] rounded-full flex items-center justify-center text-white text-xs md:text-sm font-bold shadow-sm">
-                {initials}
-              </div>
-            )}
-            <span className="hidden md:block text-sm font-medium text-[#2D2D2D] max-w-[100px] truncate group-hover:text-[#800000] transition-colors">
-              {profile?.name || "User"}
-            </span>
-            <ChevronDown
-              size={14}
-              className={`text-[#9CA3AF] transition-transform duration-200 ${
-                isUserMenuOpen ? "rotate-180" : ""
-              }`}
-            />
-          </button>
+            </button>
+          )}
 
           {/* Dropdown Menu */}
-          {isUserMenuOpen && (
+          {isUserMenuOpen && profile && (
             <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-100 py-2 animate-in fade-in zoom-in-95 duration-200 origin-top-right">
               {/* User Info */}
               <div className="px-4 py-3 border-b border-gray-100">
                 <p className="text-sm font-bold text-[#2D2D2D] truncate">
-                  {profile?.name || "User"}
+                  {fullName}
                 </p>
                 <p className="text-xs text-[#9CA3AF] truncate mt-0.5">
                   {profile?.email || ""}

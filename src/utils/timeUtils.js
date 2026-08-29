@@ -79,6 +79,82 @@ export const formatDateToDDMMYYYY = (dateStr) => {
 };
 
 /**
+ * Default system timezone (US Eastern Time)
+ */
+export const DEFAULT_TIMEZONE = "America/New_York";
+export const DEFAULT_TIMEZONE_LABEL = "EST";
+
+/**
+ * Format any datetime into US Eastern Time (EST)
+ * e.g. "Aug 27, 2026, 4:58 AM EST"
+ * @param {string|Date} timeStr 
+ * @param {string} customTz 
+ * @returns {string}
+ */
+export const formatTimeWithZone = (timeStr, customTz) => {
+  if (!timeStr) return "—";
+  try {
+    const str = String(timeStr).trim();
+    const dateStr = str.includes("T") ? str : str.replace(" ", "T");
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return timeStr;
+
+    const tz = customTz && customTz !== "Asia/Dhaka" ? customTz : DEFAULT_TIMEZONE;
+    const options = {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      timeZone: tz,
+      timeZoneName: "short",
+    };
+
+    let formatted = date.toLocaleString("en-US", options);
+    // Replace EDT with EST per client specification
+    formatted = formatted.replace(/\bEDT\b/g, "EST");
+    return formatted;
+  } catch (e) {
+    return timeStr;
+  }
+};
+
+/**
+ * Format time only in US Eastern Time (EST)
+ * e.g. "04:58 AM"
+ * @param {string|Date} timeStr 
+ * @param {string} customTz 
+ * @returns {string}
+ */
+export const formatTimeOnlyWithZone = (timeStr, customTz) => {
+  if (!timeStr) return "";
+  try {
+    const str = String(timeStr).trim();
+    const dateStr = str.includes("T") ? str : str.replace(" ", "T");
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) {
+      const parts = str.split(" ");
+      if (parts.length > 1) {
+        const timeParts = parts[1].split(":");
+        if (timeParts.length > 1) {
+          return `${timeParts[0]}:${timeParts[1]}`;
+        }
+      }
+      return timeStr;
+    }
+    const tz = customTz && customTz !== "Asia/Dhaka" ? customTz : DEFAULT_TIMEZONE;
+    return date.toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+      timeZone: tz,
+    });
+  } catch (e) {
+    return timeStr;
+  }
+};
+
+/**
  * Convert Date / object to YYYY-MM-DD for <input type="date" />
  * @param {string|Date} date 
  * @returns {string}

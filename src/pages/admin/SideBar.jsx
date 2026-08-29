@@ -57,12 +57,13 @@ const SideBar = ({ sidebar, open, setOpen, isCollapsed, setIsCollapsed }) => {
         </button>
 
         {/* Logo */}
-        <Link to={"/"} className="flex justify-center items-center mt-4 mb-2 transition-all duration-300">
+        <Link to={"/"} className="flex justify-center items-center mt-2 mb-2 shrink-0 h-28 md:h-36 w-full transition-all duration-300">
           {!isCollapsed ? (
              <img 
                src={ImageProvider.Logo} 
                alt="Overcomers Logo" 
-               className="md:w-36 w-[80px] sm:w-24 h-auto object-contain transition-all duration-300" 
+               className="w-24 h-24 md:w-36 md:h-36 object-contain transition-all duration-300" 
+               loading="eager"
              />
           ) : (
             <div className="w-11 h-11 bg-Primary rounded-xl flex items-center justify-center text-Third font-bold text-xl shadow-sm">

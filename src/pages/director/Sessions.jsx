@@ -31,6 +31,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { formatTimeWithZone, DEFAULT_TIMEZONE_LABEL } from "@/utils/timeUtils";
 
 const Sessions = () => {
   const [expandedRows, setExpandedRows] = useState({});
@@ -145,33 +146,7 @@ const Sessions = () => {
   };
 
   const formatTime = (timeStr, customTz) => {
-    if (!timeStr) return "—";
-    try {
-      const dateStr = timeStr.includes("T") ? timeStr : timeStr.replace(" ", "T");
-      const date = new Date(dateStr);
-      if (isNaN(date.getTime())) return timeStr;
-
-      const options = {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-        hour: "numeric",
-        minute: "2-digit",
-        timeZoneName: "short",
-      };
-
-      if (customTz) {
-        try {
-          options.timeZone = customTz;
-        } catch {
-          // fallback if invalid timezone string
-        }
-      }
-
-      return date.toLocaleString("en-US", options);
-    } catch (e) {
-      return timeStr;
-    }
+    return formatTimeWithZone(timeStr, customTz);
   };
 
   const calculateDuration = (startTime, endTime) => {
@@ -487,11 +462,15 @@ const Sessions = () => {
                                     <div className="flex items-center justify-between border-b border-gray-50 pb-2">
                                       <span className="font-bold text-gray-400">Timezone:</span>
                                       <span className="font-bold text-Secondary bg-Secondary/10 px-2 py-0.5 rounded-md text-[11px]">
-                                        {item?.schedule?.time_zone ||
-                                          item?.time_zone ||
-                                          item?.timezone ||
-                                          item?.schedule?.clinical_case?.timezone ||
-                                          Intl.DateTimeFormat().resolvedOptions().timeZone}
+                                        {(item?.schedule?.time_zone && item?.schedule?.time_zone !== "Asia/Dhaka")
+                                          ? item.schedule.time_zone
+                                          : (item?.time_zone && item?.time_zone !== "Asia/Dhaka")
+                                          ? item.time_zone
+                                          : (item?.timezone && item?.timezone !== "Asia/Dhaka")
+                                          ? item.timezone
+                                          : (item?.schedule?.clinical_case?.timezone && item?.schedule?.clinical_case?.timezone !== "Asia/Dhaka")
+                                          ? item.schedule.clinical_case.timezone
+                                          : DEFAULT_TIMEZONE_LABEL}
                                       </span>
                                     </div>
                                     <div className="flex items-center justify-between">

@@ -3,52 +3,27 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Autoplay, Pagination } from 'swiper/modules';
 import { ChevronLeft, ChevronRight, Star, ArrowUpRight } from 'lucide-react';
 import { motion } from 'motion/react';
-import dummy from '@/assets/images/dummy.png'
+import defaultAvatar from '@/assets/images/default-avatar.svg';
 // Import Swiper styles
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import { Link } from 'react-router-dom';
 
-const reviews = [
-  {
-    id: 1,
-    name: "Constance Akhimien",
-    time: "2 years ago",
-    content: "Hands down the best ABA agency I've worked with for my kiddos! Overcomers' dedication and commitment shine through in every aspect. Their BCBAs, like Jessica, are passionate about helping children reach their full potential. The RBTs are knowledgeable, caring, and genuinely invested in the kids' growth. Special shoutout to Stephanie for exceptional support behind the scenes! I'm forever grateful and highly recommend Overcomers to any family seeking top-notch ABA services 💕💙",
-    avatar: dummy,
-    rating: 5
-  },
-  {
-    id: 2,
-    name: "Sarah Jenkins",
-    time: "1 year ago",
-    content: "We have had a wonderful experience with Overcomers. The therapists are so patient and truly care about my son's progress. Communication with the team is excellent, and we've seen remarkable improvements in his daily living skills and communication. I highly recommend their in-home ABA services!",
-    avatar: dummy,
-    rating: 5
-  },
-  {
-    id: 3,
-    name: "Michael Thompson",
-    time: "8 months ago",
-    content: "The support our family has received from Overcomers has been incredible. Not only do they provide excellent therapy for our daughter, but their parent training sessions have empowered us with strategies we can use every day. Very grateful for this amazing team of professionals.",
-    avatar: dummy,
-    rating: 5
-  }
-];
 
 const ClientReviews = ({ data }) => {
   const [isBeginning, setIsBeginning] = useState(true);
   const [isEnd, setIsEnd] = useState(false);
   const swiperRef = useRef(null);
 
+  console.log(data)
   const staticReviews = [
     {
       id: 1,
       name: "Constance Akhimien",
       time: "2 years ago",
       content: "Hands down the best ABA agency I've worked with for my kiddos! Overcomers' dedication and commitment shine through in every aspect. Their BCBAs, like Jessica, are passionate about helping children reach their full potential. The RBTs are knowledgeable, caring, and genuinely invested in the kids' growth. Special shoutout to Stephanie for exceptional support behind the scenes! I'm forever grateful and highly recommend Overcomers to any family seeking top-notch ABA services 💕💙",
-      avatar: dummy,
+      avatar: defaultAvatar,
       rating: 5
     },
     {
@@ -56,7 +31,7 @@ const ClientReviews = ({ data }) => {
       name: "Sarah Jenkins",
       time: "1 year ago",
       content: "We have had a wonderful experience with Overcomers. The therapists are so patient and truly care about my son's progress. Communication with the team is excellent, and we've seen remarkable improvements in his daily living skills and communication. I highly recommend their in-home ABA services!",
-      avatar: dummy,
+      avatar: defaultAvatar,
       rating: 5
     },
     {
@@ -64,7 +39,7 @@ const ClientReviews = ({ data }) => {
       name: "Michael Thompson",
       time: "8 months ago",
       content: "The support our family has received from Overcomers has been incredible. Not only do they provide excellent therapy for our daughter, but their parent training sessions have empowered us with strategies we can use every day. Very grateful for this amazing team of professionals.",
-      avatar: dummy,
+      avatar: defaultAvatar,
       rating: 5
     }
   ];
@@ -75,7 +50,7 @@ const ClientReviews = ({ data }) => {
         name: r.name,
         time: r.time,
         content: r.text || r.content,
-        avatar: r.avatar || dummy,
+        avatar: r.avatar || defaultAvatar,
         rating: parseInt(r.rating) || 5
       }))
     : staticReviews;
@@ -161,10 +136,15 @@ const ClientReviews = ({ data }) => {
                         <span className="text-gray-500 text-[12px] md:text-[13px]">{review.time}</span>
                       </div>
                     </div>
+                    {console.log(review)}
                     <img 
-                      src={review.avatar} 
+                      src={review.avatar || defaultAvatar} 
                       alt={review.name} 
-                      className="w-[45px] h-[45px] md:w-[50px] md:h-[50px] rounded-full object-cover border-2 border-[#F4F4F4] shrink-0 ml-4"
+                      onError={(e) => {
+                        e.currentTarget.onerror = null;
+                        e.currentTarget.src = defaultAvatar;
+                      }}
+                      className="w-[45px] h-[45px] md:w-[50px] md:h-[50px] rounded-full object-cover border-2 border-[#F4F4F4] shrink-0 ml-4 bg-[#F9F4EC]"
                     />
                   </div>
 
@@ -173,11 +153,11 @@ const ClientReviews = ({ data }) => {
                     {review.content}
                   </p>
 
-                  <div className="mt-6">
+                  {/* <div className="mt-6">
                     <button className="text-Secondary font-bold text-[12px] md:text-[13px] hover:underline underline-offset-4 decoration-Secondary/30 uppercase tracking-wider">
                       Read full review
                     </button>
-                  </div>
+                  </div> */}
 
                 </div>
               </SwiperSlide>
